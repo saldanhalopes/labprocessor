@@ -640,6 +640,11 @@ app.get('/api/users/:username', async (req, res) => {
   }
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date(), uptime: process.uptime() });
+});
+
 // Fallback to index.html for SPA routing
 if (fs.existsSync(frontendDistPath)) {
   app.use((req, res, next) => {
@@ -653,10 +658,14 @@ if (fs.existsSync(frontendDistPath)) {
 
 // --- SERVER INITIALIZATION ---
 async function startServer() {
-  await initDatabase();
+  console.log('[Server] Starting startup sequence...');
   const server = app.listen(PORT, API_BACKEND_HOST, () => {
-    console.log(`LabProcessor Backend listening at http://${API_BACKEND_HOST}:${PORT}`);
-    console.log(`[Server] Health check ready on port ${PORT}`);
+    console.log(`[Server] SUCCESS: Listening at http://${API_BACKEND_HOST}:${PORT}`);
+    console.log(`[Server] Environment variables present: ${Object.keys(process.env).join(', ')}`);
+    
+    initDatabase()
+      .then(() => console.log('[Server] Database initialized successfully.'))
+      .catch(err => console.error('[Server] CRITICAL: Database initialization failed:', err));
   });
 
   // Keep the process alive

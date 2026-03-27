@@ -21,26 +21,33 @@ export async function initDatabase() {
   if (db) return db;
 
   const serviceAccountPath = path.resolve(__dirname, 'firebase-service-account.json');
-  if (!fs.existsSync(serviceAccountPath)) {
-    throw new Error('Firebase service account file not found: ' + serviceAccountPath);
-  }
+  let credential;
 
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+  if (fs.existsSync(serviceAccountPath)) {
+    console.log('[Firestore] Loading credentials from file:', serviceAccountPath);
+    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    credential = admin.credential.cert(serviceAccount);
+  } else {
+    console.log('[Firestore] Service account file not found. Using Application Default Credentials.');
+    // ADC is automatic when credential is not provided or set to undefined
+    credential = admin.credential.applicationDefault();
+  }
 
   if (!admin.apps.length) {
     app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      credential,
       storageBucket: process.env.FIREBASE_STORAGE_BUCKET
     });
-    console.log('[Firestore] Firebase Admin initialized for project:', serviceAccount.project_id);
+    console.log('[Firestore] Firebase Admin initialized.');
   } else {
     app = admin.apps[0];
   }
 
-  db = getFirestore(app, 'labprocessor');
+  db = getFirestore(app); // Default to default database or provided in app
   // Force use of specific settings if needed
   db.settings({ ignoreUndefinedProperties: true }); 
-  console.log('[Firestore] Database connected to project:', serviceAccount.project_id, 'Database:', 'labprocessor');
+  console.log('[Firestore] Database connected.');
+  return db;
   return db;
 }
 
