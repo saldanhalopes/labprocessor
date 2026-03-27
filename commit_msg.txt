@@ -1,0 +1,1 @@
+Fix deployment: set PORT/HOST, serve static files, and add start scripts

@@ -43,8 +43,15 @@ app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "50mb"}));
 app.use(cors());
 app.use('/images', express.static('data/images'));
 
-const PORT = process?.env?.API_BACKEND_PORT || 5000;
-const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "127.0.0.1";
+// Serve frontend static files
+const frontendDistPath = path.join(process.cwd(), '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDistPath)) {
+  console.log(`[Server] Serving frontend from ${frontendDistPath}`);
+  app.use(express.static(frontendDistPath));
+}
+
+const PORT = process?.env?.PORT || process?.env?.API_BACKEND_PORT || 8080;
+const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "0.0.0.0";
 
 const GOOGLE_CLOUD_LOCATION = process?.env?.GOOGLE_CLOUD_LOCATION;
 const GOOGLE_CLOUD_PROJECT = process?.env?.GOOGLE_CLOUD_PROJECT;
@@ -622,6 +629,15 @@ app.get('/api/users/:username', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar usuário' });
   }
 });
+
+// Fallback to index.html for SPA routing
+if (fs.existsSync(frontendDistPath)) {
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
+    }
+  });
+}
 
 // --- SERVER INITIALIZATION ---
 async function startServer() {
