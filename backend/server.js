@@ -632,9 +632,11 @@ app.get('/api/users/:username', async (req, res) => {
 
 // Fallback to index.html for SPA routing
 if (fs.existsSync(frontendDistPath)) {
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
       res.sendFile(path.join(frontendDistPath, 'index.html'));
+    } else {
+      next();
     }
   });
 }
