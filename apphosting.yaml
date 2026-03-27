@@ -1,0 +1,14 @@
+# apphosting.yaml
+runtime: nodejs20
+
+# Optional: Configuration for the build process
+buildConfig:
+  # The directory containing the app to build, relative to the repository root.
+  # We use the root since this is a monorepo.
+  appRoot: ./
+
+# Optional: Configuration for the run process
+runConfig:
+  # The command to start the application.
+  # Firebase App Hosting will run this command to start your server.
+  runCommand: npm start
