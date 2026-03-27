@@ -12,3 +12,7 @@ runConfig:
   # The command to start the application.
   # Firebase App Hosting will run this command to start your server.
   runCommand: npm start
+
+# Optional: Environment-specific configuration
+environments:
+  - name: prod
