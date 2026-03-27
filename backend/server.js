@@ -12,6 +12,11 @@ import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.join(__dirname, '..');
 // Database selection
 const DB_TYPE = process.env.DATABASE_TYPE || 'sqlite'; 
 let dbLayer;
@@ -41,17 +46,22 @@ import { handleChatMessage } from './chat.js';
 const app = express();
 app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "50mb"}));
 app.use(cors());
-app.use('/images', express.static('data/images'));
+app.use('/images', express.static(path.join(ROOT_DIR, 'backend', 'data', 'images')));
 
 // Serve frontend static files
-const frontendDistPath = path.join(process.cwd(), '..', 'frontend', 'dist');
+const frontendDistPath = path.join(ROOT_DIR, 'frontend', 'dist');
+console.log(`[Server] Checking for frontend at: ${frontendDistPath}`);
 if (fs.existsSync(frontendDistPath)) {
-  console.log(`[Server] Serving frontend from ${frontendDistPath}`);
+  console.log(`[Server] Found frontend dist folder. Serving static files.`);
   app.use(express.static(frontendDistPath));
+} else {
+  console.warn(`[Server] Warning: Frontend dist folder NOT found at ${frontendDistPath}`);
 }
 
 const PORT = process?.env?.PORT || process?.env?.API_BACKEND_PORT || 8080;
 const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "0.0.0.0";
+
+console.log(`[Server] Configuration: PORT=${PORT}, HOST=${API_BACKEND_HOST}`);
 
 const GOOGLE_CLOUD_LOCATION = process?.env?.GOOGLE_CLOUD_LOCATION;
 const GOOGLE_CLOUD_PROJECT = process?.env?.GOOGLE_CLOUD_PROJECT;
@@ -646,7 +656,7 @@ async function startServer() {
   await initDatabase();
   const server = app.listen(PORT, API_BACKEND_HOST, () => {
     console.log(`LabProcessor Backend listening at http://${API_BACKEND_HOST}:${PORT}`);
-    console.log(`[SQLite] Database API available at http://${API_BACKEND_HOST}:${PORT}/api/results`);
+    console.log(`[Server] Health check ready on port ${PORT}`);
   });
 
   // Keep the process alive

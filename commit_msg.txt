@@ -1,1 +1,1 @@
-Fix Express 5 wildcard routing to prevent server crash
+Use robust paths and add verbose logging for deployment debugging
