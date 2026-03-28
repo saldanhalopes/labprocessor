@@ -1,1 +1,1 @@
-Remove obsolete proxy, SQLite logic and unused sample files
+Update README.md with robust project documentation

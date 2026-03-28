@@ -1,53 +1,95 @@
-# Vertex AI Studio Frontend App with Node.js Backend
+# LabProcessor Plus 🧪
 
-This repository contains a frontend and a Node.js backend, designed to run together.
-The backend acts as a proxy, handling Google Cloud API calls.
+LabProcessor Plus é uma solução completa em monorepo projetada para análise inteligente de documentos laboratoriais e métodos analíticos. Utilizando o poder do **Google Gemini API** e **RAG (Retrieval-Augmented Generation)**, o sistema permite extrair dados críticos de arquivos PDF e interagir com o conhecimento armazenado via chat contextual.
 
-This project is intended for demonstration and prototyping purposes only.
-It is not intended for use in a production environment.
+---
 
-## Prerequisites
+## 🚀 Arquitetura e Tecnologias
 
-To run this application locally, you need:
+O projeto é estruturado como um monorepo moderno:
 
-*   **[Google Cloud SDK / gcloud CLI](https://cloud.google.com/sdk/docs/install)**: Follow the instructions to install the SDK.
+- **Frontend:** React + Vite (Interface rápida, responsiva e premium).
+- **Backend:** Node.js + Express (Processamento de arquivos e orquestração de IA).
+- **Banco de Dados:** Google Cloud Firestore (NoSQL escalável).
+- **Storage:** Google Cloud Storage (Armazenamento de documentos e imagens extraídas).
+- **Inteligência Artificial:** 
+  - **Google Gemini 2.0 Flash:** Para análise de documentos e chat.
+  - **Pinecone:** Vector Database para busca semântica e RAG.
 
-*   **gcloud Initialization**:
-    *   Initialize the gcloud CLI:
-        ```bash
-        gcloud init
-        ```
-    *   Authenticate for Application Default Credentials (needed to call Google Cloud APIs):
-        ```bash
-        gcloud auth application-default login
-        ```
+---
 
-*   **Node.js and npm**: Ensure you have Node.js and its package manager, `npm`, installed on your machine.
+## ✨ Funcionalidades Principais
 
-## Project Structure
+- **Análise de Documentos:** Upload de métodos analíticos em PDF com extração automática de tabelas, reagentes, normas e equipamentos.
+- **Chat Inteligente (RAG):** Converse com seus documentos de forma contextualizada usando busca vetorial.
+- **Gestão de Usuários:** Sistema de autenticação e controle de acesso integrado ao Firestore.
+- **Cloud Native:** Totalmente preparado para o **Firebase App Hosting** e Cloud Run.
+- **Deploy Resiliente:** Startup inteligente que prioriza disponibilidade (Health Checks).
 
-The project is organized into two main directories:
+---
 
-*   `frontend/`: Contains the Frontend application code.
-*   `backend/`: Contains the Node.js/Express server code to proxy Google Cloud API calls.
+## 🛠️ Configuração e Instalação (Local)
 
-## Backend Environment Variables
+### Pré-requisitos
+- Node.js 20+
+- Google Cloud SDK (Opcional, mas recomendado para ADC)
 
-The `backend/.env.local` file is automatically generated when you download this application.
-It contains essential Google Cloud environment variables pre-configured based on your project settings at the time of download.
-
-The variables set in `backend/.env.local` are:
-*   `API_BACKEND_PORT`: The port the backend API server listens on (e.g., `5000`).
-*   `API_PAYLOAD_MAX_SIZE`: The maximum size of the request payload accepted by the backend server (e.g., `5mb`).
-*   `GOOGLE_CLOUD_LOCATION`: The Google Cloud region associated with your project.
-*   `GOOGLE_CLOUD_PROJECT`: Your Google Cloud Project ID.
-
-**Note:** These variables are automatically populated during the download process.
-You can modify the values in `backend/.env.local` if you need to change them.
-
-## Installation and Running the App
-
-To install dependencies and run your Google Cloud Vertex AI Studio App locally, execute the following command:
-
+### Instalação
+No diretório raiz do projeto:
 ```bash
-npm install && npm run dev
+npm install
+```
+
+### Variáveis de Ambiente
+Crie um arquivo `.env.local` na pasta `backend/` com as seguintes chaves:
+
+```env
+DATABASE_TYPE=firestore
+FIREBASE_STORAGE_BUCKET=seu-bucket.appspot.com
+GEMINI_API_KEY=sua_chave_gemini
+PINECONE_API_KEY=sua_chave_pinecone
+PINECONE_INDEX=seu_indice
+```
+
+### Autenticação Local
+Para acessar o Firestore/Storage localmente, coloque o arquivo `firebase-service-account.json` na pasta `backend/` ou execute:
+```bash
+gcloud auth application-default login
+```
+
+### Execução
+```bash
+# Iniciar Frontend e Backend simultaneamente
+npm run dev
+```
+
+---
+
+## 🌐 Deploy (Firebase)
+
+O projeto está configurado para o **Firebase App Hosting**. 
+
+1. O arquivo `apphosting.yaml` define o processo de build unificado.
+2. Segredos (API Keys) devem ser configurados no **Console do Firebase** em "App Hosting -> Variáveis de Ambiente".
+3. O deploy é automático via GitHub Integration.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```text
+├── backend/            # Servidor Express, IA e Camada de Dados
+├── frontend/           # Aplicação React + Vite
+├── apphosting.yaml     # Configuração de Deploy Cloud
+└── package.json        # Orquestração de scripts do monorepo
+```
+
+---
+
+## 🔒 Segurança
+
+- **Secrets:** Arquivos `.env` e chaves `.json` estão ignorados pelo Git. **Nunca** comite chaves privadas.
+- **Admin:** O sistema cria automaticamente um usuário `admin` / `admin` no primeiro startup para garantir o acesso inicial. Recomenda-se trocar a senha após o primeiro login.
+
+---
+Desenvolvido com foco em excelência laboratorial e inteligência artificial.
