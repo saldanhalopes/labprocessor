@@ -1,1 +1,1 @@
-Add database diagnostics and fix Firestore database ID
+Switch local environment to use Firestore and Firebase Storage by default

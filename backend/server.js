@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.join(__dirname, '..');
 // Database selection
-const DB_TYPE = process.env.DATABASE_TYPE || 'sqlite'; 
+const DB_TYPE = process.env.DATABASE_TYPE || 'firestore'; 
 let dbLayer;
 
 if (DB_TYPE === 'firestore') {
