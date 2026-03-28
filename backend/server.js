@@ -581,16 +581,19 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(`[Auth] Login attempt for user: ${username}`);
     const user = await verifyUser(username, password);
     
     if (user) {
+      console.log(`[Auth] SUCCESS: User ${username} logged in.`);
       res.json(user);
     } else {
+      console.warn(`[Auth] FAILED: Invalid credentials for ${username}`);
       res.status(401).json({ error: 'Usuário ou senha incorretos' });
     }
   } catch (error) {
     console.error('[API] Error in /api/auth/login:', error);
-    res.status(500).json({ error: 'Erro ao fazer login' });
+    res.status(500).json({ error: 'Erro ao fazer login - Verifique os logs do servidor' });
   }
 });
 
@@ -643,6 +646,28 @@ app.get('/api/users/:username', async (req, res) => {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date(), uptime: process.uptime() });
+});
+
+// Debug endpoint for database
+app.get('/api/debug/db', async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.json({
+      status: 'connected',
+      dbType: process.env.DATABASE_TYPE || 'sqlite',
+      userCount: users.length,
+      users: users.map(u => ({ username: u.username, isAdmin: u.isAdmin })),
+      timestamp: new Date()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      stack: error.stack,
+      dbType: process.env.DATABASE_TYPE || 'sqlite',
+      timestamp: new Date()
+    });
+  }
 });
 
 // Fallback to index.html for SPA routing

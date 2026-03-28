@@ -1,4 +1,8 @@
 # apphosting.yaml
+# CONFIGURATION FOR FIREBASE APP HOSTING
+# NOTE: DO NOT put sensitive keys or secrets here.
+# Secrets should be configured in the Firebase Console under "App Hosting -> Environment Variables".
+
 runtime: nodejs20
 
 # Optional: Configuration for the build process

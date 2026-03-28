@@ -43,10 +43,12 @@ export async function initDatabase() {
     app = admin.apps[0];
   }
 
-  db = getFirestore(app); // Default to default database or provided in app
+  // Use 'labprocessor' database ID as seen in previous logs, or default if not specified
+  const databaseId = 'labprocessor'; 
+  db = getFirestore(app, databaseId);
   // Force use of specific settings if needed
   db.settings({ ignoreUndefinedProperties: true }); 
-  console.log('[Firestore] Database connected.');
+  console.log(`[Firestore] Database connected to: ${databaseId}`);
 
   // Create initial admin user if it doesn't exist
   try {

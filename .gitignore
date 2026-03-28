@@ -9,8 +9,8 @@ dist/
 # Environment Variables & Secrets
 .env
 .env.local
-**/ .env
-**/ .env.local
+**/.env
+**/.env.local
 firebase-service-account.json
 **/firebase-service-account.json
 

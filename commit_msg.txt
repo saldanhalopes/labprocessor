@@ -1,1 +1,1 @@
-Create default admin user if missing in Firestore
+Add database diagnostics and fix Firestore database ID
