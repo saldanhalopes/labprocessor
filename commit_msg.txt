@@ -1,1 +1,1 @@
-Prioritize port listening and add health check for resilient deployment
+Create default admin user if missing in Firestore

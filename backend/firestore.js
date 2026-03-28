@@ -47,6 +47,27 @@ export async function initDatabase() {
   // Force use of specific settings if needed
   db.settings({ ignoreUndefinedProperties: true }); 
   console.log('[Firestore] Database connected.');
+
+  // Create initial admin user if it doesn't exist
+  try {
+    const adminDoc = await db.collection('users').doc('admin').get();
+    if (!adminDoc.exists) {
+      console.log('[Firestore] Creating default admin user...');
+      await db.collection('users').doc('admin').set({
+        username: 'admin',
+        password: 'admin',
+        name: 'Administrador',
+        isAdmin: true,
+        subscriptionStatus: 'active',
+        plan: 'premium',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      console.log('[Firestore] Default admin user created successfully.');
+    }
+  } catch (err) {
+    console.error('[Firestore] Error creating default admin user:', err);
+  }
+
   return db;
   return db;
 }
