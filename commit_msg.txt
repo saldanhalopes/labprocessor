@@ -1,1 +1,1 @@
-Switch local environment to use Firestore and Firebase Storage by default
+Remove obsolete proxy, SQLite logic and unused sample files
