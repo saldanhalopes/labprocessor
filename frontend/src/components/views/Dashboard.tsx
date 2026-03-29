@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare } from 'lucide-react';
+import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, Calculator, TrendingUp } from 'lucide-react';
 import { FileUpload } from '../FileUpload';
 import { ResultsView } from './ResultsView';
+import { PlanningView } from './PlanningView';
+import { SettingsView } from './SettingsView';
 import { analyzeDocument } from '../../services/geminiService';
 import { extractPdfImages } from '../../utils/pdfImages';
 import { saveToPinecone } from '../../services/pineconeService';
@@ -13,7 +15,7 @@ import { translations } from '../../utils/translations';
 import { auth } from '../../firebase';
 import { getIdToken } from 'firebase/auth';
 
-type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
+type Tab = 'dashboard' | 'upload' | 'view' | 'planning' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -25,6 +27,7 @@ interface DashboardProps {
 
 export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageChange }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  console.log("[Dashboard] Active Tab:", activeTab);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [results, setResults] = useState<AnalysisResult[]>([]);
@@ -36,17 +39,23 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
   const t = translations[language];
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('pharmaqc_settings');
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
+    const loadInitialData = async () => {
+      const savedSettings = localStorage.getItem('pharmaqc_settings');
+      if (savedSettings) setSettings(JSON.parse(savedSettings));
 
-    getResultsFromDb().then(dbResults => {
-      if (dbResults && dbResults.length > 0) {
-        setResults(dbResults);
-      }
-    }).finally(() => {
-      setIsInitialLoading(false);
-    });
-  }, []);
+      const token = user.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+
+      getResultsFromDb(token).then(dbResults => {
+        if (dbResults && dbResults.length > 0) {
+          setResults(dbResults);
+        }
+      }).finally(() => {
+        setIsInitialLoading(false);
+      });
+    };
+
+    loadInitialData();
+  }, [user]);
 
   const handleFilesSelect = async (files: File[]) => {
     setIsLoading(true);
@@ -69,7 +78,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         newResults.push(result);
 
         await saveToPinecone(result, token);
-        await saveResultToDb(result);
+        await saveResultToDb(result, token);
 
       } catch (error: any) {
         console.error(`Error processing ${file.name}:`, error);
@@ -85,20 +94,43 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     setActiveTab('view');
   };
 
-  const handleDeleteResult = (fileId: string) => {
+  const handleDeleteResult = async (fileId: string) => {
+    const token = user.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
     if (window.confirm(t.results.deleteConfirm)) {
       setResults(prev => prev.filter(r => r.fileId !== fileId));
-      deleteResultFromDb(fileId);
+      await deleteResultFromDb(fileId, token);
     }
   };
 
   const handleUpdateResult = async (updatedResult: AnalysisResult) => {
-    await updateResultInDb(updatedResult.fileId, updatedResult);
+    const token = user.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+    await updateResultInDb(updatedResult.fileId, updatedResult, token);
     setResults(prev => prev.map(r => r.fileId === updatedResult.fileId ? updatedResult : r));
+  };
+
+  const handleSaveSettings = (newSettings: GlobalSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem('pharmaqc_settings', JSON.stringify(newSettings));
+  };
+
+  const handleClearDb = async () => {
+    const token = user.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+    if (window.confirm(t.settings.clearDbConfirm)) {
+      try {
+        await clearDbResults(token);
+        setResults([]);
+        showToast(t.settings.successClear, 'success');
+      } catch (error) {
+        showToast("Erro ao limpar banco de dados", "error");
+      }
+    }
   };
 
   const tabs = [
     { id: 'dashboard', label: t.nav.dashboard, icon: BarChart3 },
+    { id: 'planning', label: t.nav.planning || 'Planejamento', icon: Calculator },
+    { id: 'reagents', label: t.nav.reagents || 'Materiais', icon: FlaskConical },
+    { id: 'charts', label: t.nav.charts || 'Gráficos', icon: TrendingUp },
     { id: 'upload', label: t.nav.upload, icon: Upload },
     { id: 'view', label: t.nav.view, icon: Eye },
     { id: 'history', label: t.nav.history, icon: History },
@@ -147,10 +179,30 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         <div className="flex-1 overflow-y-auto p-8 bg-slate-50/50">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'upload' && (
-              <FileUpload onFilesSelect={handleFilesSelect} isLoading={isLoading} progress={progress} language={language} />
+              <FileUpload onFilesSelect={handleFilesSelect} isLoading={isLoading} progress={progress} language={language} token={user.token} />
             )}
             {activeTab === 'view' && (
               <ResultsView results={results} settings={settings} language={language} onDeleteResult={handleDeleteResult} onUpdateResult={handleUpdateResult} />
+            )}
+            {activeTab === 'planning' && (
+              <PlanningView results={results} settings={settings} language={language} />
+            )}
+            {activeTab === 'reagents' && (
+               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                <FlaskConical className="w-12 h-12 text-slate-300 mb-4" />
+                <h3 className="text-xl font-bold text-slate-400 font-display">{t.nav.reagents}</h3>
+                <p className="text-slate-400 text-sm mt-1">Módulo em desenvolvimento.</p>
+              </div>
+            )}
+            {activeTab === 'charts' && (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                <TrendingUp className="w-12 h-12 text-slate-300 mb-4" />
+                <h3 className="text-xl font-bold text-slate-400 font-display">{t.nav.charts}</h3>
+                <p className="text-slate-400 text-sm mt-1">Gráficos de desempenho em breve.</p>
+              </div>
+            )}
+            {activeTab === 'settings' && (
+              <SettingsView settings={settings} onSave={handleSaveSettings} onClearDb={handleClearDb} language={language} />
             )}
           </div>
         </div>

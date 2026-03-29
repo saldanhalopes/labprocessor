@@ -145,64 +145,97 @@ Retorne APENAS um JSON válido seguindo estritamente este esquema:
 `;
 };
 
-/**
- * Handle document analysis server-side.
- */
+async function parseGeminiJson(text, fileName) {
+  let cleanedText = text.trim();
+  
+  const jsonBlockMatch = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (jsonBlockMatch) {
+    cleanedText = jsonBlockMatch[1];
+  } else {
+    const start = cleanedText.indexOf('{');
+    const end = cleanedText.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end > start) {
+      cleanedText = cleanedText.substring(start, end + 1);
+    }
+  }
+
+  try {
+    return JSON.parse(cleanedText);
+  } catch (e) {
+    console.error(`[Gemini-Server] First JSON parse failed. Attempting fixes...`);
+    
+    let fixedText = cleanedText;
+    
+    fixedText = fixedText.replace(/,(\s*[}\]])/g, '$1');
+    fixedText = fixedText.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    fixedText = fixedText.replace(/([^\\])"([^"\n]*)\n/g, '$1"$2\\n');
+    fixedText = fixedText.replace(/[\x00-\x1F\x7F]/g, '');
+    
+    try {
+      return JSON.parse(fixedText);
+    } catch (e2) {
+      console.error(`[Gemini-Server] JSON parse failed after fixes: ${e2.message}`);
+      throw new Error(`Gemini returned malformed JSON: ${e.message}`);
+    }
+  }
+}
+
+async function analyzeWithModel(genAI, modelName, systemPrompt, base64Data) {
+  const model = genAI.getGenerativeModel({ 
+    model: modelName,
+    safetySettings: [
+      { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+    ],
+    systemInstruction: systemPrompt,
+    generationConfig: { 
+      responseMimeType: "application/json",
+      temperature: 0.1,
+      maxOutputTokens: 80000
+    }
+  });
+
+  const result = await model.generateContent([
+    {
+      inlineData: {
+        data: base64Data,
+        mimeType: "application/pdf"
+      }
+    }
+  ]);
+
+  const response = await result.response;
+  const text = response.text();
+  
+  if (!text) throw new Error("No response from Gemini");
+  
+  return text;
+}
+
 export async function analyzeDocumentServer(base64Data, mimeType, fileName, language = 'pt') {
   try {
     const genAI = initGemini();
     const systemPrompt = getSystemPrompt(language);
     
-    console.log(`[Gemini-Server] Analyzing document: ${fileName} using models/gemini-2.5-flash`);
+    const models = ['models/gemini-2.5-flash'];
     
-    const model = genAI.getGenerativeModel({ 
-      model: 'models/gemini-2.5-flash',
-      safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-      ],
-      systemInstruction: systemPrompt,
-      generationConfig: { responseMimeType: "application/json" }
-    });
-
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          data: base64Data,
-          mimeType: "application/pdf"
+    for (const modelName of models) {
+      try {
+        console.log(`[Gemini-Server] Analyzing ${fileName} with ${modelName}`);
+        
+        const text = await analyzeWithModel(genAI, modelName, systemPrompt, base64Data);
+        
+        return await parseGeminiJson(text, fileName);
+      } catch (error) {
+        console.error(`[Gemini-Server] Failed with ${modelName}: ${error.message}`);
+        
+        if (modelName === models[models.length - 1]) {
+          throw error;
         }
+        console.log(`[Gemini-Server] Retrying with next model...`);
       }
-    ]);
-
-    const response = await result.response;
-    const text = response.text();
-    
-    if (!text) throw new Error("No response from Gemini");
-
-    let cleanedText = text.trim();
-    
-    // 1. Check for Markdown code blocks (```json ... ```)
-    const jsonBlockMatch = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonBlockMatch) {
-      cleanedText = jsonBlockMatch[1];
-    } else {
-      // 2. Try to find the first '{' and last '}'
-      const start = cleanedText.indexOf('{');
-      const end = cleanedText.lastIndexOf('}');
-      if (start !== -1 && end !== -1 && end > start) {
-        cleanedText = cleanedText.substring(start, end + 1);
-      }
-    }
-
-    try {
-      return JSON.parse(cleanedText);
-    } catch (e) {
-      console.error(`[Gemini-Server] JSON Parse Error at pos ${e.message.match(/position (\d+)/)?.[1] || 'unknown'}. Content Snippet: ${cleanedText.substring(0, 100)}...`);
-      // If still fails, we could try harder cleaning (unescaping, fixing trailing commas)
-      // but for now, we'll throw a clearer error.
-      throw new Error(`Gemini returned malformed JSON: ${e.message}`);
     }
   } catch (error) {
     console.error(`[Gemini-Server] Error analyzing ${fileName}:`, error);
@@ -210,9 +243,6 @@ export async function analyzeDocumentServer(base64Data, mimeType, fileName, lang
   }
 }
 
-/**
- * Generate a chat response based on retrieved context.
- */
 export async function generateChatResponse(userMessage, context) {
   try {
     const genAI = initGemini();
@@ -221,16 +251,13 @@ export async function generateChatResponse(userMessage, context) {
       systemInstruction: `
         Você é o "LabProcessor Chat", um assistente virtual especializado em análise de métodos analíticos da Eurofarma.
         
-        Seu objetivo é responder perguntas do usuário com base no CONTEXTO fornecido abaixo, que foi recuperado de documentos processados anteriormente.
+        Seu objetivo é responder perguntas do usuário com base no CONTEXTO fornecido abaixo.
         
         REGRAS:
         1. Use APENAS as informações do contexto para responder.
-        2. Se a informação não estiver no contexto, diga educadamente que não encontrou essa informação nos documentos processados.
+        2. Se a informação não estiver no contexto, diga educadamente que não encontrou essa informação.
         3. Seja profissional, direto e use formatação markdown (tabelas, negrito, listas) para clareza.
         4. Cite os nomes dos produtos ou arquivos quando houver múltiplos no contexto.
-        5. Se houver nomes de arquivos de imagem ou URLs no contexto (campo "images"), cite-os no formato MarkDown: 
-           - **Importante**: Se o item for uma URL completa (que já contenha "http"), use-a exatamente como está: ![Imagem](URL)
-           - Se for apenas um nome de arquivo local (sem http), adicione o prefixo: ![Imagem](/images/NOME_DO_ARQUIVO)
         
         CONTEXTO RECUPERADO:
         ${JSON.stringify(context, null, 2)}

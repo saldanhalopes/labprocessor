@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare } from 'lucide-react';
+import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, Calculator } from 'lucide-react';
 import { FileUpload } from '../FileUpload';
 import { ResultsView } from './ResultsView';
 import { ChartsView } from './ChartsView';
@@ -10,6 +10,7 @@ import { ReagentsView } from './ReagentsView';
 import { ProfileView } from './ProfileView';
 import { AdminView } from './AdminView';
 import StandardsView from './StandardsView';
+import { PlanningView } from './PlanningView';
 import { SummaryDashboardView } from './SummaryDashboardView';
 import { analyzeDocument } from '../../services/geminiService';
 import { extractPdfImages } from '../../utils/pdfImages';
@@ -22,7 +23,7 @@ import { auth } from '../../firebase';
 import { getIdToken } from 'firebase/auth';
 import { translations } from '../../utils/translations';
 
-type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
+type Tab = 'dashboard' | 'upload' | 'view' | 'planning' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -393,6 +394,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     { id: 'dashboard', label: t.nav.dashboard, icon: BarChart3 },
     { id: 'upload', label: t.nav.upload, icon: Upload },
     { id: 'view', label: t.nav.view, icon: Eye },
+    { id: 'planning', label: t.nav.planning, icon: Calculator },
     { id: 'reagents', label: t.nav.reagents, icon: FlaskConical },
     { id: 'charts', label: t.nav.charts, icon: BarChart3 },
     { id: 'history', label: t.nav.history, icon: History },
@@ -583,6 +585,14 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                 language={language} 
                 onDeleteResult={handleDeleteResult} 
                 onUpdateResult={handleUpdateResult}
+              />
+            )}
+            
+            {activeTab === 'planning' && (
+              <PlanningView 
+                results={results} 
+                settings={settings} 
+                language={language} 
               />
             )}
             

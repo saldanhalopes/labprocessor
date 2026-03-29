@@ -16,6 +16,7 @@ export interface AnalysisRow {
   t_register: number;
   totalTimeHours: number;
   manHours: number;
+  estimatedTime?: number;
   rationale: string;
 }
 
@@ -65,6 +66,7 @@ export interface AnalysisResult {
   visualContent?: string;
   images?: string[];
   timestamp: number;
+  pdfUrl?: string; // Replicated from source
 }
 
 export interface GlobalSettings {
@@ -89,6 +91,7 @@ export interface HistoryItem {
   manHours?: number;
   totalTimePhysChem: number;
   totalTimeMicro: number;
+  pdfUrl?: string;
 }
 
 export interface User {

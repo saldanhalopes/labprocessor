@@ -4,7 +4,7 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   area: 1160,
   velocity: 60,
   alpha: 4,
-  setupFactor: 5, // 5x unit time (assuming unit time is ~1-2 min for setup actions, or just a factor)
+  setupFactor: 5, 
   registerFactor: 0.5,
   labEfficiency: 0.75,
   factorRun: 0.10,
@@ -150,7 +150,7 @@ export const generateCSV = (results: AnalysisResult[]): string => {
         row.t_prep.toFixed(2),
         row.t_run.toFixed(2),
         row.t_calc.toFixed(2),
-        incubationDisplay,
+        incubationDisplay.toString(),
         row.t_locomotion.toFixed(2),
         row.t_setup.toFixed(2),
         row.t_register.toFixed(2),

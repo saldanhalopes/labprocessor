@@ -15,13 +15,15 @@ interface FileUploadProps {
   isLoading: boolean;
   progress: number;
   language: Language;
+  token?: string;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({ 
   onFilesSelect, 
   isLoading, 
   progress, 
-  language
+  language,
+  token
 }) => {
   const { showToast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
@@ -46,26 +48,26 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
     if (files.length > 0) {
       const checkedFiles = await Promise.all(files.map(async f => {
-        const { exists } = await checkFileExists(f.name);
+        const { exists } = await checkFileExists(f.name, token);
         return { file: f, isDuplicate: exists };
       }));
       setSelectedFiles(prev => [...prev, ...checkedFiles]);
     } else {
       showToast("Por favor, envie apenas arquivos PDF.", "warning");
     }
-  }, [showToast]);
+  }, [showToast, token]);
 
   const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const newFiles = Array.from(files).filter(f => f.type === 'application/pdf');
       const checkedFiles = await Promise.all(newFiles.map(async f => {
-        const { exists } = await checkFileExists(f.name);
+        const { exists } = await checkFileExists(f.name, token);
         return { file: f, isDuplicate: exists };
       }));
       setSelectedFiles(prev => [...prev, ...checkedFiles]);
     }
-  }, []);
+  }, [token]);
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));

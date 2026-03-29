@@ -102,9 +102,12 @@ app.post('/api/pinecone/sync', authenticateToken, async (req, res) => {
 // Save a result
 app.post('/api/results', authenticateToken, async (req, res) => {
   try {
+    console.log('[API] Received save result request for:', req.body.fileName);
     await saveResult(req.body);
+    console.log('[API] Save result completed for:', req.body.fileName);
     res.status(201).json({ success: true });
   } catch (error) {
+    console.error('[API] Error saving result:', error);
     res.status(500).json({ error: error.message });
   }
 });

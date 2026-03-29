@@ -8,22 +8,30 @@ const API_BASE = '/api';
 /**
  * Save an analysis result to the SQLite backend.
  */
-export async function saveResultToDb(result: AnalysisResult): Promise<void> {
+export async function saveResultToDb(result: AnalysisResult, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    console.log('[DB] Saving result to database:', result.fileName, 'token:', token ? 'present' : 'missing');
+
     const response = await fetch(`${API_BASE}/results`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(result),
     });
     
     if (!response.ok) {
       const error = await response.json();
+      console.error('[DB] Save failed with response:', response.status, error);
       throw new Error(error.error || 'Failed to save result to database');
     }
     
-    console.log(`[DB] Saved to SQLite: ${result.fileName}`);
+    console.log(`[DB] Saved to Firestore: ${result.fileName}`);
   } catch (error) {
-    console.error('[DB] Error saving to SQLite:', error);
+    console.error('[DB] Error saving to Firestore:', error);
     throw error;
   }
 }
@@ -31,9 +39,14 @@ export async function saveResultToDb(result: AnalysisResult): Promise<void> {
 /**
  * Retrieve all results from the SQLite backend.
  */
-export async function getResultsFromDb(): Promise<AnalysisResult[]> {
+export async function getResultsFromDb(token?: string): Promise<AnalysisResult[]> {
   try {
-    const response = await fetch(`${API_BASE}/results`);
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}/results`, { headers });
     
     if (!response.ok) {
       const error = await response.json();
@@ -52,10 +65,16 @@ export async function getResultsFromDb(): Promise<AnalysisResult[]> {
 /**
  * Delete a result from the SQLite backend.
  */
-export async function deleteResultFromDb(fileId: string): Promise<void> {
+export async function deleteResultFromDb(fileId: string, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results/${encodeURIComponent(fileId)}`, {
       method: 'DELETE',
+      headers,
     });
     
     if (!response.ok) {
@@ -73,10 +92,16 @@ export async function deleteResultFromDb(fileId: string): Promise<void> {
 /**
  * Clear all results from the SQLite backend.
  */
-export async function clearDbResults(): Promise<void> {
+export async function clearDbResults(token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results`, {
       method: 'DELETE',
+      headers,
     });
     
     if (!response.ok) {
@@ -94,9 +119,14 @@ export async function clearDbResults(): Promise<void> {
 /**
  * Check if a file has already been processed in the backend.
  */
-export async function checkFileExists(fileName: string): Promise<{ exists: boolean; fileId: string | null }> {
+export async function checkFileExists(fileName: string, token?: string): Promise<{ exists: boolean; fileId: string | null }> {
   try {
-    const response = await fetch(`${API_BASE}/results/exists?fileName=${encodeURIComponent(fileName)}`);
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}/results/exists?fileName=${encodeURIComponent(fileName)}`, { headers });
     
     if (!response.ok) {
       const error = await response.json();
@@ -113,11 +143,16 @@ export async function checkFileExists(fileName: string): Promise<{ exists: boole
 /**
  * Update an existing result in the backend.
  */
-export async function updateResultInDb(fileId: string, result: AnalysisResult): Promise<void> {
+export async function updateResultInDb(fileId: string, result: AnalysisResult, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results/${encodeURIComponent(fileId)}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(result),
     });
     

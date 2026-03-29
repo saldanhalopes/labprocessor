@@ -84,8 +84,12 @@ export async function initDatabase() {
  * Save an analysis result (with rows and reagents) to Firestore.
  */
 export async function saveResult(result) {
-  if (!db) await initDatabase();
+  if (!db) {
+    console.log('[Firestore] Database not initialized, initializing now...');
+    await initDatabase();
+  }
 
+  console.log('[Firestore] Saving result:', result.fileName, 'fileId:', result.fileId);
   const resultRef = db.collection('results').doc(result.fileId);
 
   // 1. Save main result document

@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
   dailyAvailableMinutes: 528
 };
 
+// Helper to determine if a test is microbiological based on technique or category
 export const isMicrobiology = (row: AnalysisRow): boolean => {
   const keywords = [
     'micro', 'bioburden', 'sterility', 'esterilidade', 'bacteri', 'fung', 'yeast', 
@@ -21,17 +22,26 @@ export const isMicrobiology = (row: AnalysisRow): boolean => {
   return keywords.some(k => textToCheck.includes(k));
 };
 
+// Calculate Locomotion time in minutes
 export const calculateLocomotion = (settings: GlobalSettings): number => {
+  // Formula: (ALPHA * √AREA) / VELOCIDAD
   return (settings.alpha * Math.sqrt(settings.area)) / settings.velocity;
 };
 
+// Recalculate a single row based on current settings
 export const recalculateRow = (row: AnalysisRow, settings: GlobalSettings): AnalysisRow => {
   const t_locomotion = calculateLocomotion(settings);
+  
+  // Heuristic: Setup is often fixed or proportional. 
   const t_setup = settings.setupFactor; 
+
   const t_register = row.t_calc * settings.registerFactor;
+
+  // Determine if incubation should be included
   const isMicro = isMicrobiology(row);
   const effectiveIncubation = isMicro ? (row.t_incubation || 0) : 0;
 
+  // Total in Minutes (Lead Time)
   const totalMinutes = 
     t_locomotion + 
     t_setup + 
@@ -42,6 +52,9 @@ export const recalculateRow = (row: AnalysisRow, settings: GlobalSettings): Anal
     t_register +
     effectiveIncubation;
 
+  // Active Human Effort (Man-Hours) in Minutes
+  // Logic: 100% of locomotion, setup, prep, analysis, calc, register.
+  // Factored: run and incubation using dynamic settings
   const activeEffortMinutes = 
     t_locomotion + 
     t_setup + 
@@ -62,11 +75,18 @@ export const recalculateRow = (row: AnalysisRow, settings: GlobalSettings): Anal
   };
 };
 
+/**
+ * Calculates the total Man-Hours for a set of analysis rows.
+ */
 export const calculateTotalManHours = (rows: AnalysisRow[]): number => {
   if (!rows || rows.length === 0) return 0;
   return rows.reduce((acc, row) => acc + (row.manHours || 0), 0);
 };
 
+/**
+ * Calculates how many analysts are required based on total man-hours.
+ * Formula: (totalManHours * 60) / (DAILY_AVAILABLE_MINUTES * LAB_EFFICIENCY)
+ */
 export const calculateStaffRequired = (totalManHours: number, settings: GlobalSettings): number => {
   if (totalManHours <= 0) return 0;
   const efficiency = settings.labEfficiency ?? 0.75;
@@ -93,10 +113,23 @@ export const calculateParallelLeadTime = (rows: AnalysisRow[]): number => {
 
 export const generateCSV = (results: AnalysisResult[]): string => {
   const headers = [
-    "Arquivo", "Produto", "Teste", "Categoria", "Técnica", "Detalhes",
-    "Preparo (min)", "Corrida (min)", "Cálculos (min)", "Incubação (min)",
-    "Locomoção (min)", "Setup (min)", "Registro (min)", "Lead Time (h)",
-    "Hora-Homem (HH)", "Esforço Ativo (%)", "Racional"
+    "Arquivo",
+    "Produto",
+    "Teste",
+    "Categoria",
+    "Técnica",
+    "Detalhes",
+    "Preparo (min)",
+    "Corrida (min)",
+    "Cálculos (min)",
+    "Incubação (min)",
+    "Locomoção (min)",
+    "Setup (min)",
+    "Registro (min)",
+    "Lead Time (h)",
+    "Hora-Homem (HH)",
+    "Esforço Ativo (%)",
+    "Racional"
   ];
 
   const rows = results.flatMap(res => 
@@ -117,7 +150,7 @@ export const generateCSV = (results: AnalysisResult[]): string => {
         row.t_prep.toFixed(2),
         row.t_run.toFixed(2),
         row.t_calc.toFixed(2),
-        incubationDisplay,
+        incubationDisplay.toString(),
         row.t_locomotion.toFixed(2),
         row.t_setup.toFixed(2),
         row.t_register.toFixed(2),

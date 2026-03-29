@@ -13,8 +13,17 @@ export const translations = {
       summary: 'Resumo Geral',
       profile: 'Perfil',
       admin: 'Admin',
+      planning: 'Planejamento',
+      chat: 'Chat IA',
       download: 'Baixar CSV',
-      logout: 'Sair'
+      logout: 'Sair',
+      menu: 'Menu Principal',
+      language: 'Idioma'
+    },
+    uploadMessages: {
+      singleDuplicate: 'O arquivo "{fileName}" já foi processado anteriormente.\n\nDeseja ignorar este arquivo e processar apenas os novos?',
+      multipleDuplicates: '{count} arquivos já foram processados anteriormente.\n\nDeseja ignorar os arquivos duplicados e processar apenas os novos?',
+      processingError: 'Erro ao processar {fileName}: {error}'
     },
     upload: {
       title: 'Carregar Documentos',
@@ -24,7 +33,23 @@ export const translations = {
       selectedFiles: 'Arquivos Selecionados',
       processBtn: 'Processar e Salvar',
       processing: 'Processando...',
-      info: 'O sistema extrai dados do produto e salva permanentemente no banco de dados local.'
+      info: 'O sistema extrai dados do produto e salva permanentemente no banco de dados local.',
+      apiKeyWarning: 'Chave da API (VITE_GEMINI_API_KEY) não encontrada no ambiente.',
+      pdfOnly: 'Por favor, envie apenas arquivos PDF.',
+      alreadyProcessed: 'Já Processado'
+    },
+    login: {
+      title: 'LabProcessor',
+      suffix: 'Plus',
+      subtitle: 'Acelere seu planejamento laboratorial',
+      emailLabel: 'E-mail Corporativo',
+      emailPlaceholder: 'seu@email.com',
+      passwordLabel: 'Senha',
+      passwordPlaceholder: '••••••••',
+      submit: 'Acessar Plataforma',
+      error: 'Erro ao realizar login',
+      footerAdmin: 'Acesso Administrativo',
+      footerManaged: 'Gerenciado pelo Antigravity-Kit'
     },
     results: {
       searchPlaceholder: 'Buscar no banco de dados...',
@@ -48,15 +73,129 @@ export const translations = {
         rationale: 'Racional'
       },
       footer: '* Inclui Locomoção, Setup, Registro e Incubação (apenas para Microbiologia).',
-      imagesTitle: 'Imagens Extraídas'
+      imagesTitle: 'Imagens Extraídas',
+      noResults: 'Nenhum resultado para exibir. Carregue arquivos na aba "Carregar".',
+      unknownProduct: 'Produto Desconhecido',
+      placeholderCode: 'Cód',
+      placeholderForm: 'Forma Farmacêutica',
+      placeholderPrinciples: 'Princípios Ativos',
+      tooltipLeadTime: 'Maior tempo entre Físico-Químico e Microbiologia (Análise em Paralelo)',
+      tooltipWorkload: 'Soma de todos os tempos individuais (Análise Sequencial)',
+      tooltipMaxIndividual: 'Individual Máximo (Lead Time)',
+      tooltipSumWorkload: 'Soma da Carga',
+      tooltipSumHH: 'Soma de Horas-Homem',
+      saveBtn: 'Salvar',
+      cancelBtn: 'Cancelar',
+      editBtn: 'Editar',
+      testsSuffix: 'Testes',
+      testSuffix: 'Teste',
+      imageUnavailable: 'Imagem indisponível',
+      unitH: 'h',
+      unitHH: 'HH'
     },
     settings: {
       title: 'Parâmetros de Cálculo',
       dbTitle: 'Gerenciamento de Dados',
       clearDb: 'Limpar Banco de Dados',
       clearDbConfirm: 'ATENÇÃO: Isso excluirá TODOS os métodos salvos. Esta ação não pode ser desfeita. Continuar?',
+      confirmTitle: 'Confirmar Exclusão',
+      confirmBtn: 'Sim, Apagar Tudo',
       successClear: 'Banco de dados limpo com sucesso.',
-      saveParams: 'Salvar Parâmetros'
+      saveParams: 'Salvar Parâmetros',
+      labels: {
+        labArea: 'Área do Laboratório (m²)',
+        velocity: 'Velocidade (m/min)',
+        alpha: 'Alpha (Trechos)',
+        setupFactor: 'Fator Setup (min)',
+        registerFactor: 'Fator Registro (x Calc)',
+        managementParams: 'Parâmetros de Gestão (Man-Hours)',
+        efficiency: 'Fator de Eficiência do Lab (%)',
+        dailyWorkday: 'Jornada Diária (min)',
+        runIntervention: 'Intervenção em Corrida (%)',
+        incubationIntervention: 'Intervenção em Incubação (%)'
+      },
+      help: {
+        efficiency: 'Ex: 0.75 para 75%. Considera burocracia/GMP.',
+        workday: 'Ex: 528 min = 8.8h de jornada.',
+        run: 'Ex: 0.10 para 10% de presença humana.',
+        incubation: 'Ex: 0.02 para 2% de carga/leitura.'
+      },
+      formulaLocomotion: 'Locomoção',
+      formulaTotalLeadTime: 'Lead Time Total',
+      formulaTotalHH: 'HH Total',
+      formulaHeadcount: 'Headcount Lab',
+      formulaSetup: 'Setup',
+      formulaPrep: 'Prep',
+      formulaRun: 'Corrida',
+      formulaCalc: 'Cálculo',
+      formulaIncubation: 'Incubação',
+      formulaFactorRegister: 'FatorRegistro',
+      formulaFactorRun: 'FatorCorrida',
+      formulaFactorIncubation: 'FatorIncubação',
+      formulasTitle: 'Fórmulas Utilizadas:',
+      dbSectionTitle: 'Limpar Banco de Dados Local',
+      dbSectionSubtitle: 'Isso removerá todos os métodos carregados permanentemente.',
+      toastSuccess: 'Configurações salvas com sucesso!'
+    },
+    summary: {
+      loading: 'Carregando métricas',
+      syncing: 'Sincronizando dados analíticos...',
+      emptyTitle: 'Nenhum dado consolidado',
+      emptySubtitle: 'Carregue métodos analíticos para visualizar o painel de métricas avançadas.',
+      totalMethods: 'Total Monografias',
+      processed: 'Processados',
+      avgLeadFQ: 'Avg. Lead Time FQ',
+      avgLeadMicro: 'Avg. Lead Time Micro',
+      mappedInputs: 'Insumos Mapeados',
+      reagents: 'Reag',
+      columns: 'Colu',
+      standards: 'Padr',
+      tableTitle: 'Comparativo de Métodos Analíticos',
+      quickSearch: 'Busca rápida...',
+      productCode: 'Produto / Código',
+      sector: 'Setor (FQ | Micro)',
+      leadTime: 'Lead Time',
+      processedCol: 'Insumos',
+      noMethods: 'Nenhum método encontrado para',
+      noCode: 'SEM_CODIGO',
+      itemsPerPage: 'Itens por página:',
+      methodsSuffix: 'métodos',
+      techChargeFQ: 'Carga por Técnica (FQ)',
+      insufficientData: 'Dados insuficientes para análise.',
+      fullReport: 'Ver Relatório Completo'
+    },
+    techniques: {
+      hplc: 'HPLC',
+      dissolution: 'Dissolução',
+      spectroscopy: 'Espectroscopia',
+      microbiology: 'Microbiologia',
+      gravimetry: 'Gravimetria',
+      titration: 'Titulação',
+      viscosity: 'Viscosidade',
+      balance: 'Balança/Term',
+      tests: 'Ensaios',
+      calculations: 'Cálculos',
+      others: 'Outras'
+    },
+    history: {
+      emptyTitle: 'Histórico vazio',
+      emptySubtitle: 'Os documentos processados aparecerão aqui.',
+      title: 'Histórico de Processamento',
+      subtitle: 'Registro completo de todos os métodos analisados.',
+      searchPlaceholder: 'Buscar por produto ou arquivo...',
+      clearBtn: 'Limpar',
+      table: {
+        date: 'Data',
+        product: 'Produto',
+        file: 'Arquivo',
+        physChem: 'Físico-Químico',
+        micro: 'Microbiologia',
+        totalTime: 'Tempo Total',
+        noResults: 'Nenhum resultado encontrado para',
+        downloadPdf: 'Baixar PDF',
+        maxTimeTooltip: 'Maior tempo (FQ ou Micro)',
+        workloadTooltip: 'Carga de Trabalho Total (Somatória)'
+      }
     },
     profile: {
       title: 'Informações Pessoais',
@@ -78,7 +217,13 @@ export const translations = {
       errorPass: 'Preencha todos os campos.',
       errorMatch: 'As novas senhas não coincidem.',
       errorUser: 'Usuário não encontrado.',
-      errorCurrent: 'Senha atual incorreta.'
+      errorCurrent: 'Senha atual incorreta.',
+      placeholders: {
+        name: 'Seu nome',
+        email: 'seu@email.com',
+        company: 'Nome da empresa',
+        role: 'Ex: Analista Sênior'
+      }
     },
     admin: {
       title: 'Gerenciamento de Usuários',
@@ -97,6 +242,117 @@ export const translations = {
       confirmDelete: 'Tem certeza que deseja excluir este usuário?',
       successDelete: 'Usuário excluído com sucesso.',
       successUpdate: 'Usuário atualizado com sucesso.'
+    },
+    userManagement: {
+      title: 'Gerenciamento de Usuários',
+      subtitle: 'Administre os usuários e permissões do sistema',
+      newUser: 'Novo Usuário',
+      searchPlaceholder: 'Buscar por nome ou e-mail...',
+      total: 'Total:',
+      usersSuffix: 'usuários',
+      table: {
+        user: 'Usuário',
+        email: 'Email',
+        level: 'Nível',
+        plan: 'Plano',
+        status: 'Status',
+        actions: 'Ações'
+      },
+      roles: {
+        admin: 'ADMIN',
+        user: 'USUÁRIO'
+      },
+      status: {
+        active: 'ATIVO',
+        inactive: 'INATIVO'
+      },
+      tooltips: {
+        edit: 'Editar Permissões',
+        remove: 'Remover'
+      },
+      plans: {
+        free: 'Grátis',
+        basic: 'Básico',
+        pro: 'Profissional'
+      }
+    },
+    materials: {
+      title: 'Materiais e Equipamentos',
+      reagentsTab: 'Reagentes e Materiais',
+      standardsTab: 'Padrões de Referência',
+      columnsTab: 'Colunas Cromatográficas',
+      equipmentsTab: 'Equipamentos',
+      searchPlaceholder: 'Buscar...',
+      itemsFound: 'itens encontrados',
+      expandAll: 'Expandir',
+      collapseAll: 'Recolher',
+      fileLabel: 'Arquivo:',
+      itemsSuffix: 'itens',
+      noResults: 'Nenhum dado disponível. Carregue arquivos na aba "Carregar".',
+      noFilteredResults: 'Nenhum item encontrado com os filtros aplicados.',
+      subtitle: 'Listagem consolidada por ordem alfabética.',
+      table: {
+        reagentName: 'Nome do Reagente / Material',
+        concentration: 'Concentração / Pureza',
+        quantity: 'Quantidade',
+        product: 'Produto',
+        category: 'Categoria',
+        test: 'Teste Associado',
+        equipmentName: 'Equipamento / Instrumento',
+        model: 'Modelo / Especificação',
+        standardsName: 'Nome do Padrão',
+        purity: 'Pureza / Lote',
+        columnName: 'Nome da Coluna / Fase',
+        dimensions: 'Dimensiones (mm)',
+        general: 'Geral'
+      }
+    },
+    charts: {
+      techTitle: 'Carga Horária Total por Técnica',
+      techSubtitle: 'Distribuição consolidada de horas por método analítico',
+      searchTech: 'Buscar técnica...',
+      ganttTitle: 'Cronograma de Ensaios (Gantt)',
+      noData: 'Sem dados para gráficos.',
+      noCategoryData: 'Nenhum dado encontrado para esta categoria.',
+      all: 'Todos',
+      physChem: 'FQ',
+      micro: 'Micro',
+      total: 'TOTAL:',
+      prep: 'Preparo:',
+      run: 'Corrida:',
+      incub: 'Incubação:',
+      calc: 'Cálculos:',
+      unitHours: 'horas',
+      unitH: 'h',
+      techLabel: 'Carga Total'
+    },
+    planning: {
+      title: 'Planejamento de Carga',
+      subtitle: 'Quantifique o esforço total (HH) com base na quantidade de lotes.',
+      table: {
+        method: 'Método / Produto',
+        baseHH: 'HH Unitário',
+        batches: 'Lotes',
+        totalHH: 'Esforço Total'
+      },
+      totalPlanned: 'Total Planejado',
+      effortFQ: 'Esforço FQ',
+      effortMicro: 'Esforço Micro',
+      totalGrand: 'Total Geral',
+      campaign: 'Campanha?',
+      analysts: 'Analistas Necessários',
+      emptyTitle: 'Nenhum método carregado',
+      emptySubtitle: 'Carregue documentos para iniciar o planejamento.'
+    },
+    chat: {
+      title: 'Chat Contextual',
+      subtitle: 'Conversando com seus dados do Pinecone',
+      welcome: 'Olá! Eu sou o assistente do LabProcessor. Posso responder perguntas sobre os métodos analíticos que você já processou. Como posso ajudar?',
+      placeholder: "Pergunte sobre seus métodos (ex: 'Quais equipamentos são usados no teste de pureza do Paracetamol?')...",
+      error: 'Desculpe, não consegui processar sua pergunta.',
+      serverError: 'Ocorreu um erro ao se comunicar com o servidor. Verifique se o backend está rodando.',
+      loading: 'Analisando contexto...',
+      imageUnavailable: 'Imagem indisponível'
     }
   },
   es: {
@@ -111,8 +367,17 @@ export const translations = {
       summary: 'Resumen General',
       profile: 'Perfil',
       admin: 'Admin',
+      planning: 'Planejamiento',
+      chat: 'Chat IA',
       download: 'Descargar CSV',
-      logout: 'Salir'
+      logout: 'Salir',
+      menu: 'Menú Principal',
+      language: 'Idioma'
+    },
+    uploadMessages: {
+      singleDuplicate: 'El archivo "{fileName}" ya ha sido procesado anteriormente.\n\n¿Desea ignorar este archivo y procesar solo los nuevos?',
+      multipleDuplicates: '{count} archivos ya han sido procesados anteriormente.\n\n¿Desea ignorar los archivos duplicados y procesar solo los nuevos?',
+      processingError: 'Error al procesar {fileName}: {error}'
     },
     upload: {
       title: 'Cargar Documentos',
@@ -122,7 +387,23 @@ export const translations = {
       selectedFiles: 'Archivos Seleccionados',
       processBtn: 'Procesar y Guardar',
       processing: 'Procesando...',
-      info: 'El sistema extrae datos y los guarda permanentemente en la base de datos local.'
+      info: 'El sistema extrae datos y los guarda permanentemente en la base de datos local.',
+      apiKeyWarning: 'Clave de API (VITE_GEMINI_API_KEY) no encontrada en el entorno.',
+      pdfOnly: 'Por favor, suba solo archivos PDF.',
+      alreadyProcessed: 'Ya Procesado'
+    },
+    login: {
+      title: 'LabProcessor',
+      suffix: 'Plus',
+      subtitle: 'Acelere su planificación de laboratorio',
+      emailLabel: 'Correo Electrónico Corporativo',
+      emailPlaceholder: 'tu@email.com',
+      passwordLabel: 'Contraseña',
+      passwordPlaceholder: '••••••••',
+      submit: 'Acceso a la Plataforma',
+      error: 'Error al iniciar sesión',
+      footerAdmin: 'Acceso Administrativo',
+      footerManaged: 'Gestionado por Antigravity-Kit'
     },
     results: {
       searchPlaceholder: 'Buscar en la base de datos...',
@@ -146,15 +427,129 @@ export const translations = {
         rationale: 'Racional'
       },
       footer: '* Incluye Locomoción, Setup, Registro e Incubación (solo para Microbiología).',
-      imagesTitle: 'Imágenes Extraídas'
+      imagesTitle: 'Imágenes Extraídas',
+      noResults: 'Ningún resultado para mostrar. Cargue archivos en la pestaña "Cargar".',
+      unknownProduct: 'Producto Desconocido',
+      placeholderCode: 'Cód',
+      placeholderForm: 'Forma Farmacéutica',
+      placeholderPrinciples: 'Principios Activos',
+      tooltipLeadTime: 'Mayor tiempo entre Físico-Químico y Microbiología (Análisis en Paralelo)',
+      tooltipWorkload: 'Suma de todos os tempos individuais (Análisis Secuencial)',
+      tooltipMaxIndividual: 'Individual Máximo (Lead Time)',
+      tooltipSumWorkload: 'Suma de la Carga',
+      tooltipSumHH: 'Suma de Horas-Hombre',
+      saveBtn: 'Guardar',
+      cancelBtn: 'Cancelar',
+      editBtn: 'Editar',
+      testsSuffix: 'Pruebas',
+      testSuffix: 'Prueba',
+      imageUnavailable: 'Imagen no disponible',
+      unitH: 'h',
+      unitHH: 'HH'
     },
     settings: {
       title: 'Parámetros de Cálculo',
       dbTitle: 'Gestión de Datos',
       clearDb: 'Limpiar Base de Datos',
       clearDbConfirm: 'ATENCIÓN: Esto eliminará TODOS los métodos guardados. Esta acción no se puede deshacer. ¿Continuar?',
+      confirmTitle: 'Confirmar Eliminación',
+      confirmBtn: 'Sí, Borrar Todo',
       successClear: 'Base de datos limpiada con éxito.',
-      saveParams: 'Guardar Parámetros'
+      saveParams: 'Guardar Parámetros',
+      labels: {
+        labArea: 'Área del Laboratorio (m²)',
+        velocity: 'Velocidad (m/min)',
+        alpha: 'Alpha (Tramos)',
+        setupFactor: 'Factor Setup (min)',
+        registerFactor: 'Factor Registro (x Calc)',
+        managementParams: 'Parámetros de Gestión (Man-Hours)',
+        efficiency: 'Factor de Eficiencia del Lab (%)',
+        dailyWorkday: 'Jornada Diaria (min)',
+        runIntervention: 'Intervención en Corrida (%)',
+        incubationIntervention: 'Intervención en Incubación (%)'
+      },
+      help: {
+        efficiency: 'Ej: 0.75 para 75%. Considera burocracia/GMP.',
+        workday: 'Ej: 528 min = 8.8h de jornada.',
+        run: 'Ej: 0.10 para 10% de presencia humana.',
+        incubation: 'Ej: 0.02 para 2% de carga/lectura.'
+      },
+      formulaLocomotion: 'Locomoción',
+      formulaTotalLeadTime: 'Lead Time Total',
+      formulaTotalHH: 'HH Total',
+      formulaHeadcount: 'Headcount Lab',
+      formulaSetup: 'Setup',
+      formulaPrep: 'Prep',
+      formulaRun: 'Corrida',
+      formulaCalc: 'Cálculo',
+      formulaIncubation: 'Incubación',
+      formulaFactorRegister: 'FactorRegistro',
+      formulaFactorRun: 'FactorCorrida',
+      formulaFactorIncubation: 'FactorIncubação',
+      formulasTitle: 'Fórmulas Utilizadas:',
+      dbSectionTitle: 'Limpiar Base de Dados Local',
+      dbSectionSubtitle: 'Esto eliminará todos los métodos cargados permanentemente.',
+      toastSuccess: '¡Configuraciones guardadas con éxito!'
+    },
+    summary: {
+      loading: 'Cargando métricas',
+      syncing: 'Sincronizando datos analíticos...',
+      emptyTitle: 'No hay datos consolidados',
+      emptySubtitle: 'Cargue métodos analíticos para visualizar el panel de métricas avanzadas.',
+      totalMethods: 'Total Monografías',
+      processed: 'Procesadas',
+      avgLeadFQ: 'Media Lead Time CQ',
+      avgLeadMicro: 'Media Lead Time Micro',
+      mappedInputs: 'Insumos Mapeados',
+      reagents: 'Reag',
+      columns: 'Colu',
+      standards: 'Patr',
+      tableTitle: 'Comparativa de Métodos Analíticos',
+      quickSearch: 'Busqueda rápida...',
+      productCode: 'Producto / Código',
+      sector: 'Sector (CQ | Micro)',
+      leadTime: 'Lead Time',
+      processedCol: 'Insumos',
+      noMethods: 'No se encontraron métodos para',
+      noCode: 'SIN_CODIGO',
+      itemsPerPage: 'Items por página:',
+      methodsSuffix: 'métodos',
+      techChargeFQ: 'Carga por Técnica (CQ)',
+      insufficientData: 'Datos insuficientes para el análisis.',
+      fullReport: 'Ver Informes Completo'
+    },
+    techniques: {
+      hplc: 'HPLC',
+      dissolution: 'Disolución',
+      spectroscopy: 'Espectroscopía',
+      microbiology: 'Microbiología',
+      gravimetry: 'Gravimetría',
+      titration: 'Titulación',
+      viscosity: 'Viscosidad',
+      balance: 'Balanza/Term',
+      tests: 'Ensayos',
+      calculations: 'Cálculos',
+      others: 'Otras'
+    },
+    history: {
+      emptyTitle: 'Historial vacío',
+      emptySubtitle: 'Los documentos processados aparecerán aquí.',
+      title: 'Historial de Procesamiento',
+      subtitle: 'Registro completo de todos os métodos analizados.',
+      searchPlaceholder: 'Buscar por producto o archivo...',
+      clearBtn: 'Limpar',
+      table: {
+        date: 'Fecha',
+        product: 'Producto',
+        file: 'Archivo',
+        physChem: 'Control de Calidad',
+        micro: 'Microbiología',
+        totalTime: 'Tiempo Total',
+        noResults: 'No se encontraron resultados para',
+        downloadPdf: 'Descargar PDF',
+        maxTimeTooltip: 'Tiempo más largo (CQ o Micro)',
+        workloadTooltip: 'Carga de Trabajo Total (Suma)'
+      }
     },
     profile: {
       title: 'Información Personal',
@@ -176,7 +571,13 @@ export const translations = {
       errorPass: 'Complete todos los campos.',
       errorMatch: 'Las nuevas contraseñas no coinciden.',
       errorUser: 'Usuario no encontrado.',
-      errorCurrent: 'Contraseña actual incorrecta.'
+      errorCurrent: 'Contraseña actual incorrecta.',
+      placeholders: {
+        name: 'Tu nombre',
+        email: 'tu@email.com',
+        company: 'Nombre de la empresa',
+        role: 'Ej: Analista Senior'
+      }
     },
     admin: {
       title: 'Gestión de Usuarios',
@@ -195,6 +596,117 @@ export const translations = {
       confirmDelete: '¿Está seguro de que desea eliminar este usuario?',
       successDelete: 'Usuario eliminado con éxito.',
       successUpdate: 'Usuario actualizado con éxito.'
+    },
+    userManagement: {
+      title: 'Gestión de Usuarios',
+      subtitle: 'Administre los usuarios y permisos del sistema',
+      newUser: 'Nuevo Usuario',
+      searchPlaceholder: 'Buscar por nombre o correo...',
+      total: 'Total:',
+      usersSuffix: 'usuarios',
+      table: {
+        user: 'Usuario',
+        email: 'Correo',
+        level: 'Nivel',
+        plan: 'Plan',
+        status: 'Estado',
+        actions: 'Acciones'
+      },
+      roles: {
+        admin: 'ADMIN',
+        user: 'USUARIO'
+      },
+      status: {
+        active: 'ACTIVO',
+        inactive: 'INACTIVO'
+      },
+      tooltips: {
+        edit: 'Editar Permisos',
+        remove: 'Eliminar'
+      },
+      plans: {
+        free: 'Gratis',
+        basic: 'Básico',
+        pro: 'Profesional'
+      }
+    },
+    materials: {
+      title: 'Materiales y Equipos',
+      reagentsTab: 'Reactivos y Materiales',
+      standardsTab: 'Patrones de Referencia',
+      columnsTab: 'Columnas Cromatográficas',
+      equipmentsTab: 'Equipos',
+      searchPlaceholder: 'Buscar...',
+      itemsFound: 'items encontrados',
+      expandAll: 'Expandir',
+      collapseAll: 'Contraer',
+      fileLabel: 'Archivo:',
+      itemsSuffix: 'items',
+      noResults: 'Ningún dato disponible. Cargue archivos en la pestaña "Cargar".',
+      noFilteredResults: 'No se encontraron artículos con los filtros aplicados.',
+      subtitle: 'Listado consolidado por orden alfabético.',
+      table: {
+        reagentName: 'Nombre del Reactivo / Material',
+        concentration: 'Concentración / Pureza',
+        quantity: 'Cantidad',
+        product: 'Producto',
+        category: 'Categoría',
+        test: 'Prueba Asociada',
+        equipmentName: 'Equipo / Instrumento',
+        model: 'Modelo / Especificación',
+        standardsName: 'Nombre del Patrón',
+        purity: 'Pureza / Lote',
+        columnName: 'Nombre de la Columna / Fase',
+        dimensions: 'Dimensiones (mm)',
+        general: 'General'
+      }
+    },
+    charts: {
+      techTitle: 'Carga Horaria Total por Técnica',
+      techSubtitle: 'Distribución consolidada de horas por método analítico',
+      searchTech: 'Buscar técnica...',
+      ganttTitle: 'Cronograma de Ensayos (Gantt)',
+      noData: 'Sin datos para gráficos.',
+      noCategoryData: 'No se encontraron datos para esta categoría.',
+      all: 'Todos',
+      physChem: 'CQ',
+      micro: 'Micro',
+      total: 'TOTAL:',
+      prep: 'Preparación:',
+      run: 'Corrida:',
+      incub: 'Incubación:',
+      calc: 'Cálculos:',
+      unitHours: 'horas',
+      unitH: 'h',
+      techLabel: 'Carga Total'
+    },
+    planning: {
+      title: 'Planificación de Carga',
+      subtitle: 'Cuantifique el esfuerzo total (HH) según la cantidad de lotes.',
+      table: {
+        method: 'Método / Producto',
+        baseHH: 'HH Unitario',
+        batches: 'Lotes',
+        totalHH: 'Esforço Total'
+      },
+      totalPlanned: 'Total Planificado',
+      effortFQ: 'Esfuerzo FQ',
+      effortMicro: 'Esfuerzo Micro',
+      totalGrand: 'Total General',
+      campaign: '¿Campaña?',
+      analysts: 'Analistas Necesarios',
+      emptyTitle: 'Ningún método cargado',
+      emptySubtitle: 'Cargue documentos para iniciar la planificación.'
+    },
+    chat: {
+      title: 'Chat Contextual',
+      subtitle: 'Conversando con sus datos de Pinecone',
+      welcome: '¡Hola! Soy el asistente de LabProcessor. Puedo responder preguntas sobre los métodos analíticos que ya ha procesado. ¿Cómo puedo ayudar?',
+      placeholder: "¿Pregunte sobre sus métodos (ej: '¿Qué equipos se usan en la carrera de pureza del Paracetamol?')...",
+      error: 'Lo siento, no pude procesar su pregunta.',
+      serverError: 'Ocurrió un error al comunicarse con el servidor. Verifique si el backend está funcionando.',
+      loading: 'Analizando contexto...',
+      imageUnavailable: 'Imagen no disponible'
     }
   },
   en: {
@@ -209,8 +721,17 @@ export const translations = {
       summary: 'General Summary',
       profile: 'Profile',
       admin: 'Admin',
+      planning: 'Planning',
+      chat: 'AI Chat',
       download: 'Download CSV',
-      logout: 'Logout'
+      logout: 'Logout',
+      menu: 'Main Menu',
+      language: 'Language'
+    },
+    uploadMessages: {
+      singleDuplicate: 'The file "{fileName}" has already been processed.\n\nDo you want to skip this file and process only new ones?',
+      multipleDuplicates: '{count} files have already been processed.\n\nDo you want to skip duplicate files and process only new ones?',
+      processingError: 'Error processing {fileName}: {error}'
     },
     upload: {
       title: 'Upload Documents',
@@ -220,7 +741,23 @@ export const translations = {
       selectedFiles: 'Selected Files',
       processBtn: 'Process and Save',
       processing: 'Processing...',
-      info: 'The system extracts data and saves it permanently to the local database.'
+      info: 'The system extracts data and saves it permanently to the local database.',
+      apiKeyWarning: 'API Key (VITE_GEMINI_API_KEY) not found in environment.',
+      pdfOnly: 'Please upload PDF files only.',
+      alreadyProcessed: 'Already Processed'
+    },
+    login: {
+      title: 'LabProcessor',
+      suffix: 'Plus',
+      subtitle: 'Accelerate your laboratory planning',
+      emailLabel: 'Corporate E-mail',
+      emailPlaceholder: 'you@email.com',
+      passwordLabel: 'Password',
+      passwordPlaceholder: '••••••••',
+      submit: 'Login',
+      error: 'Error during login',
+      footerAdmin: 'Admin Access',
+      footerManaged: 'Managed by Antigravity-Kit'
     },
     results: {
       searchPlaceholder: 'Search database...',
@@ -244,15 +781,129 @@ export const translations = {
         rationale: 'Rationale'
       },
       footer: '* Includes Locomotion, Setup, Register, and Incubation (Microbiology only).',
-      imagesTitle: 'Extracted Images'
+      imagesTitle: 'Extracted Images',
+      noResults: 'No results to display. Upload files in the "Upload" tab.',
+      unknownProduct: 'Unknown Product',
+      placeholderCode: 'Code',
+      placeholderForm: 'Pharma Form',
+      placeholderPrinciples: 'Active Principles',
+      tooltipLeadTime: 'Longest time between Phys-Chem and Microbiology (Parallel Analysis)',
+      tooltipWorkload: 'Sum of all individual times (Sequential Analysis)',
+      tooltipMaxIndividual: 'Maximum Individual (Lead Time)',
+      tooltipSumWorkload: 'Sum of Workload',
+      tooltipSumHH: 'Sum of Man-Hours',
+      saveBtn: 'Save',
+      cancelBtn: 'Cancel',
+      editBtn: 'Edit',
+      testsSuffix: 'Tests',
+      testSuffix: 'Test',
+      imageUnavailable: 'Image unavailable',
+      unitH: 'h',
+      unitHH: 'HH'
     },
     settings: {
       title: 'Calculation Parameters',
       dbTitle: 'Data Management',
       clearDb: 'Clear Database',
-      clearDbConfirm: 'WARNING: This will delete ALL saved methods. This action cannot be undone. Continue?',
+      clearDbConfirm: 'ATTENTION: This will delete ALL saved methods. This action cannot be undone. Continue?',
+      confirmTitle: 'Confirm Deletion',
+      confirmBtn: 'Yes, Clear All',
       successClear: 'Database cleared successfully.',
-      saveParams: 'Save Parameters'
+      saveParams: 'Save Parameters',
+      labels: {
+        labArea: 'Laboratory Area (m²)',
+        velocity: 'Velocity (m/min)',
+        alpha: 'Alpha (Segments)',
+        setupFactor: 'Setup Factor (min)',
+        registerFactor: 'Register Factor (x Calc)',
+        managementParams: 'Management Parameters (Man-Hours)',
+        efficiency: 'Lab Efficiency Factor (%)',
+        dailyWorkday: 'Daily Workday (min)',
+        runIntervention: 'Run Intervention (%)',
+        incubationIntervention: 'Incubation Intervention (%)'
+      },
+      help: {
+        efficiency: 'Ex: 0.75 for 75%. Considers bureaucracy/GMP.',
+        workday: 'Ex: 528 min = 8.8h workday.',
+        run: 'Ex: 0.10 for 10% human presence.',
+        incubation: 'Ex: 0.02 for 2% loading/reading.'
+      },
+      formulaLocomotion: 'Locomotion',
+      formulaTotalLeadTime: 'Total Lead Time',
+      formulaTotalHH: 'Total MH',
+      formulaHeadcount: 'Lab Headcount',
+      formulaSetup: 'Setup',
+      formulaPrep: 'Prep',
+      formulaRun: 'Run',
+      formulaCalc: 'Calculations',
+      formulaIncubation: 'Incubation',
+      formulaFactorRegister: 'RegisterFactor',
+      formulaFactorRun: 'RunFactor',
+      formulaFactorIncubation: 'IncubationFactor',
+      formulasTitle: 'Formulas Used:',
+      dbSectionTitle: 'Clear Local Database',
+      dbSectionSubtitle: 'This will permanently remove all loaded methods.',
+      toastSuccess: 'Settings saved successfully!'
+    },
+    summary: {
+      loading: 'Loading metrics',
+      syncing: 'Syncing analytical data...',
+      emptyTitle: 'No consolidated data',
+      emptySubtitle: 'Upload analytical methods to view the advanced metrics dashboard.',
+      totalMethods: 'Total Monographs',
+      processed: 'Processed',
+      avgLeadFQ: 'Avg. Lead Time QC',
+      avgLeadMicro: 'Avg. Lead Time Micro',
+      mappedInputs: 'Mapped Inputs',
+      reagents: 'Reag',
+      columns: 'Colu',
+      standards: 'Stnd',
+      tableTitle: 'Analytical Methods Comparison',
+      quickSearch: 'Quick search...',
+      productCode: 'Product / Code',
+      sector: 'Sector (QC | Micro)',
+      leadTime: 'Lead Time',
+      processedCol: 'Inputs',
+      noMethods: 'No methods found for',
+      noCode: 'NO_CODE',
+      itemsPerPage: 'Items per page:',
+      methodsSuffix: 'methods',
+      techChargeFQ: 'Charge by Technique (QC)',
+      insufficientData: 'Insufficient data for analysis.',
+      fullReport: 'View Full Report'
+    },
+    techniques: {
+      hplc: 'HPLC',
+      dissolution: 'Dissolution',
+      spectroscopy: 'Spectroscopy',
+      microbiology: 'Microbiology',
+      gravimetry: 'Gravimetry',
+      titration: 'Titration',
+      viscosity: 'Viscosity',
+      balance: 'Balance/Thermal',
+      tests: 'Tests',
+      calculations: 'Calculations',
+      others: 'Others'
+    },
+    history: {
+      emptyTitle: 'Empty history',
+      emptySubtitle: 'Processed documents will appear here.',
+      title: 'Processing History',
+      subtitle: 'Complete record of all analyzed methods.',
+      searchPlaceholder: 'Search by product or file...',
+      clearBtn: 'Clear',
+      table: {
+        date: 'Date',
+        product: 'Product',
+        file: 'File',
+        physChem: 'Quality Control',
+        micro: 'Microbiology',
+        totalTime: 'Total Time',
+        noResults: 'No results found for',
+        downloadPdf: 'Download PDF',
+        maxTimeTooltip: 'Maximum time (FQ or Micro)',
+        workloadTooltip: 'Total Workload (Sum)'
+      }
     },
     profile: {
       title: 'Personal Information',
@@ -274,7 +925,13 @@ export const translations = {
       errorPass: 'Please fill in all fields.',
       errorMatch: 'New passwords do not match.',
       errorUser: 'User not found.',
-      errorCurrent: 'Incorrect current password.'
+      errorCurrent: 'Incorrect current password.',
+      placeholders: {
+        name: 'Your name',
+        email: 'you@email.com',
+        company: 'Company name',
+        role: 'Ex: Senior Analyst'
+      }
     },
     admin: {
       title: 'User Management',
@@ -293,6 +950,117 @@ export const translations = {
       confirmDelete: 'Are you sure you want to delete this user?',
       successDelete: 'User deleted successfully.',
       successUpdate: 'User updated successfully.'
+    },
+    userManagement: {
+      title: 'User Management',
+      subtitle: 'Manage system users and permissions',
+      newUser: 'New User',
+      searchPlaceholder: 'Search by name or email...',
+      total: 'Total:',
+      usersSuffix: 'users',
+      table: {
+        user: 'User',
+        email: 'Email',
+        level: 'Level',
+        plan: 'Plan',
+        status: 'Status',
+        actions: 'Actions'
+      },
+      roles: {
+        admin: 'ADMIN',
+        user: 'USER'
+      },
+      status: {
+        active: 'ACTIVE',
+        inactive: 'INACTIVE'
+      },
+      tooltips: {
+        edit: 'Edit Permissions',
+        remove: 'Remove'
+      },
+      plans: {
+        free: 'Free',
+        basic: 'Basic',
+        pro: 'Professional'
+      }
+    },
+    materials: {
+      title: 'Materials and Equipment',
+      reagentsTab: 'Reagents and Materials',
+      standardsTab: 'Reference Standards',
+      columnsTab: 'Chromatographic Columns',
+      equipmentsTab: 'Equipment',
+      searchPlaceholder: 'Search...',
+      itemsFound: 'items found',
+      expandAll: 'Expand All',
+      collapseAll: 'Collapse All',
+      fileLabel: 'File:',
+      itemsSuffix: 'items',
+      noResults: 'No data available. Upload files in the "Upload" tab.',
+      noFilteredResults: 'No items found with applied filters.',
+      subtitle: 'Consolidated listing in alphabetical order.',
+      table: {
+        reagentName: 'Reagent / Material Name',
+        concentration: 'Concentration / Purity',
+        quantity: 'Quantity',
+        product: 'Product',
+        category: 'Category',
+        test: 'Associated Test',
+        equipmentName: 'Equipment / Instrument',
+        model: 'Model / Specification',
+        standardsName: 'Standard Name',
+        purity: 'Purity / Batch',
+        columnName: 'Column Name / Phase',
+        dimensions: 'Dimensions (mm)',
+        general: 'General'
+      }
+    },
+    charts: {
+      techTitle: 'Total Workload by Technique',
+      techSubtitle: 'Consolidated distribution of hours by analytical method',
+      searchTech: 'Search technique...',
+      ganttTitle: 'Test Schedule (Gantt)',
+      noData: 'No data for charts.',
+      noCategoryData: 'No data found for this category.',
+      all: 'All',
+      physChem: 'QC',
+      micro: 'Micro',
+      total: 'TOTAL:',
+      prep: 'Prep:',
+      run: 'Run:',
+      incub: 'Incubation:',
+      calc: 'Calculations:',
+      unitHours: 'hours',
+      unitH: 'h',
+      techLabel: 'Total Workload'
+    },
+    planning: {
+      title: 'Load Planning',
+      subtitle: 'Quantify total effort (Man-Hours) based on the number of batches.',
+      table: {
+        method: 'Method / Product',
+        baseHH: 'Base MH',
+        batches: 'Batches',
+        totalHH: 'Total Effort'
+      },
+      totalPlanned: 'Total Planned',
+      effortFQ: 'Phys-Chem Effort',
+      effortMicro: 'Micro Effort',
+      totalGrand: 'Grand Total',
+      campaign: 'Campaign?',
+      analysts: 'Analysts Required',
+      emptyTitle: 'No methods loaded',
+      emptySubtitle: 'Upload documents to start planning.'
+    },
+    chat: {
+      title: 'Contextual Chat',
+      subtitle: 'Chatting with your Pinecone data',
+      welcome: 'Hello! I am the LabProcessor assistant. I can answer questions about the analytical methods you have already processed. How can I help?',
+      placeholder: "Ask about your methods (e.g., 'What equipment is used in the course of purity test for Paracetamol?')...",
+      error: 'Sorry, I could not process your question.',
+      serverError: 'An error occurred while communicating with the server. Please check if the backend is running.',
+      loading: 'Analyzing context...',
+      imageUnavailable: 'Image unavailable'
     }
   }
 };

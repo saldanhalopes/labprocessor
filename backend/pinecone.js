@@ -8,7 +8,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY || '';
 const PINECONE_INDEX = process.env.PINECONE_INDEX || 'labprocessor';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const TARGET_DIMENSION = 3072; // Dimension for models/gemini-embedding-001
+const TARGET_DIMENSION = 3072; // Dimension for gemini-embedding-001
 
 let pc = null;
 let genAI = null;
@@ -102,7 +102,7 @@ async function generateEmbedding(text) {
   const ai = initGemini();
   if (!ai) throw new Error('Gemini API key not configured');
   
-  // Use models/gemini-embedding-001 (3072 dimensions)
+  // Use gemini-embedding-001 (3072 dimensions)
   const model = ai.getGenerativeModel({ model: 'models/gemini-embedding-001' });
   const result = await model.embedContent(text);
   return result.embedding.values;
