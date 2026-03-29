@@ -12,6 +12,7 @@ import { AdminView } from './AdminView';
 import StandardsView from './StandardsView';
 import { PlanningView } from './PlanningView';
 import { SummaryDashboardView } from './SummaryDashboardView';
+import { DashboardChat } from '../DashboardChat';
 import { analyzeDocument } from '../../services/geminiService';
 import { extractPdfImages } from '../../utils/pdfImages';
 import { saveToPinecone } from '../../services/pineconeService';
@@ -23,7 +24,7 @@ import { auth } from '../../firebase';
 import { getIdToken } from 'firebase/auth';
 import { translations } from '../../utils/translations';
 
-type Tab = 'dashboard' | 'upload' | 'view' | 'planning' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
+type Tab = 'dashboard' | 'upload' | 'view' | 'planning' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'chat';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -411,6 +412,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     { id: 'upload', label: t.nav.upload, icon: Upload },
     { id: 'view', label: t.nav.view, icon: Eye },
     { id: 'planning', label: t.nav.planning, icon: Calculator },
+    { id: 'chat', label: t.nav.chat, icon: MessageSquare },
     { id: 'reagents', label: t.nav.reagents, icon: FlaskConical },
     { id: 'charts', label: t.nav.charts, icon: BarChart3 },
     { id: 'history', label: t.nav.history, icon: History },
@@ -554,6 +556,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                 settings={settings}
                 onNavigate={setActiveTab} 
                 isLoading={isInitialLoading}
+                token={user.token}
               />
             )}
             {activeTab === 'upload' && (
@@ -630,6 +633,12 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
             { activeTab === 'profile' && <ProfileView user={user} onUpdateUser={onUpdateUser} language={language} />}
 
             {activeTab === 'admin' && user.isAdmin && <AdminView currentUser={user} language={language} />}
+
+            {activeTab === 'chat' && (
+              <div className="h-[calc(100vh-10rem)]">
+                <DashboardChat token={user.token} />
+              </div>
+            )}
           </div>
         </div>
       </main>

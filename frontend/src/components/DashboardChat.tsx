@@ -10,7 +10,11 @@ interface Message {
   timestamp: Date;
 }
 
-export const DashboardChat: React.FC = () => {
+interface DashboardChatProps {
+  token?: string | null;
+}
+
+export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -49,9 +53,17 @@ export const DashboardChat: React.FC = () => {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ message: input }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
 

@@ -10,7 +10,11 @@ interface Message {
   timestamp: Date;
 }
 
-export const DashboardChat: React.FC = () => {
+interface DashboardChatProps {
+  token?: string | null;
+}
+
+export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -49,9 +53,17 @@ export const DashboardChat: React.FC = () => {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ message: input }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -79,7 +91,7 @@ export const DashboardChat: React.FC = () => {
 
   const containerClasses = isExpanded 
     ? "fixed inset-4 sm:inset-10 z-[100] bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-700 shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300"
-    : "bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 shadow-2xl flex flex-col h-[500px] transition-all duration-300";
+    : "bg-slate-900 rounded-[3rem] overflow-hidden border border-slate-800/50 shadow-2xl flex flex-col h-full transition-all duration-300 ring-1 ring-white/5";
 
   return (
     <>
@@ -117,8 +129,8 @@ export const DashboardChat: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800">
           {messages.map((m) => (
-            <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] p-3 rounded-2xl text-xs leading-relaxed ${
+            <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+              <div className={`max-w-[90%] p-3.5 rounded-3xl text-sm leading-relaxed ${
                 m.sender === 'user' 
                   ? 'bg-teal-600 text-white rounded-tr-none' 
                   : 'bg-slate-800 text-slate-300 rounded-tl-none border border-white/5'
@@ -142,7 +154,7 @@ export const DashboardChat: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 bg-white/5 border-t border-white/5">
+        <div className="p-6 bg-white/5 border-t border-white/5">
           <div className="flex gap-2">
             <input
               type="text"

@@ -22,7 +22,6 @@ import {
   calculateTotalManHours, 
   calculateStaffRequired 
 } from '../../utils/calculations';
-import { DashboardChat } from '../DashboardChat';
 
 const normalizeTechnique = (tech: string): string => {
   const t = tech.toLowerCase().trim();
@@ -57,9 +56,10 @@ interface SummaryDashboardViewProps {
   settings: GlobalSettings;
   onNavigate?: (tab: any) => void;
   isLoading?: boolean;
+  token?: string | null;
 }
 
-export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ results, settings, onNavigate, isLoading }) => {
+export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ results, settings, onNavigate, isLoading, token }) => {
   // --- Metrificação Global ---
   const stats = useMemo(() => {
     if (results.length === 0) return null;
@@ -381,8 +381,6 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
 
         {/* Right: Quick Insights / Trends Section */}
         <div className="space-y-6">
-          <DashboardChat />
-
           <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/20">
              <div className="flex items-center justify-between mb-6 px-2">
                <h3 className="font-bold text-slate-800">Carga por Técnica (FQ)</h3>

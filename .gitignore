@@ -18,6 +18,12 @@ firebase-service-account.json
 *.db
 backend/data/
 
+# Temporary and Test Scripts
+tmp/
+**/tmp/
+*.log
+**/fire-debug.log
+
 # IDEs
 .vscode/
 .idea/

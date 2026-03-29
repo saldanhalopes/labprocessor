@@ -39,21 +39,18 @@ const App: React.FC = () => {
             };
             setUser(userSession);
             localStorage.setItem('labprocessor_user', JSON.stringify(userSession));
-          } else if (response.status === 404) {
-            // Profile doesn't exist yet in Firestore, but authenticated in Auth
-            // We can create a default profile or let them register
+          } else {
+            // New user or error, assume active/free by default to bypass landing screen
             const defaultUser: User = {
               username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "User",
               email: firebaseUser.email || "",
               uid: firebaseUser.uid,
-              subscriptionStatus: 'inactive',
+              subscriptionStatus: 'active', // Default to active
+              plan: 'free',
               isAuthenticated: true,
               token: token
             };
             setUser(defaultUser);
-          } else {
-            showToast("Erro ao carregar seu perfil.", "error");
-            setUser(null);
           }
         } catch (err) {
           console.error("[Auth] Session initialization error:", err);
@@ -172,12 +169,7 @@ const App: React.FC = () => {
     return <Login onLogin={handleLoginComplete} />;
   }
 
-  // 2. Logged In but Inactive -> Show Subscription
-  if (user.subscriptionStatus !== 'active') {
-    return <Subscription onSubscribe={handleSubscriptionComplete} onLogout={handleLogout} username={user.username || user.email || ""} />;
-  }
-
-  // 3. Logged In and Active -> Show Dashboard
+  // 2. Logged In and Active -> Show Dashboard
   return (
     <Dashboard 
       onLogout={handleLogout} 

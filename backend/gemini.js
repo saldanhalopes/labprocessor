@@ -245,9 +245,12 @@ export async function analyzeDocumentServer(base64Data, mimeType, fileName, lang
 
 export async function generateChatResponse(userMessage, context) {
   try {
+    const modelName = 'models/gemini-2.5-flash';
+    console.log(`[Gemini-Chat] Starting generation with model: ${modelName}`);
+    
     const genAI = initGemini();
     const model = genAI.getGenerativeModel({ 
-      model: 'models/gemini-2.5-flash',
+      model: modelName,
       systemInstruction: `
         Você é o "LabProcessor Chat", um assistente virtual especializado em análise de métodos analíticos da Eurofarma.
         
@@ -266,9 +269,14 @@ export async function generateChatResponse(userMessage, context) {
 
     const result = await model.generateContent(userMessage);
     const response = await result.response;
-    return response.text();
+    const text = response.text();
+    console.log(`[Gemini-Chat] Successfully generated response (length: ${text?.length || 0})`);
+    return text;
   } catch (error) {
-    console.error('[Gemini-Chat] Error generating response:', error);
+    console.error('[Gemini-Chat] CRITICAL Error:', error.message);
+    if (error.message.includes('not found') || error.message.includes('404')) {
+      console.error('[Gemini-Chat] HINT: The model name "gemini-2.5-flash" might be invalid or not available in this region/API version.');
+    }
     throw error;
   }
 }

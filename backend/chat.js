@@ -28,10 +28,15 @@ export async function handleChatMessage(req, res) {
     }));
 
     // 3. Generate response using Gemini with retrieved context
+    console.log(`[Chat] Querying Gemini with ${context.length} context matches...`);
     const responseText = await generateChatResponse(message, context);
+    
+    if (!responseText) {
+      console.warn('[Chat] Gemini returned empty response');
+    }
 
     res.json({ 
-      response: responseText,
+      response: responseText || 'O modelo não retornou uma resposta válida.',
       contextUsed: context.length > 0 
     });
   } catch (error) {

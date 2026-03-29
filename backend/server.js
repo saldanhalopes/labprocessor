@@ -174,14 +174,32 @@ app.get('/api/users/:identifier', authenticateToken, async (req, res) => {
   try {
     const { identifier } = req.params;
     // We try to find by email first (standard for this app)
-    const user = await getUserByEmail(identifier) || await getUserByUsername(identifier);
+    let user = await getUserByEmail(identifier) || await getUserByUsername(identifier);
+    
+    // Auto-creation logic: If authenticated but no Firestore doc, create it
+    if (!user && req.user) {
+      console.log(`[API] User ${identifier} not found in Firestore. Auto-creating profile...`);
+      const newUser = {
+        uid: req.user.uid,
+        email: req.user.email || (identifier.includes('@') ? identifier : ''),
+        username: req.user.name || identifier.split('@')[0],
+        subscriptionStatus: 'active',
+        plan: 'free',
+        isAuthenticated: true // For response consistency
+      };
+      
+      user = await registerUser(newUser);
+      console.log(`[API] Successfully auto-registered user: ${identifier}`);
+    }
+
     if (user) {
       res.json(user);
     } else {
       res.status(404).json({ error: 'Usuário não encontrado' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar usuário' });
+    console.error('[API] Error in user lookup/creation:', error);
+    res.status(500).json({ error: 'Erro ao buscar ou criar usuário' });
   }
 });
 
