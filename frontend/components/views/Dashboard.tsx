@@ -239,7 +239,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
 
         // Sync to Pinecone (Vector DB)
         try {
-          await saveToPinecone(result);
+          await saveToPinecone(result, token);
         } catch (pineError) {
           console.error("Failed to sync to Pinecone:", pineError);
         }

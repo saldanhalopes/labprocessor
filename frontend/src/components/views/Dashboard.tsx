@@ -68,7 +68,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         const result = await analyzeDocument(base64Data, file.type, file.name, settings, language, images, token);
         newResults.push(result);
 
-        await saveToPinecone(result);
+        await saveToPinecone(result, token);
         await saveResultToDb(result);
 
       } catch (error: any) {

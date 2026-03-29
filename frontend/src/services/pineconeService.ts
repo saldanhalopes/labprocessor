@@ -9,12 +9,18 @@ const API_BASE = '/api';
 /**
  * Sync an analysis result to Pinecone via the backend.
  */
-export async function saveToPinecone(result: AnalysisResult): Promise<boolean> {
+export async function saveToPinecone(result: AnalysisResult, token?: string): Promise<boolean> {
   try {
     console.log(`[Pinecone] Syncing ${result.fileName} via backend...`);
+    
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(`${API_BASE}/pinecone/sync`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(result),
     });
 
