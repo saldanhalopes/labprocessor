@@ -22,7 +22,7 @@ import { useToast } from '../../context/ToastContext';
 import { DEFAULT_SETTINGS, generateCSV, recalculateRow, isMicrobiology, calculateParallelLeadTime } from '../../utils/calculations';
 import { auth } from '../../firebase';
 import { getIdToken } from 'firebase/auth';
-import { translations } from '../../utils/translations';
+import { useLanguage } from '@/context/LanguageContext';
 
 type Tab = 'dashboard' | 'upload' | 'view' | 'planning' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'chat';
 
@@ -30,11 +30,9 @@ interface DashboardProps {
   onLogout: () => void;
   user: User;
   onUpdateUser: (user: User) => void;
-  language: Language;
-  onLanguageChange: (lang: Language) => void;
 }
 
-export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageChange }: DashboardProps) => {
+export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
@@ -47,6 +45,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
   const [hoveredTab, setHoveredTab] = useState<{ label: string, top: number } | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
+  const { language, t, setLanguage: onLanguageChange } = useLanguage();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -61,8 +60,6 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isUserMenuOpen]);
-
-  const t = translations[language];
 
   // Load from backend SQLite on mount, fallback to localStorage
   useEffect(() => {
@@ -372,10 +369,10 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
         setResults(prev => prev.filter(r => r.fileId !== fileId));
         await deleteResultFromDb(fileId, token || undefined);
-        showToast('Resultado excluído com sucesso.', 'success');
+        showToast(t.common.success, 'success');
       } catch (e) {
         console.error('Failed to delete from Firestore:', e);
-        showToast('Erro ao excluir resultado do servidor.', 'error');
+        showToast(t.common.error, 'error');
       }
     }
   };
@@ -386,24 +383,24 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
       const fileId = updatedResult.fileId;
       await updateResultInDb(fileId, updatedResult, token || undefined);
       setResults(prev => prev.map(r => r.fileId === fileId ? updatedResult : r));
-      showToast('Resultado atualizado com sucesso!', 'success');
+      showToast(t.common.success, 'success');
     } catch (err) {
       console.error("[Dashboard] Error updating result:", err);
-      showToast("Erro ao atualizar resultado.", "error");
+      showToast(t.common.error, "error");
     }
   };
 
   const handleClearDatabase = async () => {
-    if (window.confirm(translations[language].settings.clearDbConfirm)) {
+    if (window.confirm(t.settings.clearDbConfirm)) {
       try {
         const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
         setResults([]);
         localStorage.removeItem('labprocessor_methods_db');
         await clearDbResults(token || undefined);
-        showToast(translations[language].settings.successClear, 'success');
+        showToast(t.settings.successClear, 'success');
       } catch (e) {
         console.error('Failed to clear Firestore:', e);
-        showToast('Erro ao limpar banco de dados no servidor.', 'error');
+        showToast(t.common.error, 'error');
       }
     }
   };
@@ -661,7 +658,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                   {!((import.meta as any).env?.VITE_GEMINI_API_KEY) && (
                     <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-xl border border-red-200 flex items-center gap-2 max-w-md mx-auto">
                       <AlertTriangle className="w-5 h-5" />
-                      <span><strong>Erro:</strong> Chave da API (VITE_GEMINI_API_KEY) não encontrada no ambiente.</span>
+                      <span>{t.upload.apiKeyWarning}</span>
                     </div>
                   )}
                 </div>
@@ -670,7 +667,6 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                   onFilesSelect={handleFilesSelect} 
                   isLoading={isLoading} 
                   progress={progress} 
-                  language={language}
                 />
 
                 {isLoading && (

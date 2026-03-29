@@ -31,12 +31,12 @@ export const translations = {
       dragDrop: 'Arraste e solte seus PDFs aqui',
       clickSelect: 'ou clique para selecionar múltiplos arquivos',
       selectedFiles: 'Arquivos Selecionados',
-      processBtn: 'Processar e Salvar',
-      processing: 'Processando...',
-      info: 'O sistema extrai dados do produto e salva permanentemente no banco de dados local.',
+      alreadyProcessed: 'Já Processado',
+      processBtn: 'Processar Agora',
+      processing: 'Processando documentos...',
+      info: 'Os dados extraídos serão salvos automaticamente no seu banco de dados local e na nuvem.',
       apiKeyWarning: 'Chave da API (VITE_GEMINI_API_KEY) não encontrada no ambiente.',
-      pdfOnly: 'Por favor, envie apenas arquivos PDF.',
-      alreadyProcessed: 'Já Processado'
+      onlyPDF: 'Por favor, envie apenas arquivos PDF.'
     },
     login: {
       title: 'LabProcessor',
@@ -44,12 +44,100 @@ export const translations = {
       subtitle: 'Acelere seu planejamento laboratorial',
       emailLabel: 'E-mail Corporativo',
       emailPlaceholder: 'seu@email.com',
+      usernameLabel: 'Nome de Usuário',
+      usernamePlaceholder: 'Seu nome',
       passwordLabel: 'Senha',
-      passwordPlaceholder: '••••••••',
-      submit: 'Acessar Plataforma',
+      passwordPlaceholder: 'Sua senha',
+      confirmPasswordLabel: 'Confirmar Senha',
+      confirmPasswordPlaceholder: 'Repita sua senha',
+      submitLogin: 'Acessar Plataforma',
+      submitRegister: 'Criar Conta',
+      registerTitle: 'Crie sua conta para começar',
+      loginTitle: 'Faça login para acessar o sistema',
+      alreadyHaveAccount: 'Já tem uma conta? Faça login',
+      noAccount: 'Não tem conta? Registre-se agora',
       error: 'Erro ao realizar login',
       footerAdmin: 'Acesso Administrativo',
-      footerManaged: 'Gerenciado pelo Antigravity-Kit'
+      footerManaged: 'Gerenciado pelo Antigravity-Kit',
+      successRegister: 'Conta criada com sucesso! Entrando...',
+      errors: {
+        fillAll: 'Preencha todos os campos.',
+        matchPasswords: 'As senhas não coincidem.',
+        invalidCreds: 'E-mail ou senha incorretos.',
+        emailInUse: 'Este e-mail já está em uso.',
+        weakPassword: 'A senha deve ter pelo menos 6 caracteres.',
+        generic: 'Erro na autenticação. Verifique os dados.'
+      }
+    },
+    subscription: {
+      title: 'Escolha seu Plano',
+      subtitle: 'Olá, {username}. Para acessar o LabProcessor, é necessária uma assinatura ativa.',
+      currency: 'R$',
+      perMonth: '/mês',
+      recommended: 'RECOMENDADO',
+      cancelAnytime: 'Pagamento seguro via Stripe. Cancele quando quiser.',
+      logoutPrompt: 'Deseja sair? Clique aqui para encerrar sessão.',
+      plans: {
+        free: {
+          name: 'Gratuito',
+          price: '0',
+          cta: 'Começar Grátis',
+          features: [
+            'Acesso limitado',
+            '1 upload por dia',
+            'Sem histórico',
+            'Sem suporte'
+          ]
+        },
+        basic: {
+          name: 'Básico',
+          price: '29',
+          cta: 'Assinar Básico',
+          features: [
+            'Acesso ao sistema',
+            '5 uploads por dia',
+            'Histórico básico',
+            'Sem suporte prioritário'
+          ]
+        },
+        pro: {
+          name: 'Profissional',
+          price: '99',
+          cta: 'Assinar Profissional',
+          features: [
+            'Uploads Ilimitados',
+            'Análise Completa',
+            'Extração de Reagentes',
+            'Banco de Dados Persistente',
+            'Suporte Prioritário'
+          ],
+          description: 'Acesso total a todas as ferramentas.',
+          redirecting: 'Redirecionando...'
+        }
+      },
+      messages: {
+        successFree: 'Plano Gratuito ativado com sucesso!',
+        errorPayment: 'Ocorreu um erro ao processar o pagamento.',
+        confirmSuccess: 'Assinatura do plano {plan} confirmada!'
+      }
+    },
+    common: {
+      success: 'Sucesso',
+      error: 'Erro',
+      warning: 'Aviso',
+      save: 'Salvar',
+      cancel: 'Cancelar',
+      confirm: 'Confirmar',
+      delete: 'Excluir',
+      loading: 'Carregando...',
+      profileError: 'Erro ao carregar seu perfil.',
+      updateUserError: 'Erro ao atualizar usuário.',
+      activationError: 'Erro ao ativar plano.',
+      connectionError: 'Erro de conexão.',
+      planActivated: 'Plano ativado com sucesso!',
+      recollectSidebar: 'Recolher Sidebar',
+      expandSidebar: 'Expandir Sidebar',
+      userMenu: 'Menu do Usuário'
     },
     results: {
       searchPlaceholder: 'Buscar no banco de dados...',
@@ -385,12 +473,12 @@ export const translations = {
       dragDrop: 'Arrastre y suelte sus archivos PDF aquí',
       clickSelect: 'o haga clic para seleccionar múltiples archivos',
       selectedFiles: 'Archivos Seleccionados',
-      processBtn: 'Procesar y Guardar',
-      processing: 'Procesando...',
+      alreadyProcessed: 'Ya Procesado',
+      processBtn: 'Procesar Ahora',
+      processing: 'Procesando documentos...',
       info: 'El sistema extrae datos y los guarda permanentemente en la base de datos local.',
       apiKeyWarning: 'Clave de API (VITE_GEMINI_API_KEY) no encontrada en el entorno.',
-      pdfOnly: 'Por favor, suba solo archivos PDF.',
-      alreadyProcessed: 'Ya Procesado'
+      onlyPDF: 'Por favor, suba solo archivos PDF.'
     },
     login: {
       title: 'LabProcessor',
@@ -398,12 +486,100 @@ export const translations = {
       subtitle: 'Acelere su planificación de laboratorio',
       emailLabel: 'Correo Electrónico Corporativo',
       emailPlaceholder: 'tu@email.com',
+      usernameLabel: 'Nombre de Usuario',
+      usernamePlaceholder: 'Tu nombre',
       passwordLabel: 'Contraseña',
-      passwordPlaceholder: '••••••••',
-      submit: 'Acceso a la Plataforma',
+      passwordPlaceholder: 'Tu contraseña',
+      confirmPasswordLabel: 'Confirmar Contraseña',
+      confirmPasswordPlaceholder: 'Repite tu contraseña',
+      submitLogin: 'Acceso a la Plataforma',
+      submitRegister: 'Crear Cuenta',
+      registerTitle: 'Crea tu cuenta para empezar',
+      loginTitle: 'Inicia sesión para acceder al sistema',
+      alreadyHaveAccount: '¿Ya tienes una cuenta? Inicia sesión',
+      noAccount: '¿No tienes cuenta? Regístrate ahora',
       error: 'Error al iniciar sesión',
       footerAdmin: 'Acceso Administrativo',
-      footerManaged: 'Gestionado por Antigravity-Kit'
+      footerManaged: 'Gestionado por Antigravity-Kit',
+      successRegister: '¡Cuenta creada con éxito! Entrando...',
+      errors: {
+        fillAll: 'Complete todos los campos.',
+        matchPasswords: 'Las contraseñas no coinciden.',
+        invalidCreds: 'Correo electrónico o contraseña incorrectos.',
+        emailInUse: 'Este correo electrónico ya está en uso.',
+        weakPassword: 'La contraseña debe tener al menos 6 caracteres.',
+        generic: 'Error en la autenticación. Verifique los datos.'
+      }
+    },
+    subscription: {
+      title: 'Elige tu Plan',
+      subtitle: 'Hola, {username}. Para acceder a LabProcessor, se requiere una suscripción activa.',
+      currency: 'R$',
+      perMonth: '/mes',
+      recommended: 'RECOMENDADO',
+      cancelAnytime: 'Pago seguro vía Stripe. Cancele cuando quiera.',
+      logoutPrompt: '¿Desea salir? Haga clic aquí para cerrar la sesión.',
+      plans: {
+        free: {
+          name: 'Gratis',
+          price: '0',
+          cta: 'Empezar Gratis',
+          features: [
+            'Acceso limitado',
+            '1 upload por día',
+            'Sin historial',
+            'Sin soporte'
+          ]
+        },
+        basic: {
+          name: 'Básico',
+          price: '29',
+          cta: 'Suscribirse al Básico',
+          features: [
+            'Acceso al sistema',
+            '5 uploads por día',
+            'Historial básico',
+            'Sin soporte prioritario'
+          ]
+        },
+        pro: {
+          name: 'Profesional',
+          price: '99',
+          cta: 'Suscribirse al Profesional',
+          features: [
+            'Uploads Ilimitados',
+            'Análisis Completo',
+            'Extracción de Reactivos',
+            'Base de Datos Persistente',
+            'Soporte Prioritario'
+          ],
+          description: 'Acceso total a todas las herramientas.',
+          redirecting: 'Redirigiendo...'
+        }
+      },
+      messages: {
+        successFree: '¡Plan gratuito activado con éxito!',
+        errorPayment: 'Ocurrió un error al procesar el pago.',
+        confirmSuccess: '¡Suscripción al plan {plan} confirmada!'
+      }
+    },
+    common: {
+      success: 'Éxito',
+      error: 'Error',
+      warning: 'Aviso',
+      save: 'Guardar',
+      cancel: 'Cancelar',
+      confirm: 'Confirmar',
+      delete: 'Eliminar',
+      loading: 'Cargando...',
+      profileError: 'Error al cargar su perfil.',
+      updateUserError: 'Error al actualizar el usuario.',
+      activationError: 'Error al activar el plan.',
+      connectionError: 'Error de conexión.',
+      planActivated: '¡Plan activado con éxito!',
+      recollectSidebar: 'Contraer Sidebar',
+      expandSidebar: 'Expandir Sidebar',
+      userMenu: 'Menú de Usuario'
     },
     results: {
       searchPlaceholder: 'Buscar en la base de datos...',
@@ -485,7 +661,7 @@ export const translations = {
       formulaIncubation: 'Incubación',
       formulaFactorRegister: 'FactorRegistro',
       formulaFactorRun: 'FactorCorrida',
-      formulaFactorIncubation: 'FactorIncubação',
+      formulaFactorIncubation: 'FactorIncubación',
       formulasTitle: 'Fórmulas Utilizadas:',
       dbSectionTitle: 'Limpiar Base de Dados Local',
       dbSectionSubtitle: 'Esto eliminará todos los métodos cargados permanentemente.',
@@ -739,12 +915,12 @@ export const translations = {
       dragDrop: 'Drag and drop your PDF files here',
       clickSelect: 'or click to select multiple files',
       selectedFiles: 'Selected Files',
-      processBtn: 'Process and Save',
-      processing: 'Processing...',
+      alreadyProcessed: 'Already Processed',
+      processBtn: 'Process Now',
+      processing: 'Processing documents...',
       info: 'The system extracts data and saves it permanently to the local database.',
       apiKeyWarning: 'API Key (VITE_GEMINI_API_KEY) not found in environment.',
-      pdfOnly: 'Please upload PDF files only.',
-      alreadyProcessed: 'Already Processed'
+      onlyPDF: 'Please upload PDF files only.'
     },
     login: {
       title: 'LabProcessor',
@@ -752,12 +928,100 @@ export const translations = {
       subtitle: 'Accelerate your laboratory planning',
       emailLabel: 'Corporate E-mail',
       emailPlaceholder: 'you@email.com',
+      usernameLabel: 'Username',
+      usernamePlaceholder: 'Your name',
       passwordLabel: 'Password',
-      passwordPlaceholder: '••••••••',
-      submit: 'Login',
+      passwordPlaceholder: 'Your password',
+      confirmPasswordLabel: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Repeat your password',
+      submitLogin: 'Login',
+      submitRegister: 'Create Account',
+      registerTitle: 'Create your account to start',
+      loginTitle: 'Login to access the system',
+      alreadyHaveAccount: 'Already have an account? Login',
+      noAccount: "Don't have an account? Register now",
       error: 'Error during login',
       footerAdmin: 'Admin Access',
-      footerManaged: 'Managed by Antigravity-Kit'
+      footerManaged: 'Managed by Antigravity-Kit',
+      successRegister: 'Account created successfully! Entering...',
+      errors: {
+        fillAll: 'Please fill in all fields.',
+        matchPasswords: 'Passwords do not match.',
+        invalidCreds: 'Incorrect email or password.',
+        emailInUse: 'This email is already in use.',
+        weakPassword: 'Password must be at least 6 characters.',
+        generic: 'Authentication error. Please check your data.'
+      }
+    },
+    subscription: {
+      title: 'Choose your Plan',
+      subtitle: 'Hello, {username}. To access LabProcessor, an active subscription is required.',
+      currency: 'R$',
+      perMonth: '/month',
+      recommended: 'RECOMMENDED',
+      cancelAnytime: 'Secure payment via Stripe. Cancel anytime.',
+      logoutPrompt: 'Want to logout? Click here to end your session.',
+      plans: {
+        free: {
+          name: 'Free',
+          price: '0',
+          cta: 'Start Free',
+          features: [
+            'Limited access',
+            '1 upload per day',
+            'No history',
+            'No support'
+          ]
+        },
+        basic: {
+          name: 'Basic',
+          price: '29',
+          cta: 'Subscribe Basic',
+          features: [
+            'System access',
+            '5 uploads per day',
+            'Basic history',
+            'No priority support'
+          ]
+        },
+        pro: {
+          name: 'Professional',
+          price: '99',
+          cta: 'Subscribe Professional',
+          features: [
+            'Unlimited Uploads',
+            'Complete Analysis',
+            'Reagent Extraction',
+            'Persistent Database',
+            'Priority Support'
+          ],
+          description: 'Full access to all tools.',
+          redirecting: 'Redirecting...'
+        }
+      },
+      messages: {
+        successFree: 'Free plan activated successfully!',
+        errorPayment: 'An error occurred while processing payment.',
+        confirmSuccess: '{plan} plan subscription confirmed!'
+      }
+    },
+    common: {
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning',
+      save: 'Save',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      delete: 'Delete',
+      loading: 'Loading...',
+      profileError: 'Error loading your profile.',
+      updateUserError: 'Error updating user.',
+      activationError: 'Error activating plan.',
+      connectionError: 'Connection error.',
+      planActivated: 'Plan activated successfully!',
+      recollectSidebar: 'Recollect Sidebar',
+      expandSidebar: 'Expand Sidebar',
+      userMenu: 'User Menu'
     },
     results: {
       searchPlaceholder: 'Search database...',

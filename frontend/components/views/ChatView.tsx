@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, MessageSquare } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Message {
   id: string;
@@ -11,10 +12,11 @@ interface Message {
 }
 
 const ChatView: React.FC = () => {
+  const { t, language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Olá! Eu sou o assistente do LabProcessor. Posso responder perguntas sobre os métodos analíticos que você já processou. Como posso ajudar?',
+      text: t.chat.welcome,
       sender: 'bot',
       timestamp: new Date()
     }
@@ -51,14 +53,17 @@ const ChatView: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ 
+          message: input,
+          language: language
+        }),
       });
 
       const data = await response.json();
 
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Desculpe, não consegui processar sua pergunta.',
+        text: data.response || t.chat.error,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -68,7 +73,7 @@ const ChatView: React.FC = () => {
       console.error('Error sending message:', error);
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Ocorreu um erro ao se comunicar com o servidor. Verifique se o backend está rodando.',
+        text: t.chat.serverError,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -86,8 +91,8 @@ const ChatView: React.FC = () => {
           <MessageSquare className="w-5 h-5 text-teal-400" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Chat Contextual</h2>
-          <p className="text-xs text-slate-400">Conversando com seus dados do Pinecone</p>
+          <h2 className="text-lg font-semibold text-white">{t.chat.title}</h2>
+          <p className="text-xs text-slate-400">{t.chat.subtitle}</p>
         </div>
       </div>
 
@@ -124,7 +129,7 @@ const ChatView: React.FC = () => {
                           {...props} 
                           className="rounded-lg border border-slate-600 my-2 max-h-64 object-contain bg-white"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=Imagem+indisponivel';
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x225?text=' + t.chat.imageUnavailable.replace(' ', '+');
                           }}
                         />
                       ),
@@ -153,7 +158,7 @@ const ChatView: React.FC = () => {
           <div className="flex justify-start">
             <div className="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex items-center gap-3">
               <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
-              <span className="text-sm text-slate-400 italic">Analisando contexto...</span>
+              <span className="text-sm text-slate-400 italic">{t.chat.loading}</span>
             </div>
           </div>
         )}
@@ -172,7 +177,7 @@ const ChatView: React.FC = () => {
                 handleSend();
               }
             }}
-            placeholder="Pergunte sobre seus métodos (ex: 'Quais equipamentos são usados no teste de pureza do Paracetamol?')..."
+            placeholder={t.chat.placeholder}
             className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 resize-none h-12 max-h-32 transition-all"
             rows={1}
           />

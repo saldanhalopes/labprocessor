@@ -1,9 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { Upload, FileText, AlertCircle, X } from 'lucide-react';
-import { Language } from '../types';
-import { translations } from '../utils/translations';
 import { checkFileExists } from '../services/dbService';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SelectedFile {
   file: File;
@@ -14,21 +13,18 @@ interface FileUploadProps {
   onFilesSelect: (files: File[]) => void;
   isLoading: boolean;
   progress: number;
-  language: Language;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({ 
   onFilesSelect, 
   isLoading, 
-  progress, 
-  language
+  progress
 }) => {
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   
-  const t = translations[language].upload;
-
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -51,9 +47,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }));
       setSelectedFiles(prev => [...prev, ...checkedFiles]);
     } else {
-      showToast("Por favor, envie apenas arquivos PDF.", "warning");
+      showToast(t.upload.onlyPDF, "warning");
     }
-  }, [showToast]);
+  }, [showToast, t]);
 
   const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -108,8 +104,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         </div>
 
         <div>
-          <p className="text-lg font-semibold text-slate-700">{t.dragDrop}</p>
-          <p className="text-sm text-slate-500 mt-1">{t.clickSelect}</p>
+          <p className="text-lg font-semibold text-slate-700">{t.upload.dragDrop}</p>
+          <p className="text-sm text-slate-500 mt-1">{t.upload.clickSelect}</p>
         </div>
       </div>
 
@@ -117,7 +113,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       {isLoading && (
         <div className="mb-6 animate-fade-in">
           <div className="flex justify-between text-xs font-medium text-slate-600 mb-1">
-            <span>{t.processing}</span>
+            <span>{t.upload.processing}</span>
             <span>{progress}%</span>
           </div>
           <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
@@ -131,7 +127,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       {selectedFiles.length > 0 && !isLoading && (
         <div className="bg-white rounded-xl border border-slate-200 p-4 mb-4 shadow-sm">
-          <h4 className="text-sm font-semibold text-slate-700 mb-3">{t.selectedFiles} ({selectedFiles.length})</h4>
+          <h4 className="text-sm font-semibold text-slate-700 mb-3">{t.upload.selectedFiles} ({selectedFiles.length})</h4>
           <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
             {selectedFiles.map((sf, idx) => (
               <div key={idx} className={`flex items-center justify-between p-2 rounded-lg text-sm border ${sf.isDuplicate ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'}`}>
@@ -141,7 +137,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                   {sf.isDuplicate && (
                     <span className="bg-amber-100 text-amber-700 text-[9px] uppercase font-bold px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
                       <AlertCircle className="w-2.5 h-2.5" />
-                      Já Processado
+                      {t.upload.alreadyProcessed}
                     </span>
                   )}
                 </div>
@@ -159,14 +155,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             disabled={isLoading}
             className="w-full mt-4 bg-teal-600 text-white py-2 rounded-lg font-medium hover:bg-teal-700 transition-colors disabled:opacity-50"
           >
-            {t.processBtn}
+            {t.upload.processBtn}
           </button>
         </div>
       )}
       
       <div className="flex items-start gap-2 text-xs text-slate-500 px-4">
         <AlertCircle className="w-4 h-4 text-slate-400 flex-shrink-0" />
-        <p>{t.info}</p>
+        <p>{t.upload.info}</p>
       </div>
     </div>
   );

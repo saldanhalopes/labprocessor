@@ -5,14 +5,14 @@ import { queryVectors } from './pinecone.js';
 import { generateChatResponse } from './gemini.js';
 
 export async function handleChatMessage(req, res) {
-  const { message } = req.body;
+  const { message, language = 'pt' } = req.body;
 
   if (!message) {
     return res.status(400).json({ error: 'Message is required' });
   }
 
   try {
-    console.log(`[Chat] Processing message: "${message.substring(0, 50)}..."`);
+    console.log(`[Chat] Processing message (lang: ${language}): "${message.substring(0, 50)}..."`);
 
     // 1. Retrieve context from Pinecone
     const matches = await queryVectors(message, 5);
@@ -29,7 +29,7 @@ export async function handleChatMessage(req, res) {
 
     // 3. Generate response using Gemini with retrieved context
     console.log(`[Chat] Querying Gemini with ${context.length} context matches...`);
-    const responseText = await generateChatResponse(message, context);
+    const responseText = await generateChatResponse(message, context, language);
     
     if (!responseText) {
       console.warn('[Chat] Gemini returned empty response');

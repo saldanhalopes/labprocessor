@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/views/Dashboard';
 import { Login } from './components/Login';
 import { Subscription } from './components/Subscription';
-import { User, Language } from './types';
+import { User } from './types';
 import { useToast } from './context/ToastContext';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-const App: React.FC = () => {
-  console.log("[App] Component rendering...");
+const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState<Language>('pt');
   const { showToast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // 1. Firebase Auth Session Observer
@@ -25,7 +25,6 @@ const App: React.FC = () => {
           const token = await firebaseUser.getIdToken();
           
           // Fetch additional profile data from our backend
-          // We use e-mail as the identifier for now, or we can use UID
           const response = await fetch(`/api/users/${encodeURIComponent(firebaseUser.email || "")}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -35,7 +34,7 @@ const App: React.FC = () => {
             const userSession: User = { 
               ...profileData,
               isAuthenticated: true,
-              token: token // Store token optionally for future requests
+              token: token
             };
             setUser(userSession);
             localStorage.setItem('labprocessor_user', JSON.stringify(userSession));
@@ -45,7 +44,7 @@ const App: React.FC = () => {
               username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "User",
               email: firebaseUser.email || "",
               uid: firebaseUser.uid,
-              subscriptionStatus: 'active', // Default to active
+              subscriptionStatus: 'active',
               plan: 'free',
               isAuthenticated: true,
               token: token
@@ -64,21 +63,6 @@ const App: React.FC = () => {
       setLoading(false);
     });
     
-    // 2. Language detection logic
-    const savedLang = localStorage.getItem('labprocessor_lang') as Language;
-    if (savedLang) {
-      setLanguage(savedLang);
-    } else {
-      const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith('es')) {
-        setLanguage('es');
-      } else if (browserLang.startsWith('en')) {
-        setLanguage('en');
-      } else {
-        setLanguage('pt');
-      }
-    }
-
     // --- STRIPE RETURN HANDLER (Adapted) ---
     const query = new URLSearchParams(window.location.search);
     if (query.get('subscription_success') === 'true' && auth.currentUser) {
@@ -94,23 +78,16 @@ const App: React.FC = () => {
           body: JSON.stringify({ status: 'active', plan })
         }).then(res => res.json()).then(updatedUser => {
           setUser(prev => prev ? { ...prev, ...updatedUser } : null);
-          showToast(`Assinatura do plano ${plan.toUpperCase()} confirmada!`, 'success');
+          showToast(t.subscription.messages.confirmSuccess.replace('{plan}', plan.toUpperCase()), 'success');
           window.history.replaceState({}, document.title, window.location.pathname);
         });
       });
     }
 
     return () => unsubscribe();
-  }, [showToast]);
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('labprocessor_lang', lang);
-  };
+  }, [showToast, t]);
 
   const handleLoginComplete = (email: string) => {
-    // This is called by Login component after sign-in success
-    // The observer handle will actually do the fetch
     console.log("[Auth] Login triggered for:", email);
   };
 
@@ -136,13 +113,13 @@ const App: React.FC = () => {
 
       if (response.ok) {
         setUser({ ...user, ...updatedUser });
-        showToast("Plano ativado com sucesso!", "success");
+        showToast(t.common.planActivated, "success");
       } else {
-        showToast("Erro ao ativar plano.", "error");
+        showToast(t.common.activationError, "error");
       }
     } catch (err) {
       console.error("Erro na ativação:", err);
-      showToast("Erro de conexão.", "error");
+      showToast(t.common.connectionError, "error");
     }
   };
 
@@ -175,9 +152,15 @@ const App: React.FC = () => {
       onLogout={handleLogout} 
       user={user} 
       onUpdateUser={handleUpdateUser}
-      language={language}
-      onLanguageChange={handleLanguageChange}
     />
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 };
 

@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Dashboard } from './components/views/Dashboard';
 import { Login } from './components/Login';
 import { Subscription } from './components/Subscription';
-import { User, Language } from './types';
+import { User } from './types';
 import { useToast } from './context/ToastContext';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-const App: React.FC = () => {
-  console.log("[App] Component rendering...");
+const AppContent: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState<Language>('pt');
   const { showToast } = useToast();
+  const { t, language, setLanguage } = useLanguage();
 
   useEffect(() => {
     // 1. Firebase Auth Session Observer
@@ -49,7 +49,7 @@ const App: React.FC = () => {
             };
             setUser(defaultUser);
           } else {
-            showToast("Erro ao carregar seu perfil.", "error");
+            showToast(t.common.profileError, "error");
             setUser(null);
           }
         } catch (err) {
@@ -64,21 +64,6 @@ const App: React.FC = () => {
       setLoading(false);
     });
     
-    // 2. Language detection logic
-    const savedLang = localStorage.getItem('labprocessor_lang') as Language;
-    if (savedLang) {
-      setLanguage(savedLang);
-    } else {
-      const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith('es')) {
-        setLanguage('es');
-      } else if (browserLang.startsWith('en')) {
-        setLanguage('en');
-      } else {
-        setLanguage('pt');
-      }
-    }
-
     // --- STRIPE RETURN HANDLER ---
     const query = new URLSearchParams(window.location.search);
     if (query.get('subscription_success') === 'true' && auth.currentUser) {
@@ -94,23 +79,14 @@ const App: React.FC = () => {
           body: JSON.stringify({ status: 'active', plan })
         }).then(res => res.json()).then(updatedUser => {
           setUser(prev => prev ? { ...prev, ...updatedUser } : null);
-          showToast(`Assinatura do plano ${plan.toUpperCase()} confirmada!`, 'success');
+          showToast(t.subscription.messages.confirmSuccess.replace('{plan}', plan.toUpperCase()), 'success');
           window.history.replaceState({}, document.title, window.location.pathname);
         });
       });
     }
 
     return () => unsubscribe();
-  }, [showToast]);
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('labprocessor_lang', lang);
-  };
-
-  const handleLoginComplete = (email: string) => {
-    console.log("[Auth] Login triggered for:", email);
-  };
+  }, [showToast, t]);
 
   const handleUpdateUser = async (updatedUser: User) => {
     if (!user || !auth.currentUser) return;
@@ -132,6 +108,7 @@ const App: React.FC = () => {
       }
     } catch (err) {
       console.error("Erro ao atualizar usuário:", err);
+      showToast(t.common.updateUserError, "error");
     }
     
     setUser(updatedUser);
@@ -155,13 +132,13 @@ const App: React.FC = () => {
 
       if (response.ok) {
         setUser({ ...user, ...updatedUser });
-        showToast("Plano ativado com sucesso!", "success");
+        showToast(t.common.planActivated, "success");
       } else {
-        showToast("Erro ao ativar plano.", "error");
+        showToast(t.common.activationError, "error");
       }
     } catch (err) {
       console.error("Erro na ativação:", err);
-      showToast("Erro de conexão.", "error");
+      showToast(t.common.connectionError, "error");
     }
   };
 
@@ -185,12 +162,18 @@ const App: React.FC = () => {
 
   // 1. Not Logged In -> Show Login
   if (!user?.isAuthenticated) {
-    return <Login onLogin={handleLoginComplete} />;
+    return <Login onLogin={() => {}} />;
   }
 
   // 2. Logged In but Inactive -> Show Subscription
   if (user.subscriptionStatus !== 'active') {
-    return <Subscription onSubscribe={handleSubscriptionComplete} onLogout={handleLogout} username={user.username || user.email || ""} />;
+    return (
+      <Subscription 
+        onSubscribe={handleSubscriptionComplete} 
+        onLogout={handleLogout} 
+        username={user.username || user.email || ""} 
+      />
+    );
   }
 
   // 3. Logged In and Active -> Show Dashboard
@@ -199,9 +182,15 @@ const App: React.FC = () => {
       onLogout={handleLogout} 
       user={user} 
       onUpdateUser={handleUpdateUser}
-      language={language}
-      onLanguageChange={handleLanguageChange}
     />
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 };
 

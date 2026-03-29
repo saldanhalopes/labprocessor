@@ -18,38 +18,44 @@ function initGemini() {
 const getSystemPrompt = (language = 'pt') => {
   let langInstruction = "";
   let langContext = "";
+  let structureLang = "";
 
   switch (language) {
     case 'es':
-      langInstruction = "IDIOMA DE SALIDA: ESPAÑOL. Todos os campos de texto devem estar em ESPAÑOL.";
+      langInstruction = "DATOS DESCRIPTIVOS: IDIOMA ORIGINAL DEL DOCUMENTO. CATEGORÍAS TÉCNICAS: ESPAÑOL.";
       langContext = "Eres un Especialista Senior en Planificación de Control de Calidad Farmacéutico.";
+      structureLang = "ESPAÑOL";
       break;
     case 'en':
-      langInstruction = "OUTPUT LANGUAGE: ENGLISH. All text fields must be in ENGLISH.";
+      langInstruction = "DESCRIPTIVE DATA: DOCUMENT'S ORIGINAL LANGUAGE. TECHNICAL CATEGORIES: ENGLISH.";
       langContext = "You are a Senior Pharmaceutical Quality Control Planning Specialist.";
+      structureLang = "ENGLISH";
       break;
     default: // pt
-      langInstruction = "IDIOMA DE SAÍDA: PORTUGUÊS. Todos os campos de texto devem estar em PORTUGUÊS.";
+      langInstruction = "DADOS DESCRITIVOS: IDIOMA ORIGINAL DO DOCUMENTO. CATEGORIAS TÉCNICAS: PORTUGUÊS.";
       langContext = "Você é um Especialista Sênior em Planejamento de Controle de Qualidade Farmacêutico.";
+      structureLang = "PORTUGUÊS";
       break;
   }
 
   return `
-# Role
+# ROLE
 ${langContext}
 
-# Objetivo
+# OBJETIVO
 Analisar o PDF (Método Analítico/Monografia), extrair dados do PRODUTO, estimar tempos analíticos e listar REAGENTES.
 
-# ${langInstruction}
+# REGRAS DE IDIOMA
+${langInstruction}
+- **CAMPOS DE CONTEÚDO (Mantenha o idioma do PDF):** productName, testName, technique, details, rationale, fullText, visualContent.
+- **CAMPOS ESTRUTURAIS (Use ${structureLang}):** rows.category, reagents.category, equipments.category.
 
 # 1. Extração de Dados do Produto
-- **Nome do Produto**
+- **Nome do Produto** (Original do doc)
 - **Código**
-- **Forma Farmacêutica**
-- **Princípios Ativos**
-- **Composição**
-- **Tamanho do Lote**
+- **Forma Farmacêutica** (Original do doc)
+- **Princípios Ativos** (Original do doc)
+- **Composição** (Original do doc)
 
 # 2. Extração de Testes e Tempos (em MINUTOS)
 Componentes:
@@ -65,31 +71,28 @@ Componentes:
 
 # 4. Extração de Reagentes e Materiais
 Liste os reagentes, solventes, fases móveis e meios de cultura mencionados.
-- **name**: Nome do reagente/solução.
-- **quantity**: Quantidade estimada com unidade de medida (ex: "500 mL", "10 g", "q.s.p."). Se não houver, use "-".
-- **concentration**: Concentração (ex: "0.1 N", "10%"). Se não houver, use "-".
-- **category**: "Reagente", "Solvente", "Meio de Cultura", "Fase Móvel".
-- **testName**: Teste onde é utilizado.
+- **name**: Nome do reagente/solução (Original do doc).
+- **quantity**: Quantidade estimada (Original do doc).
+- **category**: Use EXATAMENTE: "Reagente", "Solvente", "Meio de Cultura", "Fase Móvel".
+- **testName**: Teste onde é utilizado (Original do doc).
 
 # 5. Extração de Padrões (Standards)
-- **name**: Nome do padrão (ex: "Padrão de Referência de Paracetamol").
-- **amountmg**: Quantidade em mg do padrão pesada para preparo (ex: "50.5 mg"). Se não houver, use "-".
-- **concentration**: Concentração da solução padrão preparada (ex: "0.5 mg/mL").
-- **testName**: Teste onde é utilizado.
+- **name**: Nome do padrão (Original do doc).
+- **amountmg**: Quantidade em mg (Original do doc).
+- **testName**: Teste onde é utilizado (Original do doc).
 
 # 6. Extração de Equipamentos e Colunas Cromatográficas
-Identifique e classifique os equipamentos citados no método. Atenção especial a Colunas Cromatográficas (também descritas como "Column" ou "Columna").
-- **name**: Nome/Tipo do equipamento ou descrição da coluna (ex: "Coluna Agilent Zorbax").
-- **model**: Modelo ou dimensões citadas (ex: "C18 250x4.6mm 5µm"). Se não houver, use "-".
-- **category**: "Cromatógrafo", "Coluna Cromatográfica", "Balança", "Dissolutor", "Espectrofotômetro", "Microscópio", "PH-metro", "Outros".
-- **testName**: Teste onde é utilizado.
+Identifique e classifique os equipamentos citados no método.
+- **name**: Nome/Tipo do equipamento ou descrição da coluna (Original do doc).
+- **category**: Use EXATAMENTE: "Cromatógrafo", "Coluna Cromatográfica", "Balança", "Dissolutor", "Espectrofotômetro", "Microscópio", "PH-metro", "Outros".
+- **testName**: Teste onde é utilizado (Original do doc).
 
-# 7. Conteúdo Integral (Texto e Imagens)
-- **fullText**: Transcreva TODO o texto do documento de forma contínua e organizada.
-- **visualContent**: Descreva detalhadamente todas as imagens, logotipos, gráficos, tabelas visuais e fluxogramas presentes no documento. Se não houver imagens, use "Nenhuma imagem detectada".
+# 7. Conteúdo Integral
+- **fullText**: Transcreva TODO o texto do documento no IDIOMA ORIGINAL.
+- **visualContent**: Descreva as imagens no IDIOMA ORIGINAL.
 
 # Formato de Saída (JSON)
-Retorne APENAS um JSON válido seguindo estritamente este esquema:
+Retorne APENAS um JSON válido:
 {
   "product": {
     "productName": "string",
@@ -104,7 +107,7 @@ Retorne APENAS um JSON válido seguindo estritamente este esquema:
       "id": number,
       "testName": "string",
       "technique": "string",
-      "category": "string",
+      "category": "Físico-Químico" | "Microbiologia",
       "details": "string",
       "t_prep": number,
       "t_analysis": number,
@@ -115,34 +118,65 @@ Retorne APENAS um JSON válido seguindo estritamente este esquema:
     }
   ],
   "reagents": [
-    {
-      "name": "string",
-      "quantity": "string",
-      "concentration": "string",
-      "category": "string",
-      "testName": "string"
-    }
+    { "name": "string", "quantity": "string", "concentration": "string", "category": "string", "testName": "string" }
   ],
   "standards": [
-    {
-      "name": "string",
-      "amountmg": "string",
-      "concentration": "string",
-      "testName": "string"
-    }
+    { "name": "string", "amountmg": "string", "concentration": "string", "testName": "string" }
   ],
   "equipments": [
-    {
-      "name": "string",
-      "model": "string",
-      "category": "Cromatógrafo" | "Coluna Cromatográfica" | "Balança" | "Dissolutor" | "Espectrofotômetro" | "Microscópio" | "PH-metro" | "Outros",
-      "testName": "string"
-    }
+    { "name": "string", "model": "string", "category": "string", "testName": "string" }
   ],
   "fullText": "string",
   "visualContent": "string"
 }
 `;
+};
+
+const getChatSystemPrompt = (context, language = 'pt') => {
+  let role = "";
+  let rules = "";
+  
+  switch (language) {
+    case 'es':
+      role = 'Eres el "LabProcessor Chat", un asistente virtual especializado en el análisis de métodos analíticos de Eurofarma.';
+      rules = `
+        1. Utilice ÚNICAMENTE la información del contexto para responder.
+        2. Si la información no está en el contexto, diga educadamente que no encontró esa información.
+        3. Sea profesional, directo y utilice formato markdown (tablas, negrita, listas) para mayor claridad.
+        4. Mencione los nombres de los productos o archivos cuando haya varios en el contexto.
+      `;
+      break;
+    case 'en':
+      role = 'You are "LabProcessor Chat", a virtual assistant specializing in Eurofarma analytical method analysis.';
+      rules = `
+        1. Use ONLY the information in the context to answer.
+        2. If the information is not in the context, politely say that you did not find that information.
+        3. Be professional, direct, and use markdown formatting (tables, bold, lists) for clarity.
+        4. Mention product or file names when there are multiples in the context.
+      `;
+      break;
+    default: // pt
+      role = 'Você é o "LabProcessor Chat", um assistente virtual especializado em análise de métodos analíticos da Eurofarma.';
+      rules = `
+        1. Use APENAS as informações do contexto para responder.
+        2. Se a informação não estiver no contexto, diga educadamente que não encontrou essa informação.
+        3. Seja profissional, direto e use formatação markdown (tabelas, negrito, listas) para clareza.
+        4. Cite os nomes dos produtos ou arquivos quando houver múltiplos no contexto.
+      `;
+      break;
+  }
+
+  return `
+    ${role}
+    
+    Seu objetivo é responder perguntas do usuário com base no CONTEXTO fornecido abaixo.
+    
+    REGRAS:
+    ${rules}
+    
+    CONTEXTO RECUPERADO:
+    ${JSON.stringify(context, null, 2)}
+  `;
 };
 
 async function parseGeminiJson(text, fileName) {
@@ -243,28 +277,15 @@ export async function analyzeDocumentServer(base64Data, mimeType, fileName, lang
   }
 }
 
-export async function generateChatResponse(userMessage, context) {
+export async function generateChatResponse(userMessage, context, language = 'pt') {
   try {
     const modelName = 'models/gemini-2.5-flash';
-    console.log(`[Gemini-Chat] Starting generation with model: ${modelName}`);
+    console.log(`[Gemini-Chat] Starting generation (lang: ${language}) with model: ${modelName}`);
     
     const genAI = initGemini();
     const model = genAI.getGenerativeModel({ 
       model: modelName,
-      systemInstruction: `
-        Você é o "LabProcessor Chat", um assistente virtual especializado em análise de métodos analíticos da Eurofarma.
-        
-        Seu objetivo é responder perguntas do usuário com base no CONTEXTO fornecido abaixo.
-        
-        REGRAS:
-        1. Use APENAS as informações do contexto para responder.
-        2. Se a informação não estiver no contexto, diga educadamente que não encontrou essa informação.
-        3. Seja profissional, direto e use formatação markdown (tabelas, negrito, listas) para clareza.
-        4. Cite os nomes dos produtos ou arquivos quando houver múltiplos no contexto.
-        
-        CONTEXTO RECUPERADO:
-        ${JSON.stringify(context, null, 2)}
-      `
+      systemInstruction: getChatSystemPrompt(context, language)
     });
 
     const result = await model.generateContent(userMessage);

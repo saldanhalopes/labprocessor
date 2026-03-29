@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, Sparkles, Maximize2, Minimize2, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Message {
   id: string;
@@ -15,10 +16,11 @@ interface DashboardChatProps {
 }
 
 export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
+  const { t, language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Olá! Como posso ajudar com os métodos hoje?',
+      text: t.chat.welcome,
       sender: 'bot',
       timestamp: new Date()
     }
@@ -57,7 +59,10 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ 
+          message: input,
+          language: language
+        }),
       });
 
       if (!response.ok) {
@@ -69,7 +74,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
 
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Desculpe, não consegui processar sua pergunta.',
+        text: data.response || t.chat.error,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -79,7 +84,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
       console.error('Error sending message:', error);
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Erro de conexão.',
+        text: t.chat.serverError,
         sender: 'bot',
         timestamp: new Date()
       };
@@ -106,7 +111,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
         <div className="p-5 border-b border-white/5 bg-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-teal-400 animate-pulse" />
-            <h3 className="text-white font-bold text-sm">Assistente AI</h3>
+            <h3 className="text-white font-bold text-sm">{t.chat.title}</h3>
           </div>
           <div className="flex items-center gap-2">
              <button 
@@ -147,7 +152,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
             <div className="flex justify-start">
               <div className="bg-slate-800 p-3 rounded-2xl rounded-tl-none flex items-center gap-2">
                 <Loader2 className="w-3 h-3 animate-spin text-teal-400" />
-                <span className="text-[10px] text-slate-400 italic">Analisando...</span>
+                <span className="text-[10px] text-slate-400 italic">{t.chat.loading}</span>
               </div>
             </div>
           )}
@@ -161,7 +166,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Pergunte algo..."
+              placeholder={t.chat.placeholder}
               className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50"
             />
             <button
