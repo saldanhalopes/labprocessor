@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, Calculator } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, Calculator, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FileUpload } from '../FileUpload';
 import { ResultsView } from './ResultsView';
 import { ChartsView } from './ChartsView';
@@ -42,7 +42,25 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
   const [settings, setSettings] = useState<GlobalSettings>(DEFAULT_SETTINGS);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const [hoveredTab, setHoveredTab] = useState<{ label: string, top: number } | null>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   const t = translations[language];
 
@@ -425,23 +443,53 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900 flex flex-col shrink-0 border-r border-slate-800 shadow-xl z-30">
+      <aside className={`
+        ${isSidebarCollapsed ? 'w-20' : 'w-64'} 
+        bg-slate-900 flex flex-col shrink-0 border-r border-slate-800 shadow-xl z-30 transition-all duration-300 ease-in-out
+      `}>
         {/* Logo Section */}
-        <div className="p-6 border-b border-slate-800/50">
-          <div className="flex items-center gap-3">
-            <div className="bg-teal-500 p-2 rounded-xl shadow-lg shadow-teal-500/20">
-              <Cpu className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">LabProcessor</h1>
-              <p className="text-[10px] text-teal-400 font-bold uppercase tracking-widest leading-none mt-1">Analytics Pro</p>
+        <div className={`p-4 border-b border-slate-800/50 flex flex-col gap-4 relative ${isSidebarCollapsed ? 'items-center' : ''}`}>
+          <div className={`flex items-center gap-3 min-w-0 ${isSidebarCollapsed ? 'justify-center w-full' : 'justify-between'}`}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="bg-teal-500 p-2 rounded-xl shadow-lg shadow-teal-500/20 shrink-0">
+                <Cpu className="w-6 h-6 text-white" />
+              </div>
+              {!isSidebarCollapsed && (
+                <div className="animate-fade-in truncate">
+                  <h1 className="text-xl font-bold text-white tracking-tight">LabProcessor</h1>
+                  <p className="text-[10px] text-teal-400 font-bold uppercase tracking-widest leading-none mt-1">Analytics Pro</p>
+                </div>
+              )}
             </div>
           </div>
+          
+          {/* Floating Edge Toggle */}
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className={`
+              absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 
+              bg-teal-500 text-white rounded-full flex items-center justify-center 
+              shadow-lg shadow-teal-500/30 hover:bg-teal-400 hover:scale-110 
+              transition-all duration-300 z-50 group border border-teal-400/50
+            `}
+            title={isSidebarCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+            
+            {/* Custom Tooltip for Toggle */}
+            <div className={`absolute left-full ml-4 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap shadow-xl border border-slate-700 z-50 translate-x-2 group-hover:translate-x-0 ${isSidebarCollapsed ? 'block' : 'hidden md:block'}`}>
+              {isSidebarCollapsed ? 'Expandir Sidebar' : 'Recolher Sidebar'}
+              <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-slate-800"></div>
+            </div>
+
+            {/* Pulsing indicator when collapsed */}
+            {isSidebarCollapsed && <div className="absolute inset-0 rounded-full animate-ping bg-teal-400/30 -z-10"></div>}
+          </button>
         </div>
 
         {/* Navigation Section */}
-        <nav className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto no-scrollbar">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-4">Menu Principal</div>
+        <nav className={`flex-1 py-6 px-4 space-y-1.5 overflow-y-auto no-scrollbar`}>
+          {!isSidebarCollapsed && <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-4 animate-fade-in">Menu Principal</div>}
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -449,17 +497,26 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
               <button
                 key={tab.id}
                 onClick={() => tab.id === 'download' ? handleDownload() : setActiveTab(tab.id as Tab)}
+                onMouseEnter={(e) => {
+                  if (isSidebarCollapsed) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setHoveredTab({ label: tab.label, top: rect.top + rect.height / 2 });
+                  }
+                }}
+                onMouseLeave={() => setHoveredTab(null)}
                 className={`
-                  w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group
+                  w-full flex items-center py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative
+                  ${isSidebarCollapsed ? 'justify-center px-0' : 'px-4'}
                   ${isActive 
                     ? 'bg-teal-600/10 text-teal-400 border border-teal-600/20 shadow-lg shadow-teal-900/40' 
                     : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
                   }
                 `}
               >
-                <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                <span>{tab.label}</span>
-                {isActive && (
+                <Icon className={`w-5 h-5 transition-colors ${isSidebarCollapsed ? '' : 'mr-3'} ${isActive ? 'text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                {!isSidebarCollapsed && <span className="animate-fade-in">{tab.label}</span>}
+                
+                {isActive && !isSidebarCollapsed && (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400 shadow-glow shadow-teal-400/50"></div>
                 )}
               </button>
@@ -467,52 +524,6 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
           })}
         </nav>
 
-        {/* Sidebar Footer */}
-        <div className="p-4 bg-black/20 border-t border-slate-800/50 space-y-4">
-          <div className="space-y-3 px-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{language === 'pt' ? 'Idioma' : 'Language'}</span>
-              <div className="flex gap-2">
-                {(['pt', 'es', 'en'] as Language[]).map(lang => (
-                  <button 
-                    key={lang}
-                    onClick={() => onLanguageChange(lang)}
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded transition-all ${language === lang ? 'bg-teal-600 text-white' : 'text-slate-500 hover:bg-slate-800'}`}
-                  >
-                    {lang.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
-                <UserCircle className="w-6 h-6 text-slate-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">{user.fullName || user.username}</p>
-                <div className="flex items-center gap-1.5">
-                  <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase ${
-                    user.plan === 'pro' ? 'bg-teal-500/10 text-teal-400' : 
-                    user.plan === 'basic' ? 'bg-blue-500/10 text-blue-400' : 
-                    'bg-slate-500/10 text-slate-400'
-                  }`}>
-                    {user.plan || 'Free'}
-                  </span>
-                  <span className="text-[10px] text-slate-500 truncate">{user.company}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all border border-transparent hover:border-red-500/20"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            {t.nav.logout}
-          </button>
-        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -539,11 +550,93 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                 <span className="font-mono text-sm">{plan === 'pro' ? '∞' : limit}</span>
               </div>
             )}
+            
             <div className="w-px h-6 bg-slate-200 mx-2"></div>
-            <div className="bg-slate-100 p-2 rounded-lg">
-              <Globe className="w-4 h-4 text-slate-400" />
+            
+            {/* Language Selector in Header */}
+            <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200/50">
+              {(['pt', 'es', 'en'] as Language[]).map(lang => (
+                <button 
+                  key={lang}
+                  onClick={() => onLanguageChange(lang)}
+                  className={`
+                    text-[10px] font-black px-2 py-1 rounded-lg transition-all
+                    ${language === lang 
+                      ? 'bg-white text-teal-600 shadow-sm ring-1 ring-slate-200' 
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
+                    }
+                  `}
+                >
+                  <span className="flex items-center gap-1">
+                    <img 
+                      src={`https://flagcdn.com/w40/${lang === 'pt' ? 'br' : lang === 'es' ? 'es' : 'us'}.png`} 
+                      className="w-3.5 h-2.5 object-cover rounded-[1px] shadow-sm" 
+                      alt={lang}
+                    />
+                    <span>{lang.toUpperCase()}</span>
+                  </span>
+                </button>
+              ))}
             </div>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{language === 'pt' ? 'Brasil' : language === 'es' ? 'España' : 'Global'}</span>
+
+            <div className="w-px h-6 bg-slate-200 mx-1"></div>
+            
+            <div className="relative" ref={userMenuRef}>
+              <button 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className={`flex items-center gap-3 pl-4 border-l border-slate-200 hover:bg-slate-50 transition-all rounded-lg p-1 group ${isUserMenuOpen ? 'bg-slate-50' : ''}`}
+              >
+                <div className="flex flex-col items-end hidden sm:flex">
+                  <span className="text-sm font-bold text-slate-800 leading-none group-hover:text-teal-600 transition-colors">{user.fullName || user.username}</span>
+                  <span className={`text-[9px] font-black uppercase mt-1 px-1.5 py-0.5 rounded-md ${
+                    user.plan === 'pro' ? 'bg-teal-500/10 text-teal-600' : 
+                    user.plan === 'basic' ? 'bg-blue-500/10 text-blue-600' : 
+                    'bg-slate-100 text-slate-500'
+                  }`}>
+                    {user.plan || 'Free'}
+                  </span>
+                </div>
+                <div className={`w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border transition-all shadow-sm ${isUserMenuOpen ? 'border-teal-200 ring-2 ring-teal-50' : 'border-slate-200 group-hover:border-teal-200'}`}>
+                  <UserCircle className={`w-7 h-7 transition-colors ${isUserMenuOpen ? 'text-teal-500' : 'text-slate-400 group-hover:text-teal-500'}`} />
+                </div>
+
+                {/* Header Profile Tooltip */}
+                {!isUserMenuOpen && (
+                  <div className="absolute top-full right-0 mt-3 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap shadow-xl border border-slate-700 z-50 translate-y-2 group-hover:translate-y-0">
+                    Menu do Usuário
+                    <div className="absolute bottom-full right-4 border-8 border-transparent border-b-slate-800"></div>
+                  </div>
+                )}
+              </button>
+
+              {/* User Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-fade-in-up origin-top-right">
+                  <div className="px-4 py-3 border-b border-slate-100 mb-1 sm:hidden">
+                    <p className="text-sm font-bold text-slate-800 truncate">{user.fullName || user.username}</p>
+                    <p className="text-[10px] text-slate-500">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setActiveTab('profile');
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full flex items-center px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-teal-600 transition-all"
+                  >
+                    <UserCircle className="w-4 h-4 mr-3" />
+                    {t.nav.profile}
+                  </button>
+                  <div className="h-px bg-slate-100 my-1 mx-2"></div>
+                  <button
+                    onClick={onLogout}
+                    className="w-full flex items-center px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-all"
+                  >
+                    <LogOut className="w-4 h-4 mr-3" />
+                    {t.nav.logout}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -642,6 +735,17 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
           </div>
         </div>
       </main>
+
+      {/* Shared Sidebar Tooltip (Fixed) */}
+      {hoveredTab && (
+        <div 
+          className="fixed left-[84px] px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl border border-slate-700 z-[100] transition-all duration-200 whitespace-nowrap -translate-y-1/2 animate-fade-in"
+          style={{ top: `${hoveredTab.top}px` }}
+        >
+          {hoveredTab.label}
+          <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-slate-800"></div>
+        </div>
+      )}
     </div>
   );
 };
