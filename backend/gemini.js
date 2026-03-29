@@ -135,6 +135,9 @@ Retorne APENAS um JSON válido:
 const getChatSystemPrompt = (context, language = 'pt') => {
   let role = "";
   let rules = "";
+  let goals = "";
+  let contextLabel = "";
+  let rulesLabel = "";
   
   switch (language) {
     case 'es':
@@ -145,6 +148,9 @@ const getChatSystemPrompt = (context, language = 'pt') => {
         3. Sea profesional, directo y utilice formato markdown (tablas, negrita, listas) para mayor claridad.
         4. Mencione los nombres de los productos o archivos cuando haya varios en el contexto.
       `;
+      goals = "Su objetivo es responder a las preguntas de los usuarios basándose en el CONTEXTO que se proporciona a continuación.";
+      contextLabel = "CONTEXTO RECUPERADO:";
+      rulesLabel = "REGLAS:";
       break;
     case 'en':
       role = 'You are "LabProcessor Chat", a virtual assistant specializing in Eurofarma analytical method analysis.';
@@ -154,6 +160,9 @@ const getChatSystemPrompt = (context, language = 'pt') => {
         3. Be professional, direct, and use markdown formatting (tables, bold, lists) for clarity.
         4. Mention product or file names when there are multiples in the context.
       `;
+      goals = "Your goal is to answer user questions based on the CONTEXT provided below.";
+      contextLabel = "RETRIEVED CONTEXT:";
+      rulesLabel = "RULES:";
       break;
     default: // pt
       role = 'Você é o "LabProcessor Chat", um assistente virtual especializado em análise de métodos analíticos da Eurofarma.';
@@ -163,18 +172,21 @@ const getChatSystemPrompt = (context, language = 'pt') => {
         3. Seja profissional, direto e use formatação markdown (tabelas, negrito, listas) para clareza.
         4. Cite os nomes dos produtos ou arquivos quando houver múltiplos no contexto.
       `;
+      goals = "Seu objetivo é responder perguntas do usuário com base no CONTEXTO fornecido abaixo.";
+      contextLabel = "CONTEXTO RECUPERADO:";
+      rulesLabel = "REGRAS:";
       break;
   }
 
   return `
     ${role}
     
-    Seu objetivo é responder perguntas do usuário com base no CONTEXTO fornecido abaixo.
+    ${goals}
     
-    REGRAS:
+    ${rulesLabel}
     ${rules}
     
-    CONTEXTO RECUPERADO:
+    ${contextLabel}
     ${JSON.stringify(context, null, 2)}
   `;
 };
@@ -285,10 +297,16 @@ export async function generateChatResponse(userMessage, context, language = 'pt'
     const genAI = initGemini();
     const model = genAI.getGenerativeModel({ 
       model: modelName,
-      systemInstruction: getChatSystemPrompt(context, language)
+      systemInstruction: getChatSystemPrompt(context, language),
+      safetySettings: [
+        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+      ],
     });
 
-    const result = await model.generateContent(userMessage);
+    const result = await model.generateContent([{ text: userMessage }]);
     const response = await result.response;
     const text = response.text();
     console.log(`[Gemini-Chat] Successfully generated response (length: ${text?.length || 0})`);

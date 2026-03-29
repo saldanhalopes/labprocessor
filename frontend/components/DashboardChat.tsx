@@ -3,6 +3,8 @@ import { Send, Bot, User, Loader2, Sparkles, Maximize2, Minimize2, X } from 'luc
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLanguage } from '../context/LanguageContext';
+import { auth } from '../firebase';
+import { getIdToken } from 'firebase/auth';
 
 interface Message {
   id: string;
@@ -15,7 +17,7 @@ interface DashboardChatProps {
   token?: string | null;
 }
 
-export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
+export const DashboardChat: React.FC<DashboardChatProps> = ({ token: initialToken }) => {
   const { t, language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -53,11 +55,18 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
     setIsLoading(true);
 
     try {
+      // Robust token retrieval: prop fallback to active currentUser token
+      let activeToken = initialToken;
+      if (!activeToken && auth.currentUser) {
+        console.log('[Chat] Prop token missing, fetching active Firebase token...');
+        activeToken = await getIdToken(auth.currentUser);
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          ...(activeToken ? { 'Authorization': `Bearer ${activeToken}` } : {})
         },
         body: JSON.stringify({ 
           message: input,
@@ -66,8 +75,14 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Server error: ${response.status}`);
+        let errorMessage = `Server error: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Fallback if not JSON
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -80,11 +95,13 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({ token }) => {
       };
 
       setMessages(prev => [...prev, botMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: t.chat.serverError,
+        text: error.message?.includes('401') || error.message?.includes('403') 
+          ? "Sessão expirada. Por favor, faça login novamente."
+          : t.chat.serverError,
         sender: 'bot',
         timestamp: new Date()
       };
