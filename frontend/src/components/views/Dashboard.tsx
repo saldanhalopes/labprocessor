@@ -10,6 +10,8 @@ import { AnalysisResult, GlobalSettings, HistoryItem, User, Language } from '../
 import { useToast } from '../../context/ToastContext';
 import { DEFAULT_SETTINGS, generateCSV, recalculateRow, isMicrobiology, calculateParallelLeadTime } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
+import { auth } from '../../firebase';
+import { getIdToken } from 'firebase/auth';
 
 type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
 
@@ -52,6 +54,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     const newResults: AnalysisResult[] = [];
     let processedCount = 0;
 
+    const token = user.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+
     for (const file of files) {
       try {
         const reader = new FileReader();
@@ -61,7 +65,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         });
 
         const images = await extractPdfImages(file);
-        const result = await analyzeDocument(base64Data, file.type, file.name, settings, language, images);
+        const result = await analyzeDocument(base64Data, file.type, file.name, settings, language, images, token);
         newResults.push(result);
 
         await saveToPinecone(result);

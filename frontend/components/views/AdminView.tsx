@@ -54,19 +54,49 @@ export const AdminView: React.FC<AdminViewProps> = ({ currentUser, language }) =
     setEditForm({});
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingUser) return;
 
-    const updatedUsers = users.map(u => 
-      u.username === editingUser ? { ...u, ...editForm } : u
-    );
+    try {
+      const token = currentUser.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+      if (!token) return;
 
-    setUsers(updatedUsers);
-    localStorage.setItem('labprocessor_users', JSON.stringify(updatedUsers));
-    
+      const response = await fetch(`/api/users/${encodeURIComponent(editingUser)}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editForm)
+      });
+
+      if (response.ok) {
+        const savedUser = await response.json();
+        const updatedUsers = users.map(u => 
+          u.username === editingUser ? { ...u, ...savedUser } : u
+        );
+        setUsers(updatedUsers);
+        showToast(t.successUpdate, 'success');
+      } else {
+        const updatedUsers = users.map(u => 
+          u.username === editingUser ? { ...u, ...editForm } : u
+        );
+        setUsers(updatedUsers);
+        localStorage.setItem('labprocessor_users', JSON.stringify(updatedUsers));
+        showToast(t.successUpdate, 'success');
+      }
+    } catch (err) {
+      console.error('Error saving user:', err);
+      const updatedUsers = users.map(u => 
+        u.username === editingUser ? { ...u, ...editForm } : u
+      );
+      setUsers(updatedUsers);
+      localStorage.setItem('labprocessor_users', JSON.stringify(updatedUsers));
+      showToast(t.successUpdate, 'success');
+    }
+
     setEditingUser(null);
     setEditForm({});
-    showToast(t.successUpdate, 'success');
   };
 
   const handleDelete = (username: string) => {

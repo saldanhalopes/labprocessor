@@ -16,14 +16,20 @@ export const analyzeDocument = async (
   fileName: string,
   settings: GlobalSettings = DEFAULT_SETTINGS,
   language: string = 'pt',
-  images: string[] = []
+  images: string[] = [],
+  token?: string
 ): Promise<AnalysisResult> => {
   try {
     console.log(`[Gemini-Proxy] Sending ${fileName} to backend for analysis...`);
     
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ base64Data, mimeType, fileName, language, images }),
     });
 

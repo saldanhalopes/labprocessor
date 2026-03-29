@@ -18,6 +18,8 @@ import { saveResultToDb, getResultsFromDb, deleteResultFromDb, clearDbResults, c
 import { AnalysisResult, GlobalSettings, HistoryItem, User, Language } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import { DEFAULT_SETTINGS, generateCSV, recalculateRow, isMicrobiology, calculateParallelLeadTime } from '../../utils/calculations';
+import { auth } from '../../firebase';
+import { getIdToken } from 'firebase/auth';
 import { translations } from '../../utils/translations';
 
 type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
@@ -173,6 +175,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     const newResults: AnalysisResult[] = [];
     let processedCount = 0;
 
+    const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+
     // Check for duplicates in the entire batch first
     const duplicateFiles: string[] = [];
     for (const file of files) {
@@ -229,7 +233,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         
         // Use the current language state for processing
         console.log("[Dashboard] Sending to Gemini analysis:", file.name);
-        const result = await analyzeDocument(base64Data, file.type, file.name, settings, language, images);
+        const result = await analyzeDocument(base64Data, file.type, file.name, settings, language, images, token);
         console.log("Analysis Result received in Dashboard:", result);
         newResults.push(result);
 

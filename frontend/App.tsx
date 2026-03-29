@@ -47,7 +47,8 @@ const App: React.FC = () => {
               email: firebaseUser.email || "",
               uid: firebaseUser.uid,
               subscriptionStatus: 'inactive',
-              isAuthenticated: true
+              isAuthenticated: true,
+              token: token
             };
             setUser(defaultUser);
           } else {

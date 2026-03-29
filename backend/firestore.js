@@ -291,6 +291,16 @@ export async function updateUserSubscription(username, status, plan) {
   return getUserByUsername(username);
 }
 
+export async function updateUser(username, userData) {
+  if (!db) await initDatabase();
+  const updateData = {
+    ...userData,
+    updatedAt: new Date()
+  };
+  await db.collection('users').doc(username).update(updateData);
+  return getUserByUsername(username);
+}
+
 export async function getAllUsers() {
   if (!db) await initDatabase();
   const snapshot = await db.collection('users').get();

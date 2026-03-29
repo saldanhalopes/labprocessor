@@ -44,7 +44,8 @@ const App: React.FC = () => {
               email: firebaseUser.email || "",
               uid: firebaseUser.uid,
               subscriptionStatus: 'inactive',
-              isAuthenticated: true
+              isAuthenticated: true,
+              token: token
             };
             setUser(defaultUser);
           } else {
@@ -111,7 +112,28 @@ const App: React.FC = () => {
     console.log("[Auth] Login triggered for:", email);
   };
 
-  const handleUpdateUser = (updatedUser: User) => {
+  const handleUpdateUser = async (updatedUser: User) => {
+    if (!user || !auth.currentUser) return;
+    
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`/api/users/${encodeURIComponent(user.email || user.username)}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updatedUser)
+      });
+      
+      if (response.ok) {
+        const savedUser = await response.json();
+        setUser({ ...user, ...savedUser });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar usuário:", err);
+    }
+    
     setUser(updatedUser);
   };
 

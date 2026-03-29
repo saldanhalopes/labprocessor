@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import * as dbLayer from './firestore.js';
 const {
   initDatabase, saveResult, updateResult, getAllResults, deleteResult, clearDatabase, getResultByFileName, getStandards, getEquipments, getBucket,
-  registerUser, getUserByUsername, verifyUser, updateUserSubscription, getAllUsers, getUserByEmail
+  registerUser, getUserByUsername, verifyUser, updateUserSubscription, updateUser, getAllUsers, getUserByEmail
 } = dbLayer;
 
 import admin from 'firebase-admin';
@@ -147,6 +147,20 @@ app.put('/api/users/:identifier/subscription', authenticateToken, async (req, re
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar assinatura' });
+  }
+});
+
+/**
+ * Update user profile
+ */
+app.put('/api/users/:identifier', authenticateToken, async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    const userData = req.body;
+    const user = await updateUser(identifier, userData);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar usuário' });
   }
 });
 
