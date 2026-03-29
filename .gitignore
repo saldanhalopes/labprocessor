@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+
+# Environment Variables & Secrets
+.env
+.env.local
+**/.env
+**/.env.local
+firebase-service-account.json
+**/firebase-service-account.json
+
+# Databases
+*.db
+backend/data/
+
+# IDEs
+.vscode/
+.idea/
+
+# Firebase
+.firebase/
+fire-debug.log
+
+# OS
+Thumbs.db
+.DS_Store
