@@ -6,13 +6,18 @@ import { AnalysisResult } from '../types';
 const API_BASE = '/api';
 
 /**
- * Save an analysis result to the SQLite backend.
+ * Save an analysis result to the Firestore backend.
  */
-export async function saveResultToDb(result: AnalysisResult): Promise<void> {
+export async function saveResultToDb(result: AnalysisResult, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(result),
     });
     
@@ -21,19 +26,26 @@ export async function saveResultToDb(result: AnalysisResult): Promise<void> {
       throw new Error(error.error || 'Failed to save result to database');
     }
     
-    console.log(`[DB] Saved to SQLite: ${result.fileName}`);
+    console.log(`[DB] Saved to Firestore: ${result.fileName}`);
   } catch (error) {
-    console.error('[DB] Error saving to SQLite:', error);
+    console.error('[DB] Error saving to Firestore:', error);
     throw error;
   }
 }
 
 /**
- * Retrieve all results from the SQLite backend.
+ * Retrieve all results from the Firestore backend.
  */
-export async function getResultsFromDb(): Promise<AnalysisResult[]> {
+export async function getResultsFromDb(token?: string): Promise<AnalysisResult[]> {
   try {
-    const response = await fetch(`${API_BASE}/results`);
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}/results`, {
+      headers
+    });
     
     if (!response.ok) {
       const error = await response.json();
@@ -41,21 +53,27 @@ export async function getResultsFromDb(): Promise<AnalysisResult[]> {
     }
     
     const results = await response.json();
-    console.log(`[DB] Loaded ${results.length} results from SQLite`);
+    console.log(`[DB] Loaded ${results.length} results from Firestore`);
     return results;
   } catch (error) {
-    console.error('[DB] Error fetching from SQLite:', error);
+    console.error('[DB] Error fetching from Firestore:', error);
     return [];
   }
 }
 
 /**
- * Delete a result from the SQLite backend.
+ * Delete a result from the Firestore backend.
  */
-export async function deleteResultFromDb(fileId: string): Promise<void> {
+export async function deleteResultFromDb(fileId: string, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results/${encodeURIComponent(fileId)}`, {
       method: 'DELETE',
+      headers
     });
     
     if (!response.ok) {
@@ -63,20 +81,26 @@ export async function deleteResultFromDb(fileId: string): Promise<void> {
       throw new Error(error.error || 'Failed to delete result from database');
     }
     
-    console.log(`[DB] Deleted from SQLite: ${fileId}`);
+    console.log(`[DB] Deleted from Firestore: ${fileId}`);
   } catch (error) {
-    console.error('[DB] Error deleting from SQLite:', error);
+    console.error('[DB] Error deleting from Firestore:', error);
     throw error;
   }
 }
 
 /**
- * Clear all results from the SQLite backend.
+ * Clear all results from the Firestore backend.
  */
-export async function clearDbResults(): Promise<void> {
+export async function clearDbResults(token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results`, {
       method: 'DELETE',
+      headers
     });
     
     if (!response.ok) {
@@ -84,19 +108,26 @@ export async function clearDbResults(): Promise<void> {
       throw new Error(error.error || 'Failed to clear database');
     }
     
-    console.log('[DB] Database cleared');
+    console.log('[DB] Firestore database cleared');
   } catch (error) {
-    console.error('[DB] Error clearing database:', error);
+    console.error('[DB] Error clearing Firestore:', error);
     throw error;
   }
 }
 
 /**
- * Check if a file has already been processed in the backend.
+ * Check if a file has already been processed in the Firestore backend.
  */
-export async function checkFileExists(fileName: string): Promise<{ exists: boolean; fileId: string | null }> {
+export async function checkFileExists(fileName: string, token?: string): Promise<{ exists: boolean; fileId: string | null }> {
   try {
-    const response = await fetch(`${API_BASE}/results/exists?fileName=${encodeURIComponent(fileName)}`);
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE}/results/exists?fileName=${encodeURIComponent(fileName)}`, {
+      headers
+    });
     
     if (!response.ok) {
       const error = await response.json();
@@ -111,13 +142,18 @@ export async function checkFileExists(fileName: string): Promise<{ exists: boole
 }
 
 /**
- * Update an existing result in the backend.
+ * Update an existing result in the Firestore backend.
  */
-export async function updateResultInDb(fileId: string, result: AnalysisResult): Promise<void> {
+export async function updateResultInDb(fileId: string, result: AnalysisResult, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE}/results/${encodeURIComponent(fileId)}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(result),
     });
     
@@ -126,9 +162,9 @@ export async function updateResultInDb(fileId: string, result: AnalysisResult): 
       throw new Error(error.error || 'Failed to update result');
     }
     
-    console.log(`[DB] Updated in database: ${fileId}`);
+    console.log(`[DB] Updated in Firestore: ${fileId}`);
   } catch (error) {
-    console.error('[DB] Error updating in database:', error);
+    console.error('[DB] Error updating in Firestore:', error);
     throw error;
   }
 }

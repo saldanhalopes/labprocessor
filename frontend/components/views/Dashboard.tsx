@@ -53,9 +53,13 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     const savedHistory = localStorage.getItem('pharmaqc_history');
     if (savedHistory) setHistory(JSON.parse(savedHistory));
 
-    // Load results from SQLite backend
-    getResultsFromDb().then(dbResults => {
-      if (dbResults && dbResults.length > 0) {
+    // Load results from Firestore backend
+    const loadResults = async () => {
+      try {
+        const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+        const dbResults = await getResultsFromDb(token || undefined);
+        
+        if (dbResults && dbResults.length > 0) {
         // Ensure all results have HH calculated (Migration check)
         const recalculatedResults = dbResults.map(res => ({
           ...res,
@@ -103,7 +107,13 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         const savedResults = localStorage.getItem('labprocessor_methods_db');
         if (savedResults) setResults(JSON.parse(savedResults));
       }
-    }).catch((err) => {
+    } catch (error) {
+      console.error("[Dashboard] Error in loadResults:", error);
+      throw error; // Re-throw so the outer .catch handles it
+    }
+  };
+
+    loadResults().catch((err) => {
       console.error("[Dashboard] Error loading from DB:", err);
       // If backend is unavailable, use localStorage
       const savedResults = localStorage.getItem('labprocessor_methods_db');
@@ -181,7 +191,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     // Check for duplicates in the entire batch first
     const duplicateFiles: string[] = [];
     for (const file of files) {
-      const { exists } = await checkFileExists(file.name);
+      const { exists } = await checkFileExists(file.name, token || undefined);
       if (exists) duplicateFiles.push(file.name);
     }
 
@@ -245,11 +255,12 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
           console.error("Failed to sync to Pinecone:", pineError);
         }
 
-        // Save to SQLite Backend
+        // Save to Firestore Backend
         try {
-          await saveResultToDb(result);
+          await saveResultToDb(result, token || undefined);
         } catch (dbError) {
-          console.error("Failed to save to SQLite:", dbError);
+          console.error("Failed to save to Firestore:", dbError);
+          showToast(`Erro ao sincronizar ${file.name} com a nuvem.`, 'warning');
         }
 
         // Calculate Lead Time and Workload for history
@@ -336,22 +347,25 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     setResults(updatedResults);
   };
 
-  const handleDeleteResult = (fileId: string) => {
+  const handleDeleteResult = async (fileId: string) => {
     if (window.confirm(t.results.deleteConfirm)) {
-      setResults(prev => prev.filter(r => r.fileId !== fileId));
-      deleteResultFromDb(fileId)
-        .then(() => showToast('Resultado excluído com sucesso.', 'success'))
-        .catch(e => {
-          console.error('Failed to delete from SQLite:', e);
-          showToast('Erro ao excluir resultado.', 'error');
-        });
+      try {
+        const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+        setResults(prev => prev.filter(r => r.fileId !== fileId));
+        await deleteResultFromDb(fileId, token || undefined);
+        showToast('Resultado excluído com sucesso.', 'success');
+      } catch (e) {
+        console.error('Failed to delete from Firestore:', e);
+        showToast('Erro ao excluir resultado do servidor.', 'error');
+      }
     }
   };
 
   const handleUpdateResult = async (updatedResult: AnalysisResult) => {
     try {
+      const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
       const fileId = updatedResult.fileId;
-      await updateResultInDb(fileId, updatedResult);
+      await updateResultInDb(fileId, updatedResult, token || undefined);
       setResults(prev => prev.map(r => r.fileId === fileId ? updatedResult : r));
       showToast('Resultado atualizado com sucesso!', 'success');
     } catch (err) {
@@ -360,16 +374,18 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     }
   };
 
-  const handleClearDatabase = () => {
+  const handleClearDatabase = async () => {
     if (window.confirm(translations[language].settings.clearDbConfirm)) {
-      setResults([]);
-      localStorage.removeItem('labprocessor_methods_db');
-      clearDbResults()
-        .then(() => showToast(translations[language].settings.successClear, 'success'))
-        .catch(e => {
-          console.error('Failed to clear SQLite:', e);
-          showToast('Erro ao limpar banco de dados.', 'error');
-        });
+      try {
+        const token = user?.token || (auth.currentUser ? await getIdToken(auth.currentUser) : null);
+        setResults([]);
+        localStorage.removeItem('labprocessor_methods_db');
+        await clearDbResults(token || undefined);
+        showToast(translations[language].settings.successClear, 'success');
+      } catch (e) {
+        console.error('Failed to clear Firestore:', e);
+        showToast('Erro ao limpar banco de dados no servidor.', 'error');
+      }
     }
   };
 
