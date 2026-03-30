@@ -110,3 +110,31 @@ export interface User {
   uploadsToday?: number;
   lastUploadDate?: string;
 }
+
+export interface CapacityData {
+  date: string; // YYYY-MM-DD
+  analystsFQ: number;
+  analystsMicro: number;
+  equipmentStatus: 'ok' | 'maintenance';
+}
+
+export interface BatchData {
+  id?: string;
+  productId: string; // Used to link to AnalysisResult
+  productName: string;
+  batchNumber: string;
+  entryDate: string; // YYYY-MM-DD
+  limitDate: string; // YYYY-MM-DD
+  priority: number; // 1 = High, 2 = Medium, 3 = Low
+  status: 'pending' | 'running' | 'completed';
+  realTime?: number; // Only if completed
+  theoreticalTime?: number;
+}
+
+export interface PredictionResult extends BatchData {
+  predictedDate: string;
+  riskStatus: 'Verde' | 'Amarelo' | 'Vermelho';
+  identifiedBottleneck: string;
+  theoreticalHH: number;
+  variabilityFactor: string;
+}

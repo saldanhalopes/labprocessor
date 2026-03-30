@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import fs from 'fs';
 import path from 'path';
@@ -68,7 +68,7 @@ export async function initDatabase() {
         isAdmin: true,
         subscriptionStatus: 'active',
         plan: 'premium',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: FieldValue.serverTimestamp()
       });
       console.log('[Firestore] Default admin user created successfully.');
     }
@@ -101,7 +101,7 @@ function mapResultToDoc(result) {
     images: result.images || [],
     fullText: result.fullText || '',
     visualContent: result.visualContent || '',
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    updatedAt: FieldValue.serverTimestamp()
   };
 }
 
@@ -149,7 +149,7 @@ export async function saveResult(result) {
 
   // 1. Save main result document (flattened)
   const docData = mapResultToDoc(result);
-  docData.createdAt = admin.firestore.FieldValue.serverTimestamp();
+  docData.createdAt = FieldValue.serverTimestamp();
   
   await resultRef.set(docData, { merge: true });
 
@@ -245,7 +245,7 @@ export async function registerUser(userData) {
     isAdmin: userData.isAdmin || false,
     subscriptionStatus: userData.subscriptionStatus || 'inactive',
     plan: userData.plan || 'free',
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: FieldValue.serverTimestamp()
   };
   await userRef.set(user);
   console.log(`[Firestore] Registered user profile: ${docId}`);
@@ -331,6 +331,62 @@ export async function updateResult(fileId, data) {
   
   console.log(`[Firestore] Update completed: ${fileId}`);
 }
+/**
+ * Capacity Management
+ */
+export async function saveCapacity(dateStr, capacityData) {
+  if (!db) await initDatabase();
+  const docRef = db.collection('capacidade_operacional').doc(dateStr);
+  await docRef.set({ ...capacityData, date: dateStr, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  return { date: dateStr, ...capacityData };
+}
+
+export async function getCapacity(dateStr) {
+  if (!db) await initDatabase();
+  const doc = await db.collection('capacidade_operacional').doc(dateStr).get();
+  return doc.exists ? doc.data() : null;
+}
+
+export async function getCapacitiesInRange(startDate, endDate) {
+  if (!db) await initDatabase();
+  const snapshot = await db.collection('capacidade_operacional')
+    .where('date', '>=', startDate)
+    .where('date', '<=', endDate)
+    .get();
+  return snapshot.docs.map(doc => doc.data());
+}
+
+/**
+ * Batch Programming
+ */
+export async function saveBatch(batchData) {
+  if (!db) await initDatabase();
+  const batchId = batchData.id || `batch_${Date.now()}`;
+  const docRef = db.collection('programacao_lotes').doc(batchId);
+  const dataToSave = {
+    ...batchData,
+    id: batchId,
+    updatedAt: FieldValue.serverTimestamp()
+  };
+  if (!batchData.id) {
+     dataToSave.createdAt = FieldValue.serverTimestamp();
+  }
+  await docRef.set(dataToSave, { merge: true });
+  return dataToSave;
+}
+
+export async function getBatches() {
+  if (!db) await initDatabase();
+  const snapshot = await db.collection('programacao_lotes').orderBy('createdAt', 'desc').get();
+  return snapshot.docs.map(doc => doc.data());
+}
+
+export async function deleteBatch(batchId) {
+  if (!db) await initDatabase();
+  await db.collection('programacao_lotes').doc(batchId).delete();
+  console.log(`[Firestore] Deleted batch: ${batchId}`);
+}
+
 export async function getBucket() {
   if (!app) await initDatabase();
   return getStorage().bucket();

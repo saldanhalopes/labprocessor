@@ -701,6 +701,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
                 results={results} 
                 settings={settings} 
                 language={language} 
+                token={user.token}
               />
             )}
             

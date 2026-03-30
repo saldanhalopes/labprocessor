@@ -9,14 +9,15 @@ import { fileURLToPath } from 'url';
 import * as dbLayer from './firestore.js';
 const {
   initDatabase, saveResult, updateResult, getAllResults, deleteResult, clearDatabase, getResultByFileName, getStandards, getEquipments, getBucket,
-  registerUser, getUserByUsername, verifyUser, updateUserSubscription, updateUser, getAllUsers, getUserByEmail
+  registerUser, getUserByUsername, verifyUser, updateUserSubscription, updateUser, getAllUsers, getUserByEmail,
+  saveCapacity, getCapacity, getCapacitiesInRange, saveBatch, getBatches, deleteBatch
 } = dbLayer;
 
 import admin from 'firebase-admin';
 import { saveToPinecone } from './pinecone.js';
 import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
-
+import { calculatePrediction } from './prediction.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -123,6 +124,78 @@ app.get('/api/results', authenticateToken, async (req, res) => {
 });
 
 // ... (other results routes should also be protected)
+
+// --- PLANNING & CAPACITY (Protected) ---
+app.post('/api/capacity', authenticateToken, async (req, res) => {
+  try {
+    console.log('[API] /api/capacity POST payload:', req.body);
+    const { date, ...capacityData } = req.body;
+    if (!date) return res.status(400).json({ error: 'Date field is required' });
+    const result = await saveCapacity(date, capacityData);
+    res.json(result);
+  } catch (error) {
+    console.error('[API] /api/capacity Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/capacity/range', authenticateToken, async (req, res) => {
+  try {
+    const { start, end } = req.query;
+    if (!start || !end) return res.status(400).json({ error: 'Start and end dates are required' });
+    const capacities = await getCapacitiesInRange(start, end);
+    res.json(capacities);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/capacity/:date', authenticateToken, async (req, res) => {
+  try {
+    const capacity = await getCapacity(req.params.date);
+    res.json(capacity || { date: req.params.date }); // return default if not found
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/batches', authenticateToken, async (req, res) => {
+  try {
+    const result = await saveBatch(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/batches', authenticateToken, async (req, res) => {
+  try {
+    const batches = await getBatches();
+    res.json(batches);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/batches/:id', authenticateToken, async (req, res) => {
+  try {
+    await deleteBatch(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/predict', authenticateToken, async (req, res) => {
+  try {
+    const userSettings = req.body;
+    const predictions = await calculatePrediction(userSettings);
+    res.json(predictions);
+  } catch (error) {
+    console.error('[API] /api/predict Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // --- USER MANAGEMENT (Protected) ---
 
