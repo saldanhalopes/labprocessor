@@ -232,9 +232,10 @@ export const translations = {
       emptySubtitle: 'Carregue métodos analíticos para visualizar o painel de métricas avançadas.',
       totalMethods: 'Total Monografias',
       processed: 'Processados',
-      avgLeadFQ: 'Avg. Lead Time FQ',
-      avgLeadMicro: 'Avg. Lead Time Micro',
+      avgLeadFQ: 'Média Lead Time FQ',
+      avgLeadMicro: 'Média Lead Time Micro',
       mappedInputs: 'Insumos Mapeados',
+      analystsNeeded: 'Analistas Necessários',
       reagents: 'Reag',
       columns: 'Colu',
       standards: 'Padr',
@@ -677,6 +678,7 @@ export const translations = {
       avgLeadFQ: 'Media Lead Time CQ',
       avgLeadMicro: 'Media Lead Time Micro',
       mappedInputs: 'Insumos Mapeados',
+      analystsNeeded: 'Analistas Necesarios',
       reagents: 'Reag',
       columns: 'Colu',
       standards: 'Patr',
@@ -692,7 +694,7 @@ export const translations = {
       methodsSuffix: 'métodos',
       techChargeFQ: 'Carga por Técnica (CQ)',
       insufficientData: 'Datos insuficientes para el análisis.',
-      fullReport: 'Ver Informes Completo'
+      fullReport: 'Ver Informe Completo'
     },
     techniques: {
       hplc: 'HPLC',
@@ -1119,6 +1121,7 @@ export const translations = {
       avgLeadFQ: 'Avg. Lead Time QC',
       avgLeadMicro: 'Avg. Lead Time Micro',
       mappedInputs: 'Mapped Inputs',
+      analystsNeeded: 'Analysts Needed',
       reagents: 'Reag',
       columns: 'Colu',
       standards: 'Stnd',

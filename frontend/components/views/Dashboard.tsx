@@ -276,7 +276,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
           await saveResultToDb(result, token || undefined);
         } catch (dbError) {
           console.error("Failed to save to Firestore:", dbError);
-          showToast(`Erro ao sincronizar ${file.name} com a nuvem.`, 'warning');
+          showToast(`${t.common.error}: ${file.name}`, 'warning');
         }
 
         // Calculate Lead Time and Workload for history
@@ -307,7 +307,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
       } catch (error: any) {
         console.error(`[Dashboard] Error processing ${file.name}:`, error);
         const stackMsg = error.stack ? `\n\nStack: ${error.stack.substring(0, 100)}...` : '';
-        showToast(`Erro ao processar ${file.name}: ${error.message || 'Erro desconhecido'}${stackMsg}`, 'error', 10000);
+        showToast(`${t.common.error} ${file.name}: ${error.message || t.common.error}${stackMsg}`, 'error', 10000);
       }
  finally {
         processedCount++;
@@ -469,13 +469,13 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
               shadow-lg shadow-teal-500/30 hover:bg-teal-400 hover:scale-110 
               transition-all duration-300 z-50 group border border-teal-400/50
             `}
-            title={isSidebarCollapsed ? 'Expandir Menu' : 'Recolher Menu'}
+            title={isSidebarCollapsed ? t.common.expandSidebar : t.common.recollectSidebar}
           >
             {isSidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
             
             {/* Custom Tooltip for Toggle */}
             <div className={`absolute left-full ml-4 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap shadow-xl border border-slate-700 z-50 translate-x-2 group-hover:translate-x-0 ${isSidebarCollapsed ? 'block' : 'hidden md:block'}`}>
-              {isSidebarCollapsed ? 'Expandir Sidebar' : 'Recolher Sidebar'}
+              {isSidebarCollapsed ? t.common.expandSidebar : t.common.recollectSidebar}
               <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-slate-800"></div>
             </div>
 
@@ -486,7 +486,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
 
         {/* Navigation Section */}
         <nav className={`flex-1 py-6 px-4 space-y-1.5 overflow-y-auto no-scrollbar`}>
-          {!isSidebarCollapsed && <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-4 animate-fade-in">Menu Principal</div>}
+          {!isSidebarCollapsed && <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-4 animate-fade-in">{t.nav.menu}</div>}
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -600,7 +600,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
                 {/* Header Profile Tooltip */}
                 {!isUserMenuOpen && (
                   <div className="absolute top-full right-0 mt-3 px-3 py-1.5 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap shadow-xl border border-slate-700 z-50 translate-y-2 group-hover:translate-y-0">
-                    Menu do Usuário
+                    {t.common.userMenu}
                     <div className="absolute bottom-full right-4 border-8 border-transparent border-b-slate-800"></div>
                   </div>
                 )}
@@ -677,7 +677,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser }: DashboardProps) => {
                       <Loader2 className="w-8 h-8 text-teal-600 animate-pulse" />
                     </div>
                     <p className="text-slate-800 font-bold mt-6 text-lg">{t.upload.processing}</p>
-                    <p className="text-slate-400 text-sm mt-1">{progress}% concluído</p>
+                    <p className="text-slate-400 text-sm mt-1">{progress}% {language === 'pt' ? 'concluído' : language === 'es' ? 'completado' : 'completed'}</p>
                     <div className="w-full bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
                       <div className="bg-teal-500 h-full transition-all duration-300" style={{ width: `${progress}%` }}></div>
                     </div>

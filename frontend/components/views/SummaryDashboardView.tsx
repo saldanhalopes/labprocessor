@@ -2,14 +2,12 @@ import React, { useMemo } from 'react';
 import { AnalysisResult, GlobalSettings } from '../../types';
 import { 
   PlusSquare, 
-  Clock, 
   BarChart3, 
   FlaskConical, 
   Zap, 
   Layers, 
   ArrowUpRight, 
   Search,
-  CheckCircle2,
   Calendar,
   LayoutGrid,
   Bug,
@@ -17,39 +15,29 @@ import {
   UserCircle
 } from 'lucide-react';
 import { 
-  calculateParallelLeadTime, 
   isMicrobiology, 
   calculateTotalManHours, 
-  calculateStaffRequired 
+  calculateStaffRequired,
+  calculateParallelLeadTime
 } from '../../utils/calculations';
+import { useLanguage } from '../../context/LanguageContext';
 
 const normalizeTechnique = (tech: string): string => {
   const t = tech.toLowerCase().trim();
   
-  if (t.includes('hplc') || t.includes('cromatogra')) return 'HPLC';
-  if (t.includes('dissol') || t.includes('disol')) return 'Dissolução';
-  if (t.includes('espectro') || t.includes(' uv')) return 'Espectroscopia';
-  if (t.includes('microbiol') || t.includes('biol') || t.includes('61') || t.includes('62')) return 'Microbiologia';
-  if (t.includes('gravimetr')) return 'Gravimetria';
-  if (t.includes('titula')) return 'Titulação';
-  if (t.includes('viscos')) return 'Viscosidade';
-  if (t.includes('balança') || t.includes('balance') || t.includes('termobal')) return 'Balança/Term';
-  if (t.includes('exame') || t.includes('ensayo') || t.includes('test')) return 'Ensaios';
-  if (t.includes('calcul') || t.includes('cálcul')) return 'Cálculos';
+  if (t.includes('hplc') || t.includes('cromatogra')) return 'hplc';
+  if (t.includes('dissol') || t.includes('disol')) return 'dissolution';
+  if (t.includes('espectro') || t.includes(' uv')) return 'spectroscopy';
+  if (t.includes('microbiol') || t.includes('biol') || t.includes('61') || t.includes('62')) return 'microbiology';
+  if (t.includes('gravimetr')) return 'gravimetry';
+  if (t.includes('titula')) return 'titration';
+  if (t.includes('viscos')) return 'viscosity';
+  if (t.includes('balança') || t.includes('balance') || t.includes('termobal')) return 'balance';
+  if (t.includes('exame') || t.includes('ensayo') || t.includes('test')) return 'tests';
+  if (t.includes('calcul') || t.includes('cálcul')) return 'calculations';
   
-  return tech.charAt(0).toUpperCase() + tech.slice(1);
+  return 'others';
 };
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from 'recharts';
 
 interface SummaryDashboardViewProps {
   results: AnalysisResult[];
@@ -60,6 +48,8 @@ interface SummaryDashboardViewProps {
 }
 
 export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ results, settings, onNavigate, isLoading, token }) => {
+  const { t } = useLanguage();
+
   // --- Metrificação Global ---
   const stats = useMemo(() => {
     if (results.length === 0) return null;
@@ -110,7 +100,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
       totalManHours: totalManHours.toFixed(1),
       staffRequired: staffRequired.toFixed(1)
     };
-  }, [results]);
+  }, [results, settings]);
 
   // --- Técnica Distribution ---
   const techniqueStats = useMemo(() => {
@@ -120,8 +110,8 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
     results.forEach(res => {
       (res.rows || []).forEach(row => {
         if (isMicrobiology(row)) return; // Excluir Micro
-        const tech = normalizeTechnique(row.technique || 'Outras');
-        techMap[tech] = (techMap[tech] || 0) + (row.totalTimeHours || 0);
+        const techKey = normalizeTechnique(row.technique || 'others');
+        techMap[techKey] = (techMap[techKey] || 0) + (row.totalTimeHours || 0);
         grandTotalHours += (row.totalTimeHours || 0);
       });
     });
@@ -131,14 +121,14 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
     const colors = ['#0d9488', '#6366f1', '#f59e0b', '#ec4899', '#8b5cf6'];
     
     return Object.entries(techMap)
-      .map(([label, total], idx) => ({
-        label,
+      .map(([key, total], idx) => ({
+        label: t.techniques[key as keyof typeof t.techniques] || key,
         val: Math.round((total / grandTotalHours) * 100),
         color: colors[idx % colors.length]
       }))
       .sort((a, b) => b.val - a.val)
       .slice(0, 5); // Show top 5
-  }, [results]);
+  }, [results, t.techniques]);
 
   if (isLoading) {
     return (
@@ -149,8 +139,8 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
             <Zap className="w-6 h-6 text-teal-500 animate-pulse" />
           </div>
         </div>
-        <h2 className="text-xl font-bold text-slate-800 mt-6 font-display">Carregando métricas</h2>
-        <p className="text-slate-400 mt-2">Sincronizando dados analíticos...</p>
+        <h2 className="text-xl font-bold text-slate-800 mt-6 font-display">{t.summary.loading}</h2>
+        <p className="text-slate-400 mt-2">{t.summary.syncing}</p>
       </div>
     );
   }
@@ -159,9 +149,9 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-300 animate-fade-in">
         <Layers className="w-16 h-16 text-slate-200 mb-4" />
-        <h2 className="text-xl font-bold text-slate-400 font-display">Nenhum dado consolidado</h2>
+        <h2 className="text-xl font-bold text-slate-400 font-display">{t.summary.emptyTitle}</h2>
         <p className="text-slate-400 max-w-xs text-center mt-2">
-          Carregue métodos analíticos para visualizar o painel de métricas avançadas.
+          {t.summary.emptySubtitle}
         </p>
       </div>
     );
@@ -181,11 +171,11 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
             <div className="bg-teal-50 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 text-teal-600 ring-1 ring-teal-100 shadow-inner">
               <Layers className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Total Monografias</p>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.summary.totalMethods}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <h3 className="text-3xl font-black text-slate-800">{stats?.totalMethods}</h3>
               <span className="text-xs font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <ArrowUpRight className="w-3 h-3" /> Processados
+                <ArrowUpRight className="w-3 h-3" /> {t.summary.processed}
               </span>
             </div>
           </div>
@@ -200,10 +190,10 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
             <div className="bg-teal-50 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 text-teal-600 ring-1 ring-teal-100 shadow-inner">
               <FlaskConical className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Avg. Lead Time FQ</p>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.summary.avgLeadFQ}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <h3 className="text-3xl font-black text-slate-800">{stats?.avgLeadTimeFQ}h</h3>
-              <span className="text-[10px] text-teal-500 font-bold bg-teal-50 px-2 py-0.5 rounded-full">Físico-Químico</span>
+              <span className="text-[10px] text-teal-500 font-bold bg-teal-50 px-2 py-0.5 rounded-full">{t.results.physChem}</span>
             </div>
           </div>
         </div>
@@ -217,10 +207,10 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
             <div className="bg-pink-50 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 text-pink-600 ring-1 ring-pink-100 shadow-inner">
               <Bug className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Avg. Lead Time Micro</p>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.summary.avgLeadMicro}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <h3 className="text-3xl font-black text-slate-800">{stats?.avgLeadTimeMicro}h</h3>
-              <span className="text-[10px] text-pink-500 font-bold bg-pink-50 px-2 py-0.5 rounded-full">Microbiologia</span>
+              <span className="text-[10px] text-pink-500 font-bold bg-pink-50 px-2 py-0.5 rounded-full">{t.results.micro}</span>
             </div>
           </div>
         </div>
@@ -234,7 +224,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
             <div className="bg-indigo-50 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 ring-1 ring-indigo-100 shadow-inner">
               <UserCircle className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-indigo-400 uppercase tracking-widest">Analistas Necessários</p>
+            <p className="text-sm font-bold text-indigo-400 uppercase tracking-widest">{t.summary.analystsNeeded}</p>
             <div className="flex items-baseline gap-2 mt-1">
               <h3 className="text-3xl font-black text-indigo-700">{stats?.staffRequired}</h3>
               <span className="text-[10px] text-indigo-500 font-bold bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -252,19 +242,19 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
             <div className="bg-orange-50 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 text-orange-600 ring-1 ring-orange-100 shadow-inner">
               <FlaskConical className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Insumos Mapeados</p>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.summary.mappedInputs}</p>
             <div className="grid grid-cols-3 gap-2 mt-2">
               <div className="flex flex-col">
                 <span className="text-lg font-bold text-slate-700">{stats?.totalReagents}</span>
-                <span className="text-[9px] uppercase font-bold text-slate-400">Reag</span>
+                <span className="text-[9px] uppercase font-bold text-slate-400">{t.summary.reagents}</span>
               </div>
               <div className="flex flex-col border-l border-slate-100 pl-2">
                 <span className="text-lg font-bold text-slate-700">{stats?.totalColumns}</span>
-                <span className="text-[9px] uppercase font-bold text-slate-400">Colu</span>
+                <span className="text-[9px] uppercase font-bold text-slate-400">{t.summary.columns}</span>
               </div>
               <div className="flex flex-col border-l border-slate-100 pl-2">
                 <span className="text-lg font-bold text-slate-700">{stats?.totalStandards}</span>
-                <span className="text-[9px] uppercase font-bold text-slate-400">Padr</span>
+                <span className="text-[9px] uppercase font-bold text-slate-400">{t.summary.standards}</span>
               </div>
             </div>
           </div>
@@ -276,7 +266,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
          <div className="flex items-center justify-between mb-6 px-4">
            <div className="flex items-center gap-2">
              <LayoutGrid className="w-5 h-5 text-teal-600" />
-             <h3 className="font-bold text-slate-800 text-base">Carga por Técnica (FQ)</h3>
+             <h3 className="font-bold text-slate-800 text-base">{t.summary.techChargeFQ}</h3>
            </div>
            <div className="flex items-center gap-4">
              <Calendar className="w-4 h-4 text-slate-300" />
@@ -285,7 +275,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                className="px-4 py-1.5 bg-slate-50 text-slate-600 text-[10px] font-black rounded-xl border border-slate-100 hover:bg-slate-100 transition-all flex items-center gap-2"
              >
                <BarChart3 className="w-3.5 h-3.5" />
-               Relatório Completo
+               {t.summary.fullReport}
              </button>
            </div>
          </div>
@@ -306,7 +296,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
              </div>
            )) : (
              <div className="col-span-full py-4 text-center text-slate-400 text-xs italic">
-               Dados insuficientes para análise.
+               {t.summary.insufficientData}
              </div>
            )}
          </div>
@@ -318,13 +308,13 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-lg font-bold text-slate-800">Comparativo de Métodos Analíticos</h3>
+              <h3 className="text-lg font-bold text-slate-800">{t.summary.tableTitle}</h3>
             </div>
             <div className="relative group">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-teal-500 transition-colors" />
               <input 
                 type="text" 
-                placeholder="Busca rápida..." 
+                placeholder={t.summary.quickSearch}
                 className="pl-9 pr-4 py-2 border border-slate-200 rounded-2xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/10 focus:border-teal-400 transition-all w-48 focus:w-64 shadow-sm" 
               />
             </div>
@@ -335,10 +325,10 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-100">
-                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] w-1/3">Produto / Código</th>
-                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Setor (FQ | Micro)</th>
-                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center w-32">Lead Time</th>
-                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Insumos</th>
+                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] w-1/3">{t.summary.productCode}</th>
+                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">{t.summary.sector}</th>
+                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center w-32">{t.summary.leadTime}</th>
+                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">{t.summary.processedCol}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -353,7 +343,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                             <div>
                               <div className="font-bold text-slate-800 text-base leading-tight">{res.product.productName}</div>
                               <div className="text-xs font-mono text-slate-400 mt-1 flex items-center gap-1">
-                                <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{res.product.code || 'N/A'}</span>
+                                <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{res.product.code || t.summary.noCode}</span>
                               </div>
                             </div>
                           </div>
@@ -369,7 +359,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                                   return rows.length > 0 ? Math.max(...rows.map(r => r.totalTimeHours)).toFixed(1) : '0';
                                 })()}h</span>
                               </div>
-                              <span className="text-[10px] uppercase font-black text-slate-400 tracking-tighter">FQ</span>
+                              <span className="text-[10px] uppercase font-black text-slate-400 tracking-tighter">{t.results.physChem}</span>
                             </div>
                             
                             <div className="w-px h-8 bg-slate-100"></div>
@@ -383,7 +373,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                                   return rows.length > 0 ? Math.max(...rows.map(r => r.totalTimeHours)).toFixed(1) : '0';
                                 })()}h</span>
                               </div>
-                              <span className="text-[10px] uppercase font-black text-slate-400 tracking-tighter">MICRO</span>
+                              <span className="text-[10px] uppercase font-black text-slate-400 tracking-tighter">{t.results.micro}</span>
                             </div>
                           </div>
                         </td>
@@ -409,7 +399,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                               )}
                               {/* Tooltip */}
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 invisible group-hover/icon:opacity-100 group-hover/icon:visible transition-all whitespace-nowrap z-50 shadow-xl border border-slate-700">
-                                Reagentes
+                                {t.summary.reagents}
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
                               </div>
                             </div>
@@ -424,7 +414,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                               )}
                               {/* Tooltip */}
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 invisible group-hover/icon:opacity-100 group-hover/icon:visible transition-all whitespace-nowrap z-50 shadow-xl border border-slate-700">
-                                Padrões
+                                {t.summary.standards}
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
                               </div>
                             </div>
@@ -439,7 +429,7 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
                               )}
                               {/* Tooltip */}
                               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] font-bold rounded-lg opacity-0 invisible group-hover/icon:opacity-100 group-hover/icon:visible transition-all whitespace-nowrap z-50 shadow-xl border border-slate-700">
-                                Equipamentos
+                                {t.materials.equipmentsTab}
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
                               </div>
                             </div>
@@ -454,10 +444,6 @@ export const SummaryDashboardView: React.FC<SummaryDashboardViewProps> = ({ resu
           </div>
         </div>
       </div>
-
-
-
-
     </div>
   );
 };
