@@ -1,8 +1,6 @@
 import { CapacityData, BatchData, PredictionResult, GlobalSettings } from '../types';
 
-const API_BACKEND_PORT = import.meta.env.VITE_API_BACKEND_PORT || 8080;
-const API_BACKEND_HOST = import.meta.env.VITE_API_BACKEND_HOST || "localhost";
-const BASE_URL = `http://${API_BACKEND_HOST}:${API_BACKEND_PORT}/api`;
+const BASE_URL = '/api';
 
 const getHeaders = (token?: string) => ({
   'Content-Type': 'application/json',
