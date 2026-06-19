@@ -1,0 +1,4 @@
+{
+  "name": "LabProcessor",
+  "description": "AI-powered tool for Pharmaceutical Quality Control planning. Upload technical documents (PDF) to estimate analytical man-hours per batch based on standard heuristics."
+}

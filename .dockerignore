@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.env
+.env.local
+*.md
+.firebaserc
+firebase.json
+apphosting.yaml
+tmp
+nul
+.opencode
+.swarm
+.planning

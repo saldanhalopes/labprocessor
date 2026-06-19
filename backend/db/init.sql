@@ -1,0 +1,2 @@
+-- Admin user will be created by the app on first startup
+-- This file is kept for any future static data initialization
