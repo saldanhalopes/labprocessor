@@ -103,4 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_reagents_result_id ON reagents(result_id);
 CREATE INDEX IF NOT EXISTS idx_standards_result_id ON standards(result_id);
 CREATE INDEX IF NOT EXISTS idx_equipments_result_id ON equipments(result_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_result_id ON embeddings(result_id);
-CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+-- ivfflat index requires max 2000 dimensions; Gemini Embedding 001 uses 3072.
+-- For production with large datasets, consider dimensionality reduction or
+-- partitioning. For small-scale local use, exact search via <=> is sufficient.
+-- CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
