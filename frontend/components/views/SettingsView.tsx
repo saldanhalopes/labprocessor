@@ -3,7 +3,6 @@ import { GlobalSettings, Language } from '../../types';
 import { Save, Database, Trash2, Key } from 'lucide-react';
 import { translations } from '../../utils/translations';
 import { useToast } from '../../context/ToastContext';
-import { DiretrizesTable } from '../settings/DiretrizesTable';
 import { RotasTable } from '../settings/RotasTable';
 
 interface SettingsViewProps {
@@ -346,7 +345,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           ))}
           <button onClick={() => {
             const name = prompt('Nome do novo teste:');
-            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],diretrizes:[],como_quantificar:'',mo_pct:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
+            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],como_quantificar:'',mo_pct:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
           }} className="px-3 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
             + Novo
           </button>
@@ -386,13 +385,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
               <RotasTable
                 rotas={(testConfig[selectedTest].rotas || []).map((r: any) => typeof r === 'string' ? { nome: r, tipo: 'Máquina', execucao: 'MAQ', descricao: '', diretrizes: [] } : r)}
                 onChange={(r: any) => updateTestField('rotas', r)}
-              />
-            </div>
-            <div>
-              <label className="text-slate-500 font-medium block mb-0.5">Diretrizes (tabela)</label>
-              <DiretrizesTable
-                diretrizes={(testConfig[selectedTest].diretrizes || []).map((d: any) => typeof d === 'string' ? { componente: '', descricao: d, heuristica: '', fixo_min: 0, var_min: 0 } : d)}
-                onChange={(d: any) => updateTestField('diretrizes', d)}
               />
             </div>
             <div>
