@@ -411,7 +411,7 @@ app.get('/api/health', (req, res) => {
 /**
  * Get current Gemini API key status
  */
-app.get('/api/config/gemini-key', (req, res) => {
+app.get('/api/config/openrouter-key', (req, res) => {
   const key = getApiKey();
   res.json({
     configured: !!key,
@@ -423,7 +423,7 @@ app.get('/api/config/gemini-key', (req, res) => {
 /**
  * Update Gemini API key
  */
-app.post('/api/config/gemini-key', (req, res) => {
+app.post('/api/config/openrouter-key', (req, res) => {
   try {
     const { key } = req.body;
     if (!key || typeof key !== 'string') {

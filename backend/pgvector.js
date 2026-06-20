@@ -1,34 +1,40 @@
 import pg from 'pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
+const EMBEDDING_MODEL = 'openai/text-embedding-3-large';
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL || 'postgres://labprocessor:labprocessor@localhost:5432/labprocessor'
 });
 
-let genAI = null;
-
-function initGemini() {
-  if (!GEMINI_API_KEY) {
-    console.warn('[PGVector] No Gemini API key configured. Embedding generation disabled.');
-    return null;
-  }
-  if (!genAI) {
-    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  }
-  return genAI;
-}
-
 async function generateEmbedding(text) {
-  const ai = initGemini();
-  if (!ai) throw new Error('Gemini API key not configured');
-  const model = ai.getGenerativeModel({ model: 'models/gemini-embedding-001' });
-  const result = await model.embedContent(text);
-  return result.embedding.values;
+  if (!OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY not configured');
+
+  const res = await fetch(`${OPENROUTER_BASE}/embeddings`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: EMBEDDING_MODEL,
+      input: text
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`OpenRouter embeddings error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json();
+  return data.data[0].embedding;
 }
 
 export async function queryVectors(queryText, topK = 5) {
+  if (!OPENROUTER_API_KEY) return [];
+
   try {
     const queryValues = await generateEmbedding(queryText);
     const result = await pool.query(`
@@ -51,6 +57,8 @@ export async function queryVectors(queryText, topK = 5) {
 }
 
 export async function saveToPinecone(result) {
+  if (!OPENROUTER_API_KEY) return false;
+
   try {
     const vectors = [];
     for (let i = 0; i < (result.rows || []).length; i++) {

@@ -20,7 +20,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
   const t = translations[language].settings;
 
   useEffect(() => {
-    fetch('/api/config/gemini-key').then(r => r.json()).then(data => {
+    fetch('/api/config/openrouter-key').then(r => r.json()).then(data => {
       setKeyConfigured(data.configured);
       if (data.configured) setApiKey('***configured***');
     }).catch(() => {});
@@ -66,11 +66,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
       
-      {/* Gemini API Key */}
+      {/* OpenRouter API Key */}
       <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center gap-3 mb-6">
           <Key className="w-6 h-6 text-emerald-600" />
-          <h3 className="text-xl font-bold text-slate-800">Gemini API Key</h3>
+          <h3 className="text-xl font-bold text-slate-800">OpenRouter API Key</h3>
           {keyConfigured && (
             <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">CONFIGURADA</span>
           )}
@@ -81,7 +81,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
             type="password"
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
-            placeholder={keyConfigured ? '******' : 'Cole sua chave Gemini aqui...'}
+            placeholder={keyConfigured ? '******' : 'Cole sua chave OpenRouter aqui...'}
             className="flex-1 p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-sm"
           />
           <button
@@ -94,7 +94,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           </button>
         </div>
         <p className="text-xs text-slate-400 mt-2">
-          A chave � necess�ria para analisar PDFs com o Gemini e para o chat RAG.
+          A chave � necess�ria para analisar PDFs via OpenRouter e para o chat RAG.
           {keyConfigured && ' J� configurada.'}
         </p>
       </div>

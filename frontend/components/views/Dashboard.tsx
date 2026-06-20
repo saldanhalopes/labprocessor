@@ -544,7 +544,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                   
                    <div className="mt-4 p-4 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 flex items-center gap-2 max-w-md mx-auto">
                      <AlertTriangle className="w-5 h-5" />
-                     <span>A chave Gemini é gerenciada pelo backend. Configure em <strong>Settings → Gemini API Key</strong> se necessário.</span>
+                     <span>A chave OpenRouter é gerenciada pelo backend. Configure em <strong>Settings → OpenRouter API Key</strong> se necessário.</span>
                    </div>
                 </div>
 
