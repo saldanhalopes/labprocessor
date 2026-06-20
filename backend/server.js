@@ -452,6 +452,7 @@ app.post('/api/config/openrouter-key', (req, res) => {
 // --- SKILL CONFIG ENDPOINTS ---
 
 const PROMPTS_FILE = path.join(__dirname, 'config', 'prompts.json');
+const TESTS_FILE = path.join(__dirname, 'config', 'tests.json');
 
 /**
  * Get AI extraction prompts (system prompt per language)
@@ -477,6 +478,35 @@ app.put('/api/config/skill/prompts', (req, res) => {
     const data = { pt: pt || '', es: es || '', en: en || '' };
     fs.writeFileSync(PROMPTS_FILE, JSON.stringify(data, null, 2), 'utf-8');
     res.json({ success: true, message: 'Prompts saved' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- TESTS CONFIG ---
+
+/**
+ * Get test extraction rules
+ */
+app.get('/api/config/skill/tests', (req, res) => {
+  try {
+    if (fs.existsSync(TESTS_FILE)) {
+      res.json(JSON.parse(fs.readFileSync(TESTS_FILE, 'utf-8')));
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update test extraction rules
+ */
+app.put('/api/config/skill/tests', (req, res) => {
+  try {
+    fs.writeFileSync(TESTS_FILE, JSON.stringify(req.body, null, 2), 'utf-8');
+    res.json({ success: true, message: 'Tests saved' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

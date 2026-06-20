@@ -19,6 +19,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
   const [skillPrompts, setSkillPrompts] = useState<Record<string,string>>({});
   const [skillLang, setSkillLang] = useState('pt');
   const [savingPrompt, setSavingPrompt] = useState(false);
+  const [testConfig, setTestConfig] = useState<Record<string,any>>({});
+  const [selectedTest, setSelectedTest] = useState('');
+  const [savingTest, setSavingTest] = useState(false);
   const { showToast } = useToast();
   const t = translations[language].settings;
 
@@ -29,6 +32,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
     }).catch(() => {});
     fetch('/api/config/skill/prompts').then(r => r.json()).then(data => {
       setSkillPrompts(data);
+    }).catch(() => {});
+    fetch('/api/config/skill/tests').then(r => r.json()).then(data => {
+      setTestConfig(data);
+      const keys = Object.keys(data);
+      if (keys.length > 0) setSelectedTest(keys[0]);
     }).catch(() => {});
   }, []);
 
@@ -44,6 +52,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
       else showToast('Erro ao salvar prompt', 'error');
     } catch { showToast('Erro de conexão', 'error'); }
     finally { setSavingPrompt(false); }
+  };
+
+  const handleSaveTest = async () => {
+    setSavingTest(true);
+    try {
+      const res = await fetch('/api/config/skill/tests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testConfig)
+      });
+      if (res.ok) showToast('Testes salvos!', 'success');
+      else showToast('Erro ao salvar', 'error');
+    } catch { showToast('Erro de conexão', 'error'); }
+    finally { setSavingTest(false); }
+  };
+
+  const updateTestField = (field: string, value: any) => {
+    setTestConfig(prev => ({
+      ...prev,
+      [selectedTest]: { ...prev[selectedTest], [field]: value }
+    }));
   };
 
   const handleSaveKey = async () => {
@@ -293,6 +322,96 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           className="mt-3 px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
           {savingPrompt ? 'Salvando...' : 'Salvar Prompt'}
         </button>
+      </div>
+
+      {/* Test Configuration */}
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3 mb-6">
+          <span className="text-2xl">⚙️</span>
+          <h3 className="text-xl font-bold text-slate-800">Configuração de Testes</h3>
+          <span className="text-xs text-slate-400 ml-auto">{Object.keys(testConfig).length} testes</span>
+        </div>
+        <p className="text-xs text-slate-500 mb-4">
+          Ajuste as diretrizes de extração, aliases, rotas e tempos para cada tipo de teste. Adicione novos testes que não estão listados.
+        </p>
+
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {Object.keys(testConfig).map(name => (
+            <button key={name} onClick={() => setSelectedTest(name)}
+              className={`px-3 py-1 rounded text-xs font-bold ${selectedTest===name?'bg-indigo-600 text-white':'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+              {name}
+            </button>
+          ))}
+          <button onClick={() => {
+            const name = prompt('Nome do novo teste:');
+            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],diretrizes:{t_prep:'',t_analysis:'',t_run:'',t_calc:'',heuristicas:''},como_quantificar:'',mo_pct:0,fixo_min:0,var_min:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
+          }} className="px-3 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
+            + Novo
+          </button>
+        </div>
+
+        {selectedTest && testConfig[selectedTest] && (
+          <div className="space-y-3 text-xs">
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="text-slate-500 font-medium block mb-0.5">Técnica</label>
+                <input value={testConfig[selectedTest].tecnica||''} onChange={e=>updateTestField('tecnica',e.target.value)}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label className="text-slate-500 font-medium block mb-0.5">Categoria</label>
+                <input value={testConfig[selectedTest].categoria||''} onChange={e=>updateTestField('categoria',e.target.value)}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label className="text-slate-500 font-medium block mb-0.5">MO%</label>
+                <input type="number" value={testConfig[selectedTest].mo_pct||0} onChange={e=>updateTestField('mo_pct',Number(e.target.value))}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
+              </div>
+            </div>
+            <div>
+              <label className="text-slate-500 font-medium block mb-0.5">Descrição</label>
+              <textarea value={testConfig[selectedTest].descricao||''} onChange={e=>updateTestField('descricao',e.target.value)}
+                rows={2} className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 resize-y" />
+            </div>
+            <div>
+              <label className="text-slate-500 font-medium block mb-0.5">Aliases (separados por vírgula)</label>
+              <input value={(testConfig[selectedTest].aliases||[]).join(', ')} onChange={e=>updateTestField('aliases',e.target.value.split(',').map(s=>s.trim()).filter(Boolean))}
+                className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono" />
+            </div>
+            <div>
+              <label className="text-slate-500 font-medium block mb-0.5">Rotas (separadas por vírgula)</label>
+              <input value={(testConfig[selectedTest].rotas||[]).join(', ')} onChange={e=>updateTestField('rotas',e.target.value.split(',').map(s=>s.trim()).filter(Boolean))}
+                className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-slate-500 font-medium block mb-0.5">Tempo Fixo (min)</label>
+                <input type="number" value={testConfig[selectedTest].fixo_min||0} onChange={e=>updateTestField('fixo_min',Number(e.target.value))}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
+              </div>
+              <div>
+                <label className="text-slate-500 font-medium block mb-0.5">Tempo Variável (min)</label>
+                <input type="number" value={testConfig[selectedTest].var_min||0} onChange={e=>updateTestField('var_min',Number(e.target.value))}
+                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
+              </div>
+            </div>
+            <div>
+              <label className="text-slate-500 font-medium block mb-0.5">Diretrizes (JSON)</label>
+              <textarea value={JSON.stringify(testConfig[selectedTest].diretrizes||{},null,2)} onChange={e=>{try{updateTestField('diretrizes',JSON.parse(e.target.value))}catch{}}}
+                rows={6} className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono resize-y" />
+            </div>
+            <div>
+              <label className="text-slate-500 font-medium block mb-0.5">Como Quantificar</label>
+              <textarea value={testConfig[selectedTest].como_quantificar||''} onChange={e=>updateTestField('como_quantificar',e.target.value)}
+                rows={2} className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 resize-y" />
+            </div>
+            <button onClick={handleSaveTest} disabled={savingTest}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
+              {savingTest ? 'Salvando...' : 'Salvar Testes'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Database Management */}

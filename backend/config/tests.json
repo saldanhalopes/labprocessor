@@ -1,0 +1,187 @@
+{
+  "TEOR HPLC 1": {
+    "tecnica": "HPLC",
+    "categoria": "Físico-Químico",
+    "descricao": "Determinação quantitativa do princípio ativo por cromatografia líquida de alta eficiência (HPLC). É o teste mais comum e demorado do CQ.",
+    "rotas": [
+      "HPLC DAD",
+      "BALANÇA",
+      "ANALISTA BANCADA (PREP HPLC)",
+      "ANALISTA EQUIP - HPLC",
+      "ULTRASSOM",
+      "BOMBA DE LAVAGEM",
+      "CONJ FILTRO",
+      "AGITADOR",
+      "AUXILIAR COLUNAS"
+    ],
+    "diretrizes": {
+      "t_prep": "Preparo de amostras e padrões: pesagem (BALANÇA), diluição (ANALISTA BANCADA), filtração, ultrassom. Inclui pesar padrão, preparar fase móvel, preparar diluente.",
+      "t_analysis": "Manipulação durante análise: processar resultados, criar método Empower, conferir sample set. Atividades do ANALISTA EQUIP - HPLC.",
+      "t_run": "Tempo de corrida instrumental no HPLC DAD. Calcular como: (tempo_por_injecao × numero_injecoes) + tempo_condicionamento. Inclui corridas de padrão calibração, amostras, padrão controle, FM, diluente, system.",
+      "t_calc": "Cálculos, transcrição de resultados, lançamento SAP, finalização de logbook e documentação.",
+      "heuristicas": "HPLC: t_run = gradiente × número de injeções. Considerar purga (30min), condicionamento (60min), lavagem (60min). Padrão calibração geralmente 5-7 injeções."
+    },
+    "como_quantificar": "Somar todos os tempos de preparo, análise, corrida e cálculo. O BASEFLUXO fornece 69 atividades detalhadas como referência. Para tempos específicos do método, usar os valores extraídos pelo Gemini e escalar proporcionalmente.",
+    "mo_pct": 13,
+    "fixo_min": 1243,
+    "var_min": 341,
+    "aliases": ["Doseamento HPLC", "Assay", "Teor", "Dosagem", "VALORACION", "VALORIZACION", "VALORACIÓN", "VALORIZACIÓN", "Dosage", "Titulacion"],
+    "status": "completo"
+  },
+  "DEGRADAÇÃO HPLC 1": {
+    "tecnica": "HPLC",
+    "categoria": "Físico-Químico",
+    "descricao": "Pesquisa de impurezas e produtos de degradação por HPLC. Análise de substâncias relacionadas.",
+    "rotas": [
+      "HPLC DAD",
+      "BALANÇA",
+      "ANALISTA BANCADA (PREP HPLC)",
+      "ANALISTA EQUIP - HPLC",
+      "ULTRASSOM",
+      "BOMBA DE LAVAGEM",
+      "CONJ FILTRO",
+      "AGITADOR",
+      "AUXILIAR COLUNAS"
+    ],
+    "diretrizes": {
+      "t_prep": "Preparo de amostras, padrões de impureza e placebo. Similar ao TEOR mas com padrões adicionais de impurezas.",
+      "t_analysis": "Processamento de curvas de calibração para cada impureza. Análise mais complexa que TEOR.",
+      "t_run": "Corrida do placebo, padrões, amostras degradadas. Tempo tipicamente maior que TEOR devido a gradientes mais longos.",
+      "t_calc": "Cálculo de % de cada impureza. Mais cálculos que TEOR (múltiplos analitos).",
+      "heuristicas": "Gradiente de HPLC mais longo que TEOR. Incluir tempo de equilíbrio da coluna entre injeções. Placebo e LOQ adicionais."
+    },
+    "como_quantificar": "Somar tempos de preparo + corrida + cálculo. BASEFLUXO: 72 atividades de referência.",
+    "mo_pct": 14,
+    "fixo_min": 1290,
+    "var_min": 243,
+    "aliases": ["Degradação", "Impurezas", "Substâncias Relacionadas", "Impurezas Orgánicas", "Related Substances", "Impurities", "Productos de Degradación"],
+    "status": "completo"
+  },
+  "DISSOLUÇÃO HPLC 1": {
+    "tecnica": "Dissolução + HPLC",
+    "categoria": "Físico-Químico",
+    "descricao": "Teste de dissolução para comprimidos. Envolve o dissolutor (meio de dissolução) + análise por HPLC.",
+    "rotas": [
+      "DISSOLUTOR",
+      "HPLC UV",
+      "ANALISTA EQUIP - HPLC",
+      "ANALISTA BANCADA (PREP HPLC)",
+      "BALANÇA",
+      "ULTRASSOM",
+      "BOMBA DE LAVAGEM",
+      "MILLIQ",
+      "AGITADOR",
+      "CONJ FILTRO",
+      "AUXILIAR COLUNAS",
+      "pHMETRO"
+    ],
+    "diretrizes": {
+      "t_prep": "Preparo do meio de dissolução (MILLIQ, pesagem, ajuste de pH). Aquecimento do meio no dissolutor. Preparo de padrões e diluente.",
+      "t_analysis": "Coleta de amostras nos tempos especificados. Filtração das alíquotas. Processamento dos resultados.",
+      "t_run": "Tempo no dissolutor (30-120 min dependendo do método) + corridas no HPLC UV para quantificação. Inclui aquecimento do meio (30min).",
+      "t_calc": "Cálculo da % dissolvida em cada tempo. Comparação com especificação.",
+      "heuristicas": "Meio ácido 2h + tampão fosfato pH 6.8. 6 cálices, 1000mL, 100rpm. HPLC UV para quantificação das alíquotas."
+    },
+    "como_quantificar": "Tempo dissolutor + preparo do meio + corridas HPLC UV + cálculos. BASEFLUXO: 80 atividades de referência.",
+    "mo_pct": 29,
+    "fixo_min": 499,
+    "var_min": 306,
+    "aliases": ["Dissolução", "Disolución", "Dissolution", "Dissolucion"],
+    "status": "completo"
+  },
+  "DESINTEGRAÇÃO": {
+    "tecnica": "Desintegração",
+    "categoria": "Físico-Químico",
+    "descricao": "Teste de desintegração de comprimidos em meio líquido. Usa o desintegrador.",
+    "rotas": ["DESINTEGRADOR", "ANALISTA TF", "MILLIQ"],
+    "diretrizes": {
+      "t_prep": "Preparo do meio (água ou solução tampão).",
+      "t_analysis": "Observação visual da desintegração dos comprimidos.",
+      "t_run": "Tempo no desintegrador até desintegração completa.",
+      "t_calc": "Registro do tempo de desintegração.",
+      "heuristicas": "6 comprimidos por teste. Meio a 37°C. Tempo típico: 5-30 min."
+    },
+    "como_quantificar": "100% amostra (sem calibração). Tempo curto. BASEFLUXO: 3 atividades.",
+    "mo_pct": 23,
+    "fixo_min": 0,
+    "var_min": 32,
+    "aliases": ["Desintegração", "Desintegración", "Disintegration", "Tempo de Desintegração", "Tiempo de Desintegración"],
+    "status": "completo"
+  },
+  "DUREZA": {
+    "tecnica": "Dureza",
+    "categoria": "Físico-Químico",
+    "descricao": "Teste de resistência mecânica dos comprimidos. Usa o durômetro.",
+    "rotas": ["DURÔMETRO", "ANALISTA TF"],
+    "diretrizes": {
+      "t_prep": "Nenhum preparo específico.",
+      "t_analysis": "Posicionamento e teste de cada comprimido no durômetro.",
+      "t_run": "Medição individual de cada comprimido (~10-20 unidades).",
+      "t_calc": "Cálculo da média e desvio padrão.",
+      "heuristicas": "10-20 comprimidos. Resultado em Newtons ou Kiloponds."
+    },
+    "como_quantificar": "Teste simples e rápido. 100% amostra. BASEFLUXO: 2 atividades.",
+    "mo_pct": 42,
+    "fixo_min": 0,
+    "var_min": 17,
+    "aliases": ["Dureza", "Hardness", "Resistencia"],
+    "status": "completo"
+  },
+  "PESO MÉDIO 1": {
+    "tecnica": "Gravimetria",
+    "categoria": "Físico-Químico",
+    "descricao": "Determinação do peso médio dos comprimidos. Usa balança analítica.",
+    "rotas": ["BALANÇA", "ANALISTA TF"],
+    "diretrizes": {
+      "t_prep": "Nenhum preparo.",
+      "t_analysis": "Pesagem individual de cada comprimido.",
+      "t_run": "Pesagem de 20 unidades na balança.",
+      "t_calc": "Cálculo da média, desvio padrão e coeficiente de variação.",
+      "heuristicas": "20 comprimidos. Balança analítica 0.0001g."
+    },
+    "como_quantificar": "Teste simples e rápido. 100% amostra. BASEFLUXO: 2 atividades.",
+    "mo_pct": 42,
+    "fixo_min": 0,
+    "var_min": 17,
+    "aliases": ["Peso Médio", "Peso Promedio", "Average Weight", "Peso medio", "PESO PROMEDIO"],
+    "status": "completo"
+  },
+  "UMIDADE IV": {
+    "tecnica": "Karl Fischer / Gravimetria",
+    "categoria": "Físico-Químico",
+    "descricao": "Determinação do teor de água/umidade. Pode usar Karl Fischer ou balança de umidade (IV).",
+    "rotas": ["BALANÇA IV", "ANALISTA TF"],
+    "diretrizes": {
+      "t_prep": "Preparo da amostra (trituração se necessário).",
+      "t_analysis": "Pesagem e colocação na balança de umidade.",
+      "t_run": "Tempo de secagem na balança IV (~10 min).",
+      "t_calc": "Cálculo da % de umidade por diferença de peso.",
+      "heuristicas": "Balança de umidade por infravermelho (IV). Típico: 105°C até peso constante."
+    },
+    "como_quantificar": "Teste simples. 100% amostra. BASEFLUXO: 2 atividades.",
+    "mo_pct": 42,
+    "fixo_min": 0,
+    "var_min": 17,
+    "aliases": ["Umidade", "Humedad", "Moisture", "Water Content", "Água", "Agua", "Karl Fischer"],
+    "status": "completo"
+  },
+  "UNIFORMIDADE POR VARIAÇÃO DE PESO 1": {
+    "tecnica": "Gravimetria",
+    "categoria": "Físico-Químico",
+    "descricao": "Teste de uniformidade de conteúdo por variação de peso. Alternativa ao doseamento individual.",
+    "rotas": ["BALANÇA", "ANALISTA TF"],
+    "diretrizes": {
+      "t_prep": "Nenhum preparo.",
+      "t_analysis": "Pesagem individual de 20 comprimidos + planilhamento.",
+      "t_run": "Pesagem sequencial na balança.",
+      "t_calc": "Cálculo do valor de aceitação (AV) conforme farmacopeia.",
+      "heuristicas": "20 comprimidos. Critério: AV ≤ 15.0 (L1)."
+    },
+    "como_quantificar": "100% amostra. BASEFLUXO: 3 atividades.",
+    "mo_pct": 47,
+    "fixo_min": 0,
+    "var_min": 19,
+    "aliases": ["Uniformidade", "Variação de Peso", "Uniformidad de Unidades de Dosificación", "Content Uniformity", "Uniformidad"],
+    "status": "completo"
+  }
+}
