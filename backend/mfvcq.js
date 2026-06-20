@@ -296,14 +296,15 @@ export function getTemplate() {
 
 // Fuzzy match: Gemini test names → BASEFLUXO test names
 function matchTestToBasfluxo(geminiName) {
-  const g = (geminiName || '').toUpperCase();
+  const g = (geminiName || '').toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove accents
 
   // Teor / Doseamento / Assay → TEOR HPLC
   if (g.includes('TEOR') || g.includes('DOSEAMENTO') || g.includes('ASSAY') || g.includes('DOSAGE') || g.includes('DOSAGEM'))
     return 'TEOR HPLC 1';
 
   // Degradação / Impurezas / Substâncias Relacionadas → DEGRADAÇÃO HPLC
-  if (g.includes('DEGRAD') || g.includes('SUBST') || g.includes('RELACIONADA') || g.includes('IMPUREZA') || g.includes('IMPURITY') || g.includes('RELATED'))
+  if (g.includes('DEGRAD') || g.includes('SUBST') || g.includes('RELACIONADA') || g.includes('IMPUREZA') || g.includes('IMPURITY') || g.includes('RELATED') || g.includes('IMPURE'))
     return 'DEGRADAÇÃO HPLC 1';
 
   // Dissolução → DISSOLUÇÃO
@@ -323,11 +324,11 @@ function matchTestToBasfluxo(geminiName) {
     return 'PESO MÉDIO 1';
 
   // Umidade → UMIDADE
-  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER') || g.includes('AGUA') || g.includes('ÁGUA'))
+  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER') || g.includes('AGUA'))
     return 'UMIDADE IV';
 
-  // Uniformidade → UNIFORMIDADE
-  if (g.includes('UNIFORMIDADE') || g.includes('UNIFORMITY') || g.includes('VARIAÇÃO') || g.includes('VARIATION'))
+  // Uniformidade → UNIFORMIDADE POR VARIAÇÃO DE PESO
+  if (g.includes('UNIFORMIDADE') || g.includes('UNIFORMITY') || g.includes('VARIACAO') || g.includes('VARIATION'))
     return 'UNIFORMIDADE POR VARIAÇÃO DE PESO 1';
 
   // Fracionamento → FRACIONAMENTO
@@ -341,6 +342,10 @@ function matchTestToBasfluxo(geminiName) {
   // Movimentador → MOVIMENTADOR
   if (g.includes('MOVIMENTADOR') || g.includes('HANDLING'))
     return 'ATIVIDADE MOVIMENTADOR';
+
+  // Identificação via HPLC → TEOR
+  if (g.includes('IDENTIFICACAO') && g.includes('HPLC'))
+    return 'TEOR HPLC 1';
 
   return null;
 }
