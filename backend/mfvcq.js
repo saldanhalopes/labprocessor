@@ -5,12 +5,8 @@ import { loadVault, findSimilar, createStub } from './knowledge.js';
 
 function loadTestConfig() {
   try {
-    if (fs.existsSync(TEST_CONFIG_PATH)) {
-      const data = JSON.parse(fs.readFileSync(TEST_CONFIG_PATH, 'utf-8'));
-      console.log(`[TestConfig] Loaded: ${Object.keys(data).length} tests from config`);
-      return data;
-    }
-  } catch(e) { console.error('[TestConfig] Load error:', e.message); }
+    if (fs.existsSync(TEST_CONFIG_PATH)) return JSON.parse(fs.readFileSync(TEST_CONFIG_PATH, 'utf-8'));
+  } catch(e) {}
   return {};
 }
 
@@ -367,7 +363,6 @@ function matchTestToBasfluxo(geminiName) {
 function buildConfiguredRotas(testName, scale) {
   const config = loadTestConfig();
   const t = config[testName];
-  console.log(`[Config] Looking for "${testName}" - found: ${!!t} rotas: ${t?.rotas?.length}`);
   if (!t?.rotas?.length) return null;
 
   const atividades = [];
