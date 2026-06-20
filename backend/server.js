@@ -17,6 +17,7 @@ import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
 import { analyzeProduct, searchProducts, getIndices, getTemplate } from './mfvcq.js';
+import { getApiKey, updateApiKey } from './config.js';
 
 
 const app = express();
@@ -345,6 +346,37 @@ app.get('/api/users/:username', async (req, res) => {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date(), uptime: process.uptime() });
+});
+
+// --- CONFIG ENDPOINTS ---
+
+/**
+ * Get current Gemini API key status
+ */
+app.get('/api/config/gemini-key', (req, res) => {
+  const key = getApiKey();
+  res.json({
+    configured: !!key,
+    keyLength: key.length,
+    keyPreview: key ? key.substring(0, 8) + '...' : null
+  });
+});
+
+/**
+ * Update Gemini API key
+ */
+app.post('/api/config/gemini-key', (req, res) => {
+  try {
+    const { key } = req.body;
+    if (!key || typeof key !== 'string') {
+      return res.status(400).json({ error: 'Key is required' });
+    }
+    updateApiKey(key.trim());
+    res.json({ success: true, message: 'API Key updated successfully' });
+  } catch (error) {
+    console.error('[Config] Error updating key:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // --- MFVCQ DATA ENDPOINTS ---

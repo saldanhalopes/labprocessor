@@ -21,10 +21,11 @@ services:
     build: .
     ports:
       - "8080:8080"
+    env_file:
+      - ./backend/.env
     environment:
       DATABASE_URL: postgres://labprocessor:labprocessor@db:5432/labprocessor
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     volumes:
       - appdata:/app/backend/data
     depends_on:

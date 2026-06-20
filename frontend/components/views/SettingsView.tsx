@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlobalSettings, Language } from '../../types';
-import { Save, Database, Trash2 } from 'lucide-react';
+import { Save, Database, Trash2, Key } from 'lucide-react';
 import { translations } from '../../utils/translations';
 import { useToast } from '../../context/ToastContext';
 
@@ -13,8 +13,41 @@ interface SettingsViewProps {
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, onClearDb, language }) => {
   const [localSettings, setLocalSettings] = React.useState<GlobalSettings>(settings);
+  const [apiKey, setApiKey] = useState('');
+  const [keyConfigured, setKeyConfigured] = useState(false);
+  const [savingKey, setSavingKey] = useState(false);
   const { showToast } = useToast();
   const t = translations[language].settings;
+
+  useEffect(() => {
+    fetch('/api/config/gemini-key').then(r => r.json()).then(data => {
+      setKeyConfigured(data.configured);
+      if (data.configured) setApiKey('***configured***');
+    }).catch(() => {});
+  }, []);
+
+  const handleSaveKey = async () => {
+    if (!apiKey || apiKey === '***configured***') return;
+    setSavingKey(true);
+    try {
+      const res = await fetch('/api/config/gemini-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: apiKey })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setKeyConfigured(true);
+        showToast('API Key configurada com sucesso!', 'success');
+      } else {
+        showToast('Erro ao salvar key: ' + (data.error || ''), 'error');
+      }
+    } catch (err) {
+      showToast('Erro de conexão', 'error');
+    } finally {
+      setSavingKey(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,6 +66,39 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
       
+      {/* Gemini API Key */}
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3 mb-6">
+          <Key className="w-6 h-6 text-emerald-600" />
+          <h3 className="text-xl font-bold text-slate-800">Gemini API Key</h3>
+          {keyConfigured && (
+            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">CONFIGURADA</span>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <input
+            type="password"
+            value={apiKey}
+            onChange={e => setApiKey(e.target.value)}
+            placeholder={keyConfigured ? '******' : 'Cole sua chave Gemini aqui...'}
+            className="flex-1 p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none font-mono text-sm"
+          />
+          <button
+            onClick={handleSaveKey}
+            disabled={savingKey || !apiKey || apiKey === '***configured***'}
+            className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+          >
+            <Key className="w-4 h-4" />
+            {savingKey ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
+        <p className="text-xs text-slate-400 mt-2">
+          A chave � necess�ria para analisar PDFs com o Gemini e para o chat RAG.
+          {keyConfigured && ' J� configurada.'}
+        </p>
+      </div>
+
       {/* Calculation Parameters */}
       <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
         <h3 className="text-xl font-bold text-slate-800 mb-6">{t.title}</h3>
