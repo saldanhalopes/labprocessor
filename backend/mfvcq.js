@@ -18,6 +18,16 @@ function loadData() {
   return { basefluxo, demanda, indices };
 }
 
+function inferFormFromDescription(descricao) {
+  if (!descricao) return null;
+  const d = descricao.toUpperCase();
+  if (d.includes('COMP') || d.includes('CPR') || d.includes('CAP') || d.includes('DRG')) return 'Sólidos';
+  if (d.includes('INJ') || d.includes('SOL') || d.includes('AMP')) return 'Injetáveis';
+  if (d.includes('SUS') || d.includes('XAR') || d.includes('ELI')) return 'Suspensões/Líquidos';
+  if (d.includes('CR') || d.includes('POM') || d.includes('GEL')) return 'Cremes/Pomadas';
+  return null;
+}
+
 function determineCell(form) {
   if (!form) return 'DESCONHECIDA';
   const f = form.toLowerCase();
@@ -29,24 +39,71 @@ function determineCell(form) {
   return 'DESCONHECIDA';
 }
 
+function findFlowByForm(forma) {
+  const data = loadData();
+  let genericForm = forma;
+
+  if (!genericForm) return null;
+
+  // Normalize form name
+  const f = genericForm.toLowerCase();
+
+  // Try exact match first across all ativos
+  for (const ativo of Object.values(data.basefluxo)) {
+    if (ativo[genericForm]) return ativo[genericForm];
+    // Try case-insensitive
+    const key = Object.keys(ativo).find(k => k.toLowerCase() === f);
+    if (key) return ativo[key];
+  }
+
+  return null;
+}
+
 export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorConversao = 1, tamanhoBulk = 0 }) {
   const data = loadData();
-  const ativoUpper = ativo.toUpperCase();
+  const ativoUpper = (ativo || '').toUpperCase();
+  let formaSelecionada = forma || null;
+  let fluxoForma = {};
+  let celula = 'DESCONHECIDA';
+  let demandaInfo = {};
 
+  // Step 1: Look up in DEMANDA database for product info
+  if (codigoPa || ativo) {
+    const found = data.demanda.find(p =>
+      (codigoPa && String(p.codigo_pa) === String(codigoPa)) ||
+      (ativo && String(p.ativo || '').toUpperCase() === ativoUpper)
+    );
+    if (found) {
+      celula = found.celula || celula;
+      if (!formaSelecionada) formaSelecionada = inferFormFromDescription(found.descricao);
+      demandaInfo = {
+        codigo_pa: found.codigo_pa,
+        descricao: found.descricao,
+        celula: found.celula,
+        media_12_meses: found.media_12_meses || 0
+      };
+    }
+  }
+
+  // Step 2: Infer form from description if still unknown
+  if (!formaSelecionada && ativo) {
+    const found = data.demanda.find(p => String(p.ativo || '').toUpperCase() === ativoUpper);
+    if (found) formaSelecionada = inferFormFromDescription(found.descricao);
+  }
+
+  // Step 3: Look up QC flow — try by ativo first, then by form
   let fluxoAtivo = data.basefluxo[ativoUpper];
   if (!fluxoAtivo) {
     const similar = Object.keys(data.basefluxo).find(k => k.includes(ativoUpper) || ativoUpper.includes(k));
     if (similar) fluxoAtivo = data.basefluxo[similar];
   }
 
-  let fluxoForma = {};
-  let formaSelecionada = forma;
-
   if (fluxoAtivo) {
-    if (forma && fluxoAtivo[forma]) {
-      fluxoForma = fluxoAtivo[forma];
+    // Found by active ingredient — use its form
+    if (formaSelecionada && fluxoAtivo[formaSelecionada]) {
+      fluxoForma = fluxoAtivo[formaSelecionada];
     } else {
-      const keys = Object.keys(fluxoAtivo);
+      const keys = Object.keys(fluxoAtivo).filter(k => k !== 'FORMA FARMACÊUTICA');
       if (keys.length === 1) {
         formaSelecionada = keys[0];
         fluxoForma = fluxoAtivo[formaSelecionada];
@@ -54,6 +111,16 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     }
   }
 
+  // Step 4: If still no flow, try by pharmaceutical form (generic)
+  if (Object.keys(fluxoForma).length === 0 && formaSelecionada) {
+    const genericFlow = findFlowByForm(formaSelecionada);
+    if (genericFlow) {
+      fluxoForma = genericFlow;
+      console.log(`[MFVCQ] Using generic flow for form: ${formaSelecionada}`);
+    }
+  }
+
+  // Step 5: Build analysis list
   let tempoTotalMinutos = 0;
   const analisesCq = [];
 
@@ -64,7 +131,7 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
       tempoTotalMinutos += tempoTeste;
 
       analisesCq.push({
-        tipo: 'Bulk',
+        tipo: 'Produto Acabado',
         teste,
         similaridade: item.similaridade || 'NÃO APLICÁVEL',
         rota: item.rota || 'DESCONHECIDA',
@@ -73,19 +140,27 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     }
   }
 
+  // Step 6: Calculate demand
   const demandaConvertida = Number(mediaMensal) * Number(fatorConversao);
   const demandaLotes = Number(tamanhoBulk) > 0 ? demandaConvertida / Number(tamanhoBulk) : 0;
 
+  // Step 7: Determine cell
+  if (celula === 'DESCONHECIDA' || !celula) {
+    celula = determineCell(formaSelecionada);
+  }
+
   return {
     ativo: ativoUpper,
-    codigo_pa: codigoPa || null,
+    codigo_pa: codigoPa || demandaInfo.codigo_pa || null,
+    descricao: demandaInfo.descricao || null,
     forma_farmaceutica: formaSelecionada || null,
-    celula: determineCell(formaSelecionada),
+    celula,
     demanda: {
-      media_12_meses: Number(mediaMensal),
-      fator_conversao: Number(fatorConversao),
+      ...demandaInfo,
+      media_12_meses: Number(mediaMensal) || demandaInfo.media_12_meses || 0,
+      fator_conversao: Number(fatorConversao) || 1,
       demanda_convertida: demandaConvertida,
-      tamanho_bulk: Number(tamanhoBulk),
+      tamanho_bulk: Number(tamanhoBulk) || 0,
       demanda_em_lotes: Math.round(demandaLotes * 100) / 100
     },
     analises_cq: analisesCq,
