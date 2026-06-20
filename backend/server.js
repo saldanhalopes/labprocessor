@@ -259,7 +259,50 @@ app.post('/api/chat', handleChatMessage);
 app.get('/api/results', async (req, res) => {
   try {
     const results = await getAllResults();
-    res.json(results);
+    
+    // Enrich each result with BASEFLUXO data
+    const enriched = results.map(r => {
+      if (r.basfluxo) return r; // Already has it
+      try {
+        const productName = r.product?.productName || '';
+        const pharmForm = r.product?.pharmaceuticalForm || '';
+        if (productName || pharmForm) {
+          const basfluxo = analyzeProduct({
+            ativo: productName.split(' ')[0],
+            forma: pharmForm,
+            lotes: 1
+          });
+          if (basfluxo && basfluxo.analises_cq?.length > 0) {
+            return {
+              ...r,
+              basfluxo: {
+                celula: basfluxo.celula,
+                quantidade_lotes: basfluxo.quantidade_lotes,
+                resumo_tempos: basfluxo.resumo_tempos,
+                testes: basfluxo.analises_cq.map(t => ({
+                  teste: t.teste,
+                  rota: t.rota,
+                  fixo: t.fixo,
+                  variavel: t.variavel,
+                  total_compartilhado_min: t.total_compartilhado_min,
+                  mo_pct: t.mo_pct,
+                  atividades: t.atividades.map(a => ({
+                    descricao: a.atividade,
+                    rota: a.rota,
+                    execucao: a.execucao,
+                    padrao_amostra: a.padrao_amostra,
+                    tempo_min: a.tempo_corrida_minutos
+                  }))
+                }))
+              }
+            };
+          }
+        }
+      } catch(e) {}
+      return r;
+    });
+    
+    res.json(enriched);
   } catch (error) {
     console.error('[API] Error getting results:', error);
     res.status(500).json({ error: error.message });
