@@ -2,6 +2,19 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 const MODEL = 'google/gemini-2.5-flash';
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filedir = path.dirname(fileURLToPath(import.meta.url));
+
+function loadPrompts() {
+  try {
+    const fp = path.join(__filedir, 'config', 'prompts.json');
+    if (fs.existsSync(fp)) return JSON.parse(fs.readFileSync(fp, 'utf-8'));
+  } catch(e) { console.error('[Prompt] Load error:', e.message); }
+  return null;
+}
+
 async function callOpenRouter({ messages, responseFormat }) {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY not configured in backend environment');
@@ -35,6 +48,10 @@ async function callOpenRouter({ messages, responseFormat }) {
 }
 
 const getSystemPrompt = (language = 'pt') => {
+  const prompts = loadPrompts();
+  if (prompts && prompts[language]) return prompts[language];
+
+  // Fallback built-in prompts (same as before)
   let langInstruction = "", langContext = "";
   switch (language) {
     case 'es':

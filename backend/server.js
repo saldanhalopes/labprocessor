@@ -449,6 +449,39 @@ app.post('/api/config/openrouter-key', (req, res) => {
   }
 });
 
+// --- SKILL CONFIG ENDPOINTS ---
+
+const PROMPTS_FILE = path.join(__dirname, 'config', 'prompts.json');
+
+/**
+ * Get AI extraction prompts (system prompt per language)
+ */
+app.get('/api/config/skill/prompts', (req, res) => {
+  try {
+    if (fs.existsSync(PROMPTS_FILE)) {
+      res.json(JSON.parse(fs.readFileSync(PROMPTS_FILE, 'utf-8')));
+    } else {
+      res.json({ pt: '', es: '', en: '' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Update AI extraction prompts
+ */
+app.put('/api/config/skill/prompts', (req, res) => {
+  try {
+    const { pt, es, en } = req.body;
+    const data = { pt: pt || '', es: es || '', en: en || '' };
+    fs.writeFileSync(PROMPTS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    res.json({ success: true, message: 'Prompts saved' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- MFVCQ DATA ENDPOINTS ---
 
 /**
