@@ -87,6 +87,7 @@ app.post('/api/analyze', async (req, res) => {
     result.images = savedImages;
     result.fileId = result.fileId || `result_${Date.now()}`;
     result.fileName = fileName;
+    result.timestamp = result.timestamp || Date.now();
 
     // Cross-reference with MFVCQ
     try {

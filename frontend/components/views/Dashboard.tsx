@@ -78,7 +78,12 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
 
             return {
               id: res.fileId,
-              date: res.timestamp ? new Date(res.timestamp).toISOString() : new Date().toISOString(),
+              date: (() => {
+                const ts = Number(res.timestamp);
+                if (!isNaN(ts) && ts > 0) return new Date(ts).toISOString();
+                if (res.timestamp && !isNaN(new Date(res.timestamp).getTime())) return new Date(res.timestamp).toISOString();
+                return new Date().toISOString();
+              })(),
               fileName: res.fileName,
               productName: res.product?.productName || "Produto Desconhecido",
               totalTime: leadTime || res.totalTime || 0,
