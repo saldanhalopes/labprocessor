@@ -358,106 +358,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                   </div>
                 )}
 
-                {/* BASEFLUXO ROTA Breakdown */}
-                {res.basfluxo?.testes && res.basfluxo.testes.length > 0 && (
-                  <div className="px-6 py-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BarChart3 className="w-4 h-4 text-indigo-600" />
-                      <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">
-                        ROTA — Quem faz o quê ({res.basfluxo.celula})
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {res.basfluxo.stats ? `${res.basfluxo.stats.matched}/${res.basfluxo.stats.totalGeminiTests} testes com ROTA` : `${res.basfluxo.testes.length} testes extraídos`}
-                        {res.basfluxo.stats?.stubs > 0 && <span className="text-amber-500 ml-1">⚠ {res.basfluxo.stats.stubs} stubs</span>}
-                      </span>
-                    </div>
-
-                    {res.basfluxo.testes.map((t: any, ti: number) => {
-                      if (t.stub) {
-                        return (
-                          <div key={ti} className="flex items-center gap-2 py-1 text-xs mb-1">
-                            <span className="w-4 h-4 flex items-center justify-center">⚠️</span>
-                            <span className="text-amber-700 flex-1 truncate">{t.geminiMatch}</span>
-                            <span className="text-amber-400 text-[10px]">sem ROTA — stub</span>
-                          </div>
-                        );
-                      }
-                      if (!t.total_compartilhado_min && !t.fixo?.total_min && !t.variavel?.total_min) return null;
-
-                      // Group activities by ROTA
-                      const rotas: Record<string, any[]> = {};
-                      (t.atividades || []).forEach((a: any) => {
-                        if (!rotas[a.rota]) rotas[a.rota] = [];
-                        rotas[a.rota].push(a);
-                      });
-
-                      return (
-                        <details key={ti} className="mb-1 group">
-                          <summary className="flex items-center gap-3 py-1.5 px-2 cursor-pointer hover:bg-slate-50 rounded text-xs list-none">
-                            <ChevronDown className="w-3 h-3 text-slate-400 group-open:hidden" />
-                            <ChevronUp className="w-3 h-3 text-slate-400 hidden group-open:block" />
-                            <span className="font-medium text-slate-800 w-48 truncate">
-                              {t.teste}
-                              {t.geminiMatch && <span className="block text-[9px] text-slate-400 truncate">← {t.geminiMatch}</span>}
-                            </span>
-                            <span className="text-blue-600 w-14 text-right font-mono">{t.fixo?.total_min || 0}</span>
-                            <span className="text-indigo-600 w-14 text-right font-mono">{t.variavel?.total_min || 0}</span>
-                            <span className="text-slate-800 w-14 text-right font-mono font-bold">{t.total_compartilhado_min}</span>
-                            <span className="text-slate-400 w-10 text-right">
-                              {t.score ? <span className="px-1 rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold">{t.score}%</span> : '—'}
-                            </span>
-                          </summary>
-                          <div className="ml-6 mt-1 mb-2 space-y-1">
-                            {/* Activities by ROTA */}
-                            {Object.entries(rotas).sort(([,a],[,b]) => {
-                              const ta = a.reduce((s,x:any) => s+(x.tempo_min||0),0);
-                              const tb = b.reduce((s,x:any) => s+(x.tempo_min||0),0);
-                              return tb - ta;
-                            }).map(([rota, ativs]: [string, any[]]) => {
-                              const totalRota = ativs.reduce((s,a) => s+(a.tempo_min||0),0);
-                              const qtdMO = ativs.filter(a => a.execucao === 'MO').length;
-                              const qtdMAQ = ativs.filter(a => a.execucao === 'MAQ').length;
-                              const tipo = qtdMO > qtdMAQ ? '👤 Analista' : '🤖 Máquina';
-
-                              return (
-                                <div key={rota} className="bg-slate-50 rounded-lg p-2">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-bold text-slate-600">{tipo}</span>
-                                    <span className="text-[10px] font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                                      {rota}
-                                    </span>
-                                    <span className="text-[10px] text-slate-400 ml-auto">{ativs.length} ativ · {totalRota.toFixed(0)}min</span>
-                                  </div>
-                                  <div className="space-y-0.5">
-                                    {ativs.slice(0, 20).map((a: any, ai: number) => (
-                                      <div key={ai} className="flex items-center gap-2 text-[10px]">
-                                        <span className="w-8 text-right font-mono">
-                                          {a.padrao_amostra === 'Padrão'
-                                            ? <span className="bg-blue-100 text-blue-700 px-1 rounded text-[8px] font-bold">FIXO</span>
-                                            : <span className="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold">LOTE</span>}
-                                        </span>
-                                        <span className="flex-1 truncate text-slate-600">{a.descricao}</span>
-                                        <span className="font-mono text-slate-800 font-bold w-10 text-right">{a.tempo_min || 0}min</span>
-                                      </div>
-                                    ))}
-                                    {ativs.length > 20 && (
-                                      <div className="text-[10px] text-slate-400 italic pl-8">
-                                        +{ativs.length - 20} atividades
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </details>
-                      );
-                    })}
-
-                    <div className="flex gap-4 mt-2 text-[10px] text-slate-400 border-t border-slate-100 pt-2">
-                      <span>👤 Analista: {res.basfluxo.resumo_tempos?.carga_homem_horas}h ({res.basfluxo.resumo_tempos?.carga_homem_pct}%)</span>
-                      <span>🤖 Máquina: {res.basfluxo.resumo_tempos?.carga_maquina_horas}h</span>
-                    </div>
+                {/* BASEFLUXO Summary */}
+                {res.basfluxo?.stats && (
+                  <div className="px-6 py-2 border-t border-slate-100 flex items-center gap-3 text-[10px] text-slate-400">
+                    <BarChart3 className="w-3 h-3 text-indigo-500" />
+                    <span>{res.basfluxo.stats.matched}/{res.basfluxo.stats.totalGeminiTests} testes com ROTA</span>
+                    {res.basfluxo.stats.stubs > 0 && <span className="text-amber-500">⚠ {res.basfluxo.stats.stubs} desconhecidos</span>}
+                    <span className="ml-auto">👤 {res.basfluxo.resumo_tempos?.carga_homem_horas?.toFixed(1)}h | 🤖 {res.basfluxo.resumo_tempos?.carga_maquina_horas?.toFixed(1)}h</span>
                   </div>
                 )}
 
@@ -469,7 +376,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
 
                   const findRotas = (testName: string) => res.basfluxo?.testes?.find((t: any) => t.geminiMatch === testName && !t.stub);
 
-                  const renderTable = (rows: any[], title: string, icon: React.ReactNode, type: 'phys' | 'micro') => (
+                  const renderTable = (rows: any[], title: string, icon: React.ReactNode, type: 'phys' | 'micro') => {
+                    const findRotas = (tn: string) => res.basfluxo?.testes?.find((t: any) => t.geminiMatch === tn && !t.stub);
+                    return (
                     <div className="mt-4">
                       <div className={`px-6 py-2 flex items-center gap-2 ${type === 'phys' ? 'bg-teal-50 text-teal-800' : 'bg-pink-50 text-pink-800'} border-y border-slate-100`}>
                         {icon}
@@ -510,7 +419,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                                         className="w-full bg-white border border-slate-300 px-2 py-1 rounded text-sm outline-none font-bold"
                                       />
                                     ) : row.testName}
-                                {(() => { const m = findRotas(row.testName); return m ? <span className="block text-[8px] text-indigo-600 truncate mt-0.5">⚙ {m.teste} · Fixo {(m.fixo?.total_min/60).toFixed(1)}h · Var {(m.variavel?.total_min/60).toFixed(1)}h · x{m.scale?.toFixed(2)}</span> : null; })()}
+                                {(() => { const m = findRotas(row.testName); if (!m) return null; const rs: Record<string,any[]>={}; (m.atividades||[]).forEach((a:any)=>{if(!rs[a.rota])rs[a.rota]=[];rs[a.rota].push(a)}); return <details className="block text-[8px] text-indigo-600 mt-0.5"><summary className="cursor-pointer">⚙ {m.teste} · Fixo {(m.fixo?.total_min/60).toFixed(1)}h · Var {(m.variavel?.total_min/60).toFixed(1)}h/lote</summary><div className="pl-2 mt-0.5 space-y-0.5 max-h-32 overflow-y-auto">{Object.entries(rs).sort(([,a],[,b])=>((b as any[]).reduce((s:number,x:any)=>s+(x.tempo_min||0),0))-((a as any[]).reduce((s:number,x:any)=>s+(x.tempo_min||0),0))).slice(0,6).map(([rota,ativs])=><div key={rota} className="flex items-center gap-1"><span className="text-slate-400">{(ativs as any[]).filter((x:any)=>x.execucao==='MO').length>(ativs as any[]).filter((x:any)=>x.execucao==='MAQ').length?'👤':'🤖'}</span><span className="text-slate-500 font-mono truncate">{rota}</span><span className="text-slate-400 ml-auto shrink-0">{ativs.length} ativ · {(ativs as any[]).reduce((s:number,x:any)=>s+(x.tempo_min||0),0).toFixed(0)}min</span></div>)}</div></details>; })()}
                                   </td>
                                   <td className="px-6 py-4">
                                     {isEditingItem ? (
@@ -612,6 +521,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                       </div>
                     </div>
                   );
+                  };
 
                   return (
                     <div className="pb-4">
