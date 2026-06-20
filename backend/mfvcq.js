@@ -357,67 +357,80 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
   if (!full || !full.analises_cq?.length) return null;
 
   const vault = loadVault();
-  const geminiTests = (geminiRows || []).map(r => r.testName || r.teste || '');
+  const geminiTests = (geminiRows || []).map(r => ({
+    name: r.testName || r.teste || '',
+    totalMin: (r.t_prep || 0) + (r.t_analysis || 0) + (r.t_run || 0) + (r.t_calc || 0) + (r.t_incubation || 0)
+  }));
 
   const matchedBasfluxo = geminiTests
-    .map(gName => {
+    .map(g => {
       // Try vault first, then fall back to keyword matcher
-      let match = findSimilar(gName);
+      let match = findSimilar(g.name);
       if (match) {
         const t = full.analises_cq.find(a => a.teste === match.teste);
         if (!t) {
-          // Vault found a test but it's not in the current BASEFLUXO flow
-          return { geminiMatch: gName, score: match.score, source: 'vault', stub: true };
+          return { geminiMatch: g.name, score: match.score, source: 'vault', stub: true };
         }
+        // Scale BASEFLUXO times to match Gemini total
+        const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
+        const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
         return {
           teste: t.teste,
-          geminiMatch: gName,
+          geminiMatch: g.name,
           score: match.score,
           source: 'vault',
           rota: t.rota,
-          fixo: t.fixo,
-          variavel: t.variavel,
-          total_compartilhado_min: t.total_compartilhado_min,
+          geminiTotalMin: g.totalMin,
+          basfluxoTotalMin: bfTotal,
+          scale,
+          fixo: { ...t.fixo, total_min: Math.round((t.fixo?.total_min || 0) * scale * 100) / 100 },
+          variavel: { ...t.variavel, total_min: Math.round((t.variavel?.total_min || 0) * scale * 100) / 100 },
+          total_compartilhado_min: Math.round(((t.fixo?.total_min || 0) + (t.variavel?.total_min || 0) * lotes) * scale * 100) / 100,
           mo_pct: t.mo_pct,
           atividades: t.atividades.map(a => ({
             descricao: a.atividade,
             rota: a.rota,
             execucao: a.execucao,
             padrao_amostra: a.padrao_amostra,
-            tempo_min: a.tempo_corrida_minutos
+            tempo_min: Math.round((a.tempo_corrida_minutos || 0) * scale * 100) / 100
           }))
         };
       }
 
       // Fallback: keyword-based matcher
-      const kwMatch = matchTestToBasfluxo(gName);
+      const kwMatch = matchTestToBasfluxo(g.name);
       if (kwMatch) {
         const t = full.analises_cq.find(a => a.teste === kwMatch);
         if (!t) return null;
+        const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
+        const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
         return {
           teste: t.teste,
-          geminiMatch: gName,
+          geminiMatch: g.name,
           score: 60,
           source: 'keyword',
           rota: t.rota,
-          fixo: t.fixo,
-          variavel: t.variavel,
-          total_compartilhado_min: t.total_compartilhado_min,
+          geminiTotalMin: g.totalMin,
+          basfluxoTotalMin: bfTotal,
+          scale,
+          fixo: { ...t.fixo, total_min: Math.round((t.fixo?.total_min || 0) * scale * 100) / 100 },
+          variavel: { ...t.variavel, total_min: Math.round((t.variavel?.total_min || 0) * scale * 100) / 100 },
+          total_compartilhado_min: Math.round(((t.fixo?.total_min || 0) + (t.variavel?.total_min || 0) * lotes) * scale * 100) / 100,
           mo_pct: t.mo_pct,
           atividades: t.atividades.map(a => ({
             descricao: a.atividade,
             rota: a.rota,
             execucao: a.execucao,
             padrao_amostra: a.padrao_amostra,
-            tempo_min: a.tempo_corrida_minutos
+            tempo_min: Math.round((a.tempo_corrida_minutos || 0) * scale * 100) / 100
           }))
         };
       }
 
       // No match — create stub
-      const technique = geminiRows.find(r => r.testName === gName)?.technique || '';
-      createStub({ testName: gName, technique, productName: ativo || '' });
-      return { geminiMatch: gName, score: 0, source: 'stub', stub: true };
+      const technique = geminiRows.find(r => (r.testName || r.teste) === g.name)?.technique || '';
+      createStub({ testName: g.name, technique, productName: ativo || '' });
+      return { geminiMatch: g.name, score: 0, source: 'stub', stub: true };
     })
     .filter(Boolean);
 

@@ -510,7 +510,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                                         className="w-full bg-white border border-slate-300 px-2 py-1 rounded text-sm outline-none font-bold"
                                       />
                                     ) : row.testName}
-                                {(() => { const m = findRotas(row.testName); return m ? <span className="block text-[8px] text-indigo-600 font-bold truncate mt-0.5">⚙ {m.teste} · Fixo {(m.fixo?.total_min/60).toFixed(1)}h · Var {(m.variavel?.total_min/60).toFixed(1)}h</span> : null; })()}
+                                {(() => { const m = findRotas(row.testName); return m ? <span className="block text-[8px] text-indigo-600 truncate mt-0.5">⚙ {m.teste} · Fixo {(m.fixo?.total_min/60).toFixed(1)}h · Var {(m.variavel?.total_min/60).toFixed(1)}h · x{m.scale?.toFixed(2)}</span> : null; })()}
                                   </td>
                                   <td className="px-6 py-4">
                                     {isEditingItem ? (
