@@ -4,6 +4,7 @@ import { Save, Database, Trash2, Key } from 'lucide-react';
 import { translations } from '../../utils/translations';
 import { useToast } from '../../context/ToastContext';
 import { DiretrizesTable } from '../settings/DiretrizesTable';
+import { RotasTable } from '../settings/RotasTable';
 
 interface SettingsViewProps {
   settings: GlobalSettings;
@@ -381,9 +382,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
                 className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono" />
             </div>
             <div>
-              <label className="text-slate-500 font-medium block mb-0.5">Rotas (separadas por vírgula)</label>
-              <input value={(testConfig[selectedTest].rotas||[]).join(', ')} onChange={e=>updateTestField('rotas',e.target.value.split(',').map(s=>s.trim()).filter(Boolean))}
-                className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono" />
+              <label className="text-slate-500 font-medium block mb-0.5">Rotas</label>
+              <RotasTable
+                rotas={(testConfig[selectedTest].rotas || []).map((r: any) => typeof r === 'string' ? { nome: r, tipo: 'Máquina', execucao: 'MAQ', descricao: '', diretrizes: [] } : r)}
+                onChange={(r: any) => updateTestField('rotas', r)}
+              />
             </div>
             <div>
               <label className="text-slate-500 font-medium block mb-0.5">Diretrizes (tabela)</label>

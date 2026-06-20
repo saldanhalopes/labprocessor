@@ -50,8 +50,6 @@ export const TestWizard: React.FC<TestWizardProps> = ({ testName, technique, onC
   const [rotas, setRotas] = useState<string[]>([]);
   const [customRota, setCustomRota] = useState('');
   const [moPct, setMoPct] = useState(50);
-  const [fixoMin, setFixoMin] = useState(0);
-  const [varMin, setVarMin] = useState(0);
   const [aliases, setAliases] = useState<string[]>([testName]);
   const [customAlias, setCustomAlias] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -94,20 +92,17 @@ export const TestWizard: React.FC<TestWizardProps> = ({ testName, technique, onC
       existing[testName] = {
         tecnica: tecnica || technique,
         categoria,
-        forma,
-        rotas,
+        rotas: rotas.map(r => ({
+          nome: r,
+          tipo: r.match(/ANALISTA|AUXILIAR|BANCADA/) ? 'Analista' : 'Máquina',
+          execucao: r.match(/ANALISTA|AUXILIAR|BANCADA/) ? 'MO' : 'MAQ',
+          descricao: '',
+          diretrizes: []
+        })),
         aliases,
         mo_pct: moPct,
-        fixo_min: fixoMin,
-        var_min: varMin,
         descricao,
-        diretrizes: {
-          t_prep: `Preparo de amostras e padrões para ${testName}`,
-          t_analysis: `Manipulação durante análise de ${testName}`,
-          t_run: `Tempo de corrida instrumental`,
-          t_calc: `Cálculos e documentação`,
-          heuristicas: `Gerado via wizard em ${new Date().toISOString().split('T')[0]}`
-        },
+        diretrizes: [],
         como_quantificar: `Somar tempos de preparo + análise + corrida + cálculo`,
         status: 'criado_por_wizard'
       };
@@ -202,19 +197,9 @@ export const TestWizard: React.FC<TestWizardProps> = ({ testName, technique, onC
                   className="flex-1 px-2 py-1 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
                 <button onClick={addRota} className="px-3 py-1 bg-slate-100 rounded text-xs font-medium hover:bg-slate-200"><Plus className="w-3 h-3" /></button>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <div>
-                  <label className="text-xs text-slate-500">Tempo Fixo (min)</label>
-                  <input type="number" value={fixoMin} onChange={e => setFixoMin(Number(e.target.value))}
-                    className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">Tempo Var (min)</label>
-                  <input type="number" value={varMin} onChange={e => setVarMin(Number(e.target.value))}
-                    className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">MO%</label>
+                  <label className="text-xs text-slate-500">MO% (Analista)</label>
                   <input type="number" min="0" max="100" value={moPct} onChange={e => setMoPct(Number(e.target.value))}
                     className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
                 </div>
@@ -260,7 +245,7 @@ export const TestWizard: React.FC<TestWizardProps> = ({ testName, technique, onC
                 <div><span className="text-slate-400">Técnica:</span> {tecnica}</div>
                 <div><span className="text-slate-400">Categoria:</span> {categoria} | <span className="text-slate-400">Forma:</span> {forma}</div>
                 <div><span className="text-slate-400">Rotas ({rotas.length}):</span> <span className="text-indigo-600">{rotas.join(', ')}</span></div>
-                <div><span className="text-slate-400">Tempos:</span> Fixo {fixoMin}min | Var {varMin}min | MO {moPct}%</div>
+                <div><span className="text-slate-400">MO:</span> {moPct}%</div>
                 <div><span className="text-slate-400">Aliases:</span> {aliases.join(', ')}</div>
               </div>
             </div>

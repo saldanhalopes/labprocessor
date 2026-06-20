@@ -4,15 +4,69 @@
     "categoria": "Físico-Químico",
     "descricao": "Determinação quantitativa do princípio ativo por cromatografia líquida de alta eficiência (HPLC). É o teste mais comum e demorado do CQ.",
     "rotas": [
-      "HPLC DAD",
-      "BALANÇA",
-      "ANALISTA BANCADA (PREP HPLC)",
-      "ANALISTA EQUIP - HPLC",
-      "ULTRASSOM",
-      "BOMBA DE LAVAGEM",
-      "CONJ FILTRO",
-      "AGITADOR",
-      "AUXILIAR COLUNAS"
+      {
+        "nome": "HPLC DAD",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "BALANÇA",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA BANCADA (PREP HPLC)",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA EQUIP - HPLC",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ULTRASSOM",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "BOMBA DE LAVAGEM",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "CONJ FILTRO",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "AGITADOR",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "AUXILIAR COLUNAS",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -67,15 +121,69 @@
     "categoria": "Físico-Químico",
     "descricao": "Pesquisa de impurezas e produtos de degradação por HPLC. Análise de substâncias relacionadas.",
     "rotas": [
-      "HPLC DAD",
-      "BALANÇA",
-      "ANALISTA BANCADA (PREP HPLC)",
-      "ANALISTA EQUIP - HPLC",
-      "ULTRASSOM",
-      "BOMBA DE LAVAGEM",
-      "CONJ FILTRO",
-      "AGITADOR",
-      "AUXILIAR COLUNAS"
+      {
+        "nome": "HPLC DAD",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "BALANÇA",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA BANCADA (PREP HPLC)",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA EQUIP - HPLC",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ULTRASSOM",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "BOMBA DE LAVAGEM",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "CONJ FILTRO",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "AGITADOR",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "AUXILIAR COLUNAS",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -127,18 +235,90 @@
     "categoria": "Físico-Químico",
     "descricao": "Teste de dissolução para comprimidos. Envolve o dissolutor (meio de dissolução) + análise por HPLC.",
     "rotas": [
-      "DISSOLUTOR",
-      "HPLC UV",
-      "ANALISTA EQUIP - HPLC",
-      "ANALISTA BANCADA (PREP HPLC)",
-      "BALANÇA",
-      "ULTRASSOM",
-      "BOMBA DE LAVAGEM",
-      "MILLIQ",
-      "AGITADOR",
-      "CONJ FILTRO",
-      "AUXILIAR COLUNAS",
-      "pHMETRO"
+      {
+        "nome": "DISSOLUTOR",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "HPLC UV",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA EQUIP - HPLC",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA BANCADA (PREP HPLC)",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "BALANÇA",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ULTRASSOM",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "BOMBA DE LAVAGEM",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "MILLIQ",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "AGITADOR",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "CONJ FILTRO",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "AUXILIAR COLUNAS",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "pHMETRO",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -187,9 +367,27 @@
     "categoria": "Físico-Químico",
     "descricao": "Teste de desintegração de comprimidos em meio líquido. Usa o desintegrador.",
     "rotas": [
-      "DESINTEGRADOR",
-      "ANALISTA TF",
-      "MILLIQ"
+      {
+        "nome": "DESINTEGRADOR",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA TF",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "MILLIQ",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -239,8 +437,20 @@
     "categoria": "Físico-Químico",
     "descricao": "Teste de resistência mecânica dos comprimidos. Usa o durômetro.",
     "rotas": [
-      "DURÔMETRO",
-      "ANALISTA TF"
+      {
+        "nome": "DURÔMETRO",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA TF",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -288,8 +498,20 @@
     "categoria": "Físico-Químico",
     "descricao": "Determinação do peso médio dos comprimidos. Usa balança analítica.",
     "rotas": [
-      "BALANÇA",
-      "ANALISTA TF"
+      {
+        "nome": "BALANÇA",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA TF",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -339,8 +561,20 @@
     "categoria": "Físico-Químico",
     "descricao": "Determinação do teor de água/umidade. Pode usar Karl Fischer ou balança de umidade (IV).",
     "rotas": [
-      "BALANÇA IV",
-      "ANALISTA TF"
+      {
+        "nome": "BALANÇA IV",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA TF",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
@@ -392,8 +626,20 @@
     "categoria": "Físico-Químico",
     "descricao": "Teste de uniformidade de conteúdo por variação de peso. Alternativa ao doseamento individual.",
     "rotas": [
-      "BALANÇA",
-      "ANALISTA TF"
+      {
+        "nome": "BALANÇA",
+        "tipo": "Máquina",
+        "execucao": "MAQ",
+        "descricao": "",
+        "diretrizes": []
+      },
+      {
+        "nome": "ANALISTA TF",
+        "tipo": "Analista",
+        "execucao": "MO",
+        "descricao": "",
+        "diretrizes": []
+      }
     ],
     "diretrizes": [
       {
