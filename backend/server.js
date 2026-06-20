@@ -156,7 +156,14 @@ app.post('/api/analyze', async (req, res) => {
                 fixo: t.fixo,
                 variavel: t.variavel,
                 total_compartilhado_min: t.total_compartilhado_min,
-                mo_pct: t.mo_pct
+                mo_pct: t.mo_pct,
+                atividades: t.atividades.map(a => ({
+                  descricao: a.atividade,
+                  rota: a.rota,
+                  execucao: a.execucao,
+                  padrao_amostra: a.padrao_amostra,
+                  tempo_min: a.tempo_corrida_minutos
+                }))
               }))
             };
             console.log(`[API] BASEFLUXO flow added: ${basfluxo.analises_cq.length} tests`);

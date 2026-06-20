@@ -370,35 +370,78 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                         Fixo: {res.basfluxo.resumo_tempos?.fixo_horas}h | Var/lote: {res.basfluxo.resumo_tempos?.variavel_por_lote_horas}h
                       </span>
                     </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="text-slate-400 border-b border-slate-100">
-                            <th className="text-left py-1 font-medium">Teste</th>
-                            <th className="text-left py-1 font-medium">Rota</th>
-                            <th className="text-right py-1 font-medium w-16">Fixo</th>
-                            <th className="text-right py-1 font-medium w-16">Var</th>
-                            <th className="text-right py-1 font-medium w-16">Total</th>
-                            <th className="text-right py-1 font-medium w-12">MO%</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {res.basfluxo.testes.slice(0, 11).map((t: any, i: number) => (
-                            <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                              <td className="py-1 text-slate-800 font-medium">{t.teste}</td>
-                              <td className="py-1">
-                                <span className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-mono">{t.rota}</span>
-                              </td>
-                              <td className="py-1 text-right font-mono text-blue-600">{t.fixo?.total_min || 0}</td>
-                              <td className="py-1 text-right font-mono text-indigo-600">{t.variavel?.total_min || 0}</td>
-                              <td className="py-1 text-right font-mono font-bold text-slate-800">{t.total_compartilhado_min}</td>
-                              <td className="py-1 text-right text-slate-400">{t.mo_pct || 0}%</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="flex gap-4 mt-2 text-[10px] text-slate-400">
+
+                    {res.basfluxo.testes.map((t: any, ti: number) => {
+                      // Skip tests with zero total
+                      if (!t.total_compartilhado_min && !t.fixo?.total_min && !t.variavel?.total_min) return null;
+
+                      // Group activities by ROTA
+                      const rotas: Record<string, any[]> = {};
+                      (t.atividades || []).forEach((a: any) => {
+                        if (!rotas[a.rota]) rotas[a.rota] = [];
+                        rotas[a.rota].push(a);
+                      });
+
+                      return (
+                        <details key={ti} className="mb-1 group">
+                          <summary className="flex items-center gap-3 py-1.5 px-2 cursor-pointer hover:bg-slate-50 rounded text-xs list-none">
+                            <ChevronDown className="w-3 h-3 text-slate-400 group-open:hidden" />
+                            <ChevronUp className="w-3 h-3 text-slate-400 hidden group-open:block" />
+                            <span className="font-medium text-slate-800 w-48 truncate">{t.teste}</span>
+                            <span className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-mono flex-1 truncate">{t.rota}</span>
+                            <span className="text-blue-600 w-14 text-right font-mono">{t.fixo?.total_min || 0}</span>
+                            <span className="text-indigo-600 w-14 text-right font-mono">{t.variavel?.total_min || 0}</span>
+                            <span className="text-slate-800 w-14 text-right font-mono font-bold">{t.total_compartilhado_min}</span>
+                            <span className="text-slate-400 w-10 text-right">{t.mo_pct || 0}%</span>
+                          </summary>
+                          <div className="ml-6 mt-1 mb-2 space-y-1">
+                            {/* Activities by ROTA */}
+                            {Object.entries(rotas).sort(([,a],[,b]) => {
+                              const ta = a.reduce((s,x:any) => s+(x.tempo_min||0),0);
+                              const tb = b.reduce((s,x:any) => s+(x.tempo_min||0),0);
+                              return tb - ta;
+                            }).map(([rota, ativs]: [string, any[]]) => {
+                              const totalRota = ativs.reduce((s,a) => s+(a.tempo_min||0),0);
+                              const qtdMO = ativs.filter(a => a.execucao === 'MO').length;
+                              const qtdMAQ = ativs.filter(a => a.execucao === 'MAQ').length;
+                              const tipo = qtdMO > qtdMAQ ? '👤 Analista' : '🤖 Máquina';
+
+                              return (
+                                <div key={rota} className="bg-slate-50 rounded-lg p-2">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-bold text-slate-600">{tipo}</span>
+                                    <span className="text-[10px] font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                                      {rota}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 ml-auto">{ativs.length} ativ · {totalRota.toFixed(0)}min</span>
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    {ativs.slice(0, 20).map((a: any, ai: number) => (
+                                      <div key={ai} className="flex items-center gap-2 text-[10px]">
+                                        <span className="w-8 text-right font-mono">
+                                          {a.padrao_amostra === 'Padrão'
+                                            ? <span className="bg-blue-100 text-blue-700 px-1 rounded text-[8px] font-bold">FIXO</span>
+                                            : <span className="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold">LOTE</span>}
+                                        </span>
+                                        <span className="flex-1 truncate text-slate-600">{a.descricao}</span>
+                                        <span className="font-mono text-slate-800 font-bold w-10 text-right">{a.tempo_min || 0}min</span>
+                                      </div>
+                                    ))}
+                                    {ativs.length > 20 && (
+                                      <div className="text-[10px] text-slate-400 italic pl-8">
+                                        +{ativs.length - 20} atividades
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      );
+                    })}
+
+                    <div className="flex gap-4 mt-2 text-[10px] text-slate-400 border-t border-slate-100 pt-2">
                       <span>👤 Analista: {res.basfluxo.resumo_tempos?.carga_homem_horas}h ({res.basfluxo.resumo_tempos?.carga_homem_pct}%)</span>
                       <span>🤖 Máquina: {res.basfluxo.resumo_tempos?.carga_maquina_horas}h</span>
                     </div>

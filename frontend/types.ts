@@ -112,6 +112,13 @@ export interface AnalysisResult {
       variavel: { atividades: number; total_min: number; mo_min: number; maq_min: number };
       total_compartilhado_min: number;
       mo_pct: number;
+      atividades?: {
+        descricao: string;
+        rota: string;
+        execucao: string;
+        padrao_amostra: string;
+        tempo_min: number;
+      }[];
     }[];
   };
 }
