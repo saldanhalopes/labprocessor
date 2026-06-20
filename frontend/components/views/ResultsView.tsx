@@ -3,6 +3,7 @@ import { AnalysisResult, Language, GlobalSettings } from '../../types';
 import { Search, Beaker, FileText, ChevronDown, ChevronUp, Download, Save, Pill, ScrollText, Tag, FlaskConical, Bug, Trash2, Edit2, Check, X, BarChart3 } from 'lucide-react';
 import { generateCSV, isMicrobiology, calculateParallelLeadTime, recalculateRow } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
+import { TestWizard } from '../wizard/TestWizard';
 import { MfvcqBadge } from '../mfvcq/MfvcqBadge';
 
 interface ResultsViewProps {
@@ -18,6 +19,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<AnalysisResult | null>(null);
+  const [wizardTest, setWizardTest] = useState<{name:string, technique:string} | null>(null);
   
   const t = translations[language].results;
 
@@ -360,12 +362,36 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
 
                 {/* BASEFLUXO Summary */}
                 {res.basfluxo?.stats && (
-                  <div className="px-6 py-2 border-t border-slate-100 flex items-center gap-3 text-[10px] text-slate-400">
-                    <BarChart3 className="w-3 h-3 text-indigo-500" />
-                    <span>{res.basfluxo.stats.matched}/{res.basfluxo.stats.totalGeminiTests} testes com ROTA</span>
-                    {res.basfluxo.stats.stubs > 0 && <span className="text-amber-500">⚠ {res.basfluxo.stats.stubs} desconhecidos</span>}
-                    <span className="ml-auto">👤 {res.basfluxo.resumo_tempos?.carga_homem_horas?.toFixed(1)}h | 🤖 {res.basfluxo.resumo_tempos?.carga_maquina_horas?.toFixed(1)}h</span>
+                  <div className="px-6 py-2 border-t border-slate-100">
+                    <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                      <BarChart3 className="w-3 h-3 text-indigo-500" />
+                      <span>{res.basfluxo.stats.matched}/{res.basfluxo.stats.totalGeminiTests} testes com ROTA</span>
+                      {res.basfluxo.stats.stubs > 0 && <span className="text-amber-500">⚠ {res.basfluxo.stats.stubs} desconhecidos</span>}
+                      <span className="ml-auto">👤 {res.basfluxo.resumo_tempos?.carga_homem_horas?.toFixed(1)}h | 🤖 {res.basfluxo.resumo_tempos?.carga_maquina_horas?.toFixed(1)}h</span>
+                    </div>
+                    {/* Stub list with wizard trigger */}
+                    {(res.basfluxo.testes || []).filter((t: any) => t.stub).map((t: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 py-0.5 text-[10px]">
+                        <span className="text-amber-500">⚠️</span>
+                        <span className="text-amber-700 truncate flex-1">{t.geminiMatch}</span>
+                        <span className="text-amber-400">sem ROTA</span>
+                        <button onClick={() => setWizardTest({ name: t.geminiMatch, technique: '' })}
+                          className="px-2 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[9px] font-bold hover:bg-indigo-200 transition-colors">
+                          + Criar ROTA
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                )}
+
+                {/* Test Creation Wizard */}
+                {wizardTest && (
+                  <TestWizard
+                    testName={wizardTest.name}
+                    technique={wizardTest.technique}
+                    onClose={() => setWizardTest(null)}
+                    onSaved={(name) => { setWizardTest(null); alert('Teste "' + name + '" criado! Recarregue o resultado para ver a ROTA.'); }}
+                  />
                 )}
 
                 {/* Table Section helper */}
