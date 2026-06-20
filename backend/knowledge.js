@@ -18,6 +18,12 @@ function normalize(text) {
     .trim();
 }
 
+const STOP_WORDS = new Set(['DE', 'DA', 'DO', 'DOS', 'DAS', 'EM', 'NA', 'NO', 'NAS', 'NOS', 'COM', 'POR', 'PARA', 'E', 'A', 'O', 'UM', 'UMA', 'AO', 'SE', 'OU', 'MAS', 'QUE', 'THE', 'OF', 'AND', 'IN', 'FOR', 'TO', 'WITH', 'BY', 'AT', 'ON', 'OR', 'IS', 'IT', 'AS', 'AN', 'BE', 'LA', 'EL', 'LAS', 'LOS', 'DEL', 'AL', 'CON']);
+
+function tokenize(text) {
+  return normalize(text).split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+}
+
 function parseFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);
   if (!match) return {};
@@ -98,7 +104,7 @@ export function loadVault() {
 export function findSimilar(geminiTestName) {
   const vault = loadVault();
   const q = normalize(geminiTestName);
-  const qWords = q.split(/\s+/).filter(w => w.length > 1);
+  const qWords = tokenize(q);
 
   if (!qWords.length) return null;
 
@@ -129,7 +135,7 @@ export function findSimilar(geminiTestName) {
     else {
       let aliasHits = 0;
       for (const alias of aliases) {
-        const aWords = alias.split(/\s+/).filter(w => w.length > 1);
+        const aWords = tokenize(alias);
         const matches = aWords.filter(aw => qWords.some(qw => qw.includes(aw) || aw.includes(qw)));
         aliasHits = Math.max(aliasHits, matches.length / Math.max(1, aWords.length));
       }
