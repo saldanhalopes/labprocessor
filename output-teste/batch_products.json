@@ -1,0 +1,590 @@
+[
+  {
+    "file": "319826_PT-PAX NOCHE LIMON GRANULADO.pdf",
+    "name": "319826_PT-PAX NOCHE LIMON GRANULADO",
+    "active": "319826_PT",
+    "form": "Sólidos"
+  },
+  {
+    "file": "319877_PT-CARBIDOPA 25 mgLEVODOPA 250 mg COMPRIMIDOS.pdf",
+    "name": "319877_PT-CARBIDOPA 25 mgLEVODOPA 250 mg COMPRIMIDOS",
+    "active": "319877_PT",
+    "form": "Sólidos"
+  },
+  {
+    "file": "CLOZAPINA 25 mg COMPRIMIDOS.pdf",
+    "name": "CLOZAPINA 25 mg COMPRIMIDOS",
+    "active": "CLOZAPINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "CLST09443_Clindamicina 300mg Cápsulas.pdf",
+    "name": "Clindamicina 300mg Cápsulas",
+    "active": "Clindamicina",
+    "form": "Sólidos"
+  },
+  {
+    "file": "CLST09447_PT-ESPIRONOLACTONA  100 mg TABLETA.pdf",
+    "name": "PT-ESPIRONOLACTONA  100 mg TABLETA",
+    "active": "ESPIRONOLACTONA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "CLST09748_EZETIMIBA 10 mg SIMVASTATINA 20 mg TABLETAS.pdf",
+    "name": "EZETIMIBA 10 mg SIMVASTATINA 20 mg TABLETAS",
+    "active": "EZETIMIBA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "DETERMINACIÓN DE TRAZAS DE DETERGENTE EN AREAS Y EQUIPOS DE MANUFACTURA.pdf",
+    "name": "DETERMINACIÓN DE TRAZAS DE DETERGENTE EN AREAS Y EQUIPOS DE MANUFACTURA",
+    "active": "DETERMINACIÓN",
+    "form": "Desconhecido"
+  },
+  {
+    "file": "ESTÁNDARIZACIÓN TRAZAS ATORVASTATINA.pdf",
+    "name": "ESTÁNDARIZACIÓN TRAZAS ATORVASTATINA",
+    "active": "ESTÁNDARIZACIÓN",
+    "form": "Desconhecido"
+  },
+  {
+    "file": "HIDROCODONA BITARTRATO 5 mg +ACETAMINOFÉN 325 mg TABLETAS.pdf",
+    "name": "HIDROCODONA BITARTRATO 5 mg +ACETAMINOFÉN 325 mg TABLETAS",
+    "active": "HIDROCODONA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "INSTRUCTIVO DE ANÁLISIS DE PRODUCTO TERMINADO LORATADINA SOLUCIÓN ORAL.pdf",
+    "name": "LORATADINA SOLUCIÓN ORAL",
+    "active": "LORATADINA",
+    "form": "Líquidos"
+  },
+  {
+    "file": "INSTRUCTIVO DE ANÁLISIS DE PRODUCTO TERMINADO LOSARTÁN 100 mg TABLETA RECUBIERTA.pdf",
+    "name": "LOSARTÁN 100 mg TABLETA RECUBIERTA",
+    "active": "LOSARTÁN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "INSTRUCTIVO DE ANÁLISIS DE PRODUCTO TERMINADO LOSARTÁN 50 mg TABLETA RECUBIERTA NF.pdf",
+    "name": "LOSARTÁN 50 mg TABLETA RECUBIERTA NF",
+    "active": "LOSARTÁN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "INSTRUCTIVO DE ANÁLISIS DE PRODUCTO TERMINADO PAMOATO DE PIRANTEL 250 mg5 mL SUSPENSIÓN.pdf",
+    "name": "PAMOATO DE PIRANTEL 250 mg5 mL SUSPENSIÓN",
+    "active": "PAMOATO",
+    "form": "Líquidos"
+  },
+  {
+    "file": "Instructivo de Análisis de Producto Terminado RIVAROXABAN 10 mg TABLETA RECUBIERTA.pdf",
+    "name": "RIVAROXABAN 10 mg TABLETA RECUBIERTA",
+    "active": "RIVAROXABAN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "Instructivo de Análisis de Producto Terminado-RIVAROXABAN 20 mg TABLETA RECUBIERTA.pdf",
+    "name": "Instructivo de Análisis de Producto Terminado-RIVAROXABAN 20 mg TABLETA RECUBIERTA",
+    "active": "Instructivo",
+    "form": "Sólidos"
+  },
+  {
+    "file": "Instructivo de Análisis PT-RIVAROXABAN 15 mg TABLETA RECUBIERTA.pdf",
+    "name": "RIVAROXABAN 15 mg TABLETA RECUBIERTA",
+    "active": "RIVAROXABAN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "MONTELUKAST 5 mg TABLETA MASTICABLEAMISPED 5 mg TABLETA MASTICABLE.pdf",
+    "name": "MONTELUKAST 5 mg TABLETA MASTICABLEAMISPED 5 mg TABLETA MASTICABLE",
+    "active": "MONTELUKAST",
+    "form": "Sólidos"
+  },
+  {
+    "file": "Método Analítico para la determinación de Trazas de Detergente en el lavado de Vidriería analítica.pdf",
+    "name": "Método Analítico para la determinación de Trazas de Detergente en el lavado de Vidriería analítica",
+    "active": "Método",
+    "form": "Desconhecido"
+  },
+  {
+    "file": "PLAQUINOL 200 mg COMPRIMIDOS RECUBIERTO.pdf",
+    "name": "PLAQUINOL 200 mg COMPRIMIDOS RECUBIERTO",
+    "active": "PLAQUINOL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT ACETAMINOFEN 100mg-mL GOTAS  ACETAMINOFEN 100 mgmL SOLUCIÓN ORAL.pdf",
+    "name": "ACETAMINOFEN 100mg-mL GOTAS  ACETAMINOFEN 100 mgmL SOLUCIÓN ORAL",
+    "active": "ACETAMINOFEN",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT DIMENHIDRINATO 50 mg TABLETA.pdf",
+    "name": "DIMENHIDRINATO 50 mg TABLETA",
+    "active": "DIMENHIDRINATO",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT GEMFIBROZILO 600 MG TABLETA RECUBIERTA.pdf",
+    "name": "GEMFIBROZILO 600 MG TABLETA RECUBIERTA",
+    "active": "GEMFIBROZILO",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT- Esomeprazol 40 mg Tableta Recubierta enterica NF.pdf",
+    "name": "Esomeprazol 40 mg Tableta Recubierta enterica NF",
+    "active": "Esomeprazol",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT- Quetiapina 25,0mg Comprimidos Recubiertos.pdf",
+    "name": "Quetiapina 25,0mg Comprimidos Recubiertos",
+    "active": "Quetiapina",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT- ROSUVASTATINA 20 mg TABLETA RECUBIERTA XUNIRO 20 mg TABLETA RECUBIERTA.pdf",
+    "name": "ROSUVASTATINA 20 mg TABLETA RECUBIERTA XUNIRO 20 mg TABLETA RECUBIERTA",
+    "active": "ROSUVASTATINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT- THERALITE 300 mg COMPRIMIDOS.pdf",
+    "name": "THERALITE 300 mg COMPRIMIDOS",
+    "active": "THERALITE",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ACETAMINOFEN 32 mgmL JARABE.pdf",
+    "name": "ACETAMINOFEN 32 mgmL JARABE",
+    "active": "ACETAMINOFEN",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-ACETAMINOFEN 325 mg+FOSFATO CODEINA 30 mg COMPRIMIDOS WINADEINE F COMPRIMIDOS.pdf",
+    "name": "ACETAMINOFEN 325 mg+FOSFATO CODEINA 30 mg COMPRIMIDOS WINADEINE F COMPRIMIDOS",
+    "active": "ACETAMINOFEN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ACETAMINOFÉN 500 mg + CAFEINA 65 mg TABLETA.pdf",
+    "name": "ACETAMINOFÉN 500 mg + CAFEINA 65 mg TABLETA",
+    "active": "ACETAMINOFÉN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ACETATO DE ALUMINIO POLVO.pdf",
+    "name": "ACETATO DE ALUMINIO POLVO",
+    "active": "ACETATO",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ACETILCISTEINA 200mg GRANULADO  SAVOCEL 200 mg GRANULADO.pdf",
+    "name": "ACETILCISTEINA 200mg GRANULADO  SAVOCEL 200 mg GRANULADO",
+    "active": "ACETILCISTEINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ALPRAZOLAM TABLETA 0,5 mg.pdf",
+    "name": "ALPRAZOLAM TABLETA 0,5 mg",
+    "active": "ALPRAZOLAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ATORVASTATINA 10 mg TABLETA RECUBIERTA NF.pdf",
+    "name": "ATORVASTATINA 10 mg TABLETA RECUBIERTA NF",
+    "active": "ATORVASTATINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ATORVASTATINA 20 mg TABLETA RECUBIERTA NF.pdf",
+    "name": "ATORVASTATINA 20 mg TABLETA RECUBIERTA NF",
+    "active": "ATORVASTATINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ATORVASTATINA 40 mg TABLETA RECUBIERTA NF.pdf",
+    "name": "ATORVASTATINA 40 mg TABLETA RECUBIERTA NF",
+    "active": "ATORVASTATINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-BROMAZEPAM 6 mg TABLETA.pdf",
+    "name": "BROMAZEPAM 6 mg TABLETA",
+    "active": "BROMAZEPAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CALMIDÓL COMPUESTO CAPSULAS.pdf",
+    "name": "CALMIDÓL COMPUESTO CAPSULAS",
+    "active": "CALMIDÓL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CARVEDILOL 12,5 mg COMPRIMIDOS.pdf",
+    "name": "CARVEDILOL 12,5 mg COMPRIMIDOS",
+    "active": "CARVEDILOL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CARVEDILOL 25 mg COMPRIMIDOS.pdf",
+    "name": "CARVEDILOL 25 mg COMPRIMIDOS",
+    "active": "CARVEDILOL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CLARITROMICINA 500 mg TABLETA RECUBIERTA.pdf",
+    "name": "CLARITROMICINA 500 mg TABLETA RECUBIERTA",
+    "active": "CLARITROMICINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CLINDAMICINA 300 mg CÁPSULAS.pdf",
+    "name": "CLINDAMICINA 300 mg CÁPSULAS",
+    "active": "CLINDAMICINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CLONAZEPAM 0,5 mg TABLETA.pdf",
+    "name": "CLONAZEPAM 0,5 mg TABLETA",
+    "active": "CLONAZEPAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CLONAZEPAM 2,0 mg TABLETA.pdf",
+    "name": "CLONAZEPAM 2,0 mg TABLETA",
+    "active": "CLONAZEPAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CLONIDINA 0,15 mg COMPRIMIDOS.pdf",
+    "name": "CLONIDINA 0,15 mg COMPRIMIDOS",
+    "active": "CLONIDINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-CLOZAPINA 100 mg COMPRIMIDOS.pdf",
+    "name": "CLOZAPINA 100 mg COMPRIMIDOS",
+    "active": "CLOZAPINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-DENIBAN 200 mg Comprimidos.pdf",
+    "name": "DENIBAN 200 mg Comprimidos",
+    "active": "DENIBAN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-DESLORATADINA 0,05% JARABE.pdf",
+    "name": "DESLORATADINA 0,05% JARABE",
+    "active": "DESLORATADINA",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-DIOSMECTITA 3 g POLVO PARA RECONSTITUIR.pdf",
+    "name": "DIOSMECTITA 3 g POLVO PARA RECONSTITUIR",
+    "active": "DIOSMECTITA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-DIOSMINA 450 mg HESPERIDINA 50 mg COMPRIMIDOS RECUBIERTOS.pdf",
+    "name": "DIOSMINA 450 mg HESPERIDINA 50 mg COMPRIMIDOS RECUBIERTOS",
+    "active": "DIOSMINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-DIPIRONA+CAFEINA+ISOMETHEPTENO.pdf",
+    "name": "DIPIRONA+CAFEINA+ISOMETHEPTENO",
+    "active": "DIPIRONA+CAFEINA+ISOMETHEPTENO",
+    "form": "Desconhecido"
+  },
+  {
+    "file": "PT-DOMPERIDONA SUSPENSIÓN.pdf",
+    "name": "DOMPERIDONA SUSPENSIÓN",
+    "active": "DOMPERIDONA",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-ESCITALOPRAM 10mg COMPRIMIDOS RECUBIERTOS.pdf",
+    "name": "ESCITALOPRAM 10mg COMPRIMIDOS RECUBIERTOS",
+    "active": "ESCITALOPRAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-Esomeprazol 20 mg Tableta Recubierta Enterica NF.pdf",
+    "name": "Esomeprazol 20 mg Tableta Recubierta Enterica NF",
+    "active": "Esomeprazol",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-EZETIMIBA 10 mg +SIMVASTATINA 40  mg.pdf",
+    "name": "EZETIMIBA 10 mg +SIMVASTATINA 40  mg",
+    "active": "EZETIMIBA",
+    "form": "Desconhecido"
+  },
+  {
+    "file": "PT-EZETIMIBA 10 mg TABLETAS.pdf",
+    "name": "EZETIMIBA 10 mg TABLETAS",
+    "active": "EZETIMIBA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-FLUVOXAMINA 100 mg TABLETA RECUBIERTA.pdf",
+    "name": "FLUVOXAMINA 100 mg TABLETA RECUBIERTA",
+    "active": "FLUVOXAMINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-HIDROCODONA BITARTRATO10 mg + ACETAMINOFEN 325 mg TABLETAS.pdf",
+    "name": "HIDROCODONA BITARTRATO10 mg + ACETAMINOFEN 325 mg TABLETAS",
+    "active": "HIDROCODONA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-IVERMECTINA 0,6 % SOLUCIÓN ORAL -GOTAS.pdf",
+    "name": "IVERMECTINA 0,6 % SOLUCIÓN ORAL -GOTAS",
+    "active": "IVERMECTINA",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-KETOTIFENO JARABE GENFAR 1 mg5mL.pdf",
+    "name": "KETOTIFENO JARABE GENFAR 1 mg5mL",
+    "active": "KETOTIFENO",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-LEVETIRACETAM 100mg1mL SOLUCIÓN  LEVETIRACETAM.pdf",
+    "name": "LEVETIRACETAM 100mg1mL SOLUCIÓN  LEVETIRACETAM",
+    "active": "LEVETIRACETAM",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-LEVETIRACETAM 500 mg TABLETA RECUBIERTAXITUCIRA 500 mg TABLETA RECUBIERTA.pdf",
+    "name": "LEVETIRACETAM 500 mg TABLETA RECUBIERTAXITUCIRA 500 mg TABLETA RECUBIERTA",
+    "active": "LEVETIRACETAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-LORATADINA 10 mg COMPRIMIDOS.pdf",
+    "name": "LORATADINA 10 mg COMPRIMIDOS",
+    "active": "LORATADINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-LOSARTAN 50 mg + HIDROCLOROTIAZIDA 12,5 mg TABLETA RECUBIERTA.pdf",
+    "name": "LOSARTAN 50 mg + HIDROCLOROTIAZIDA 12,5 mg TABLETA RECUBIERTA",
+    "active": "LOSARTAN",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-MELOXICAM 15 mg COMPRIMIDOS.pdf",
+    "name": "MELOXICAM 15 mg COMPRIMIDOS",
+    "active": "MELOXICAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-MELOXICAM 7,5 mg COMPRIMIDOS.pdf",
+    "name": "MELOXICAM 7,5 mg COMPRIMIDOS",
+    "active": "MELOXICAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-MEMANTINA 10 mg COMPRIMIDOS.pdf",
+    "name": "MEMANTINA 10 mg COMPRIMIDOS",
+    "active": "MEMANTINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-METFORMINA 850 mg TABLETAS.pdf",
+    "name": "METFORMINA 850 mg TABLETAS",
+    "active": "METFORMINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-MIDAZOLAM 7,5 mg COMPRIMIDOS RECUBIERTOS.pdf",
+    "name": "MIDAZOLAM 7,5 mg COMPRIMIDOS RECUBIERTOS",
+    "active": "MIDAZOLAM",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-Milpax Suspensión Cereza.pdf",
+    "name": "Milpax Suspensión Cereza",
+    "active": "Milpax",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-MILPAX SUSPENSIÓN SABOR  CHICLE.pdf",
+    "name": "MILPAX SUSPENSIÓN SABOR  CHICLE",
+    "active": "MILPAX",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-MILPAX SUSPENSIÓN SABOR MENTA.pdf",
+    "name": "MILPAX SUSPENSIÓN SABOR MENTA",
+    "active": "MILPAX",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-MINOXIDIL 5% SOLUCIÓN TÓPICA.pdf",
+    "name": "MINOXIDIL 5% SOLUCIÓN TÓPICA",
+    "active": "MINOXIDIL",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-MONTELUKAST 4 mg TABLETA MASTICABLEAMISPED 4 mg TABLETA MASTICABLE.pdf",
+    "name": "MONTELUKAST 4 mg TABLETA MASTICABLEAMISPED 4 mg TABLETA MASTICABLE",
+    "active": "MONTELUKAST",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-NEOQUIPENYL 26,3 mg COMPRIMIDOS.pdf",
+    "name": "NEOQUIPENYL 26,3 mg COMPRIMIDOS",
+    "active": "NEOQUIPENYL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-NUCTIS D GOTAS ORALES.pdf",
+    "name": "NUCTIS D GOTAS ORALES",
+    "active": "NUCTIS",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-PAROXETINA 20 mg TABLETAS RECUBIERTAS.pdf",
+    "name": "PAROXETINA 20 mg TABLETAS RECUBIERTAS",
+    "active": "PAROXETINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-PAX NOCHE PANELA GRANULADO  GENFARGRIP NOCHE PANELA GRANULADO.pdf",
+    "name": "PAX NOCHE PANELA GRANULADO  GENFARGRIP NOCHE PANELA GRANULADO",
+    "active": "PAX",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-PEPSAMAR  TABLETAS.pdf",
+    "name": "PEPSAMAR  TABLETAS",
+    "active": "PEPSAMAR",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-PEPSAMAR PLUS SUSPENSIÓN.pdf",
+    "name": "PEPSAMAR PLUS SUSPENSIÓN",
+    "active": "PEPSAMAR",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-PEPSAMAR SUSPENSIÓN.pdf",
+    "name": "PEPSAMAR SUSPENSIÓN",
+    "active": "PEPSAMAR",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-PLAQUINOL 400 mg COMPRIMIDOS RECUBIERTOS.pdf",
+    "name": "PLAQUINOL 400 mg COMPRIMIDOS RECUBIERTOS",
+    "active": "PLAQUINOL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-PREGABALINA 150 mg CÁPSULAS.pdf",
+    "name": "PREGABALINA 150 mg CÁPSULAS",
+    "active": "PREGABALINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-PREGABALINA 300 mg CÁPSULA.pdf",
+    "name": "PREGABALINA 300 mg CÁPSULA",
+    "active": "PREGABALINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-PRIMAQUINA 15 mg WINTHROP TABLETA RANURADA.pdf",
+    "name": "PRIMAQUINA 15 mg WINTHROP TABLETA RANURADA",
+    "active": "PRIMAQUINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-QUETIAPINA 100 mgQUETIAPINA MEDLEY 100 mgTIAPINAN 100 mg COMPRIMIDOS RECUBIERTOS.pdf",
+    "name": "QUETIAPINA 100 mgQUETIAPINA MEDLEY 100 mgTIAPINAN 100 mg COMPRIMIDOS RECUBIERTOS",
+    "active": "QUETIAPINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-RISPERIDONA SOLUCIÓN ORAL.pdf",
+    "name": "RISPERIDONA SOLUCIÓN ORAL",
+    "active": "RISPERIDONA",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-ROSUVASTATINA 10 mg TABLETA RECUBIERTA XUNIRO 10 mg TABLETA RECUBIERTA.pdf",
+    "name": "ROSUVASTATINA 10 mg TABLETA RECUBIERTA XUNIRO 10 mg TABLETA RECUBIERTA",
+    "active": "ROSUVASTATINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-ROSUVASTATINA 40 mg TABLETA RECUBIERTA.pdf",
+    "name": "ROSUVASTATINA 40 mg TABLETA RECUBIERTA",
+    "active": "ROSUVASTATINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-SABRIL 500 mg TABLETA.pdf",
+    "name": "SABRIL 500 mg TABLETA",
+    "active": "SABRIL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-STAMYL GRAGEAS.pdf",
+    "name": "STAMYL GRAGEAS",
+    "active": "STAMYL",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-SULFASALAZINA 500 mg TABLETA RECUBIERTA LIBERACIÓN RETARDADA.pdf",
+    "name": "SULFASALAZINA 500 mg TABLETA RECUBIERTA LIBERACIÓN RETARDADA",
+    "active": "SULFASALAZINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-TADALAFILO 20 mg TABLETA RECUBIERTACENTREGO 20 mg TABLETA RECUBIERTA.pdf",
+    "name": "TADALAFILO 20 mg TABLETA RECUBIERTACENTREGO 20 mg TABLETA RECUBIERTA",
+    "active": "TADALAFILO",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-TERAZOSINA 5 mg TABLETAS.pdf",
+    "name": "TERAZOSINA 5 mg TABLETAS",
+    "active": "TERAZOSINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-TRAMADOL 100 mgmL GOTAS.pdf",
+    "name": "TRAMADOL 100 mgmL GOTAS",
+    "active": "TRAMADOL",
+    "form": "Líquidos"
+  },
+  {
+    "file": "PT-TRAZODONA 50 mg COMPRIMIDO.pdf",
+    "name": "TRAZODONA 50 mg COMPRIMIDO",
+    "active": "TRAZODONA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-TRIMEBUTINA 200 mg + SIMETICONA 120 mg TABLETA RECUBIERTA.pdf",
+    "name": "TRIMEBUTINA 200 mg + SIMETICONA 120 mg TABLETA RECUBIERTA",
+    "active": "TRIMEBUTINA",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-WINASORB 500 mg COMPRIMIDOS.pdf",
+    "name": "WINASORB 500 mg COMPRIMIDOS",
+    "active": "WINASORB",
+    "form": "Sólidos"
+  },
+  {
+    "file": "PT-WINASORB GOTAS.pdf",
+    "name": "WINASORB GOTAS",
+    "active": "WINASORB",
+    "form": "Líquidos"
+  }
+]
