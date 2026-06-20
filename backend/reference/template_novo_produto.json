@@ -1,0 +1,34 @@
+{
+  "ativo": "NOME_DO_ATIVO",
+  "codigo_pa": "CÓDIGO_PRODUTO_ACABADO",
+  "codigo_bulk": "CÓDIGO_BULK",
+  "descricao": "DESCRIÇÃO_COMPLETA",
+  "forma_farmaceutica": "Sólidos|Líquidos|Injetáveis|Suspensões|Cremes|Pomadas",
+  "celula": "CÉLULA_DE_PRODUÇÃO",
+  "demanda": {
+    "media_12_meses": 0.0,
+    "fator_conversao": 1.0,
+    "tamanho_bulk": 0.0,
+    "tamanho_lote_pa": 0.0,
+    "demanda_em_lotes": 0.0,
+    "demanda_em_lotes_bulk": 0.0
+  },
+  "analises_cq": [
+    {
+      "tipo": "Bulk|Produto Acabado",
+      "teste": "TESTE_REALIZADO",
+      "similaridade": "SIMILARIDADE",
+      "rota": "ROTA_EQUIPAMENTO",
+      "atividades": [
+        {
+          "descricao": "DESCRIÇÃO_ATIVIDADE",
+          "padrao_amostra": "Padrão|Amostra",
+          "execucao": "MO|MAQ",
+          "tempo_corrida_minutos": 0
+        }
+      ]
+    }
+  ],
+  "tempo_total_analise_minutos": 0.0,
+  "tempo_total_analise_horas": 0.0
+}
