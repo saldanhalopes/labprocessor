@@ -116,8 +116,14 @@ export function findSimilar(geminiTestName) {
     }
     // Alias contained in query or vice versa
     else if (aliases.some(a => q.includes(a) || a.includes(q))) {
-      const matchLen = Math.max(...aliases.map(a => q.includes(a) ? a.length : 0));
-      score = 70 + Math.min(25, matchLen / q.length * 25);
+      const matchLen = Math.max(...aliases.map(a => {
+        if (q === a) return a.length;              // exact match
+        if (q.includes(a)) return a.length;        // alias inside query
+        if (a.includes(q)) return q.length;        // query inside alias ← WAS MISSING
+        return 0;
+      }));
+      const longerLen = Math.max(q.length, ...aliases.map(a => a.length));
+      score = 60 + Math.min(35, (matchLen / Math.max(1, longerLen)) * 35);
     }
     // Word-level overlap
     else {
