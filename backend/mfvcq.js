@@ -21,10 +21,21 @@ function loadData() {
 function inferFormFromDescription(descricao) {
   if (!descricao) return null;
   const d = descricao.toUpperCase();
-  if (d.includes('COMP') || d.includes('CPR') || d.includes('CAP') || d.includes('DRG')) return 'Sólidos';
+  if (d.includes('COMP') || d.includes('CPR') || d.includes('CAP') || d.includes('DRG') || d.includes('GRAGEA') || d.includes('TABLETA')) return 'Sólidos';
   if (d.includes('INJ') || d.includes('SOL') || d.includes('AMP')) return 'Injetáveis';
   if (d.includes('SUS') || d.includes('XAR') || d.includes('ELI')) return 'Suspensões/Líquidos';
   if (d.includes('CR') || d.includes('POM') || d.includes('GEL')) return 'Cremes/Pomadas';
+  return null;
+}
+
+function inferFormFromPharmForm(pharmForm) {
+  if (!pharmForm) return null;
+  const f = pharmForm.toLowerCase();
+  if (f.includes('comprimido') || f.includes('tableta') || f.includes('cápsula') || f.includes('capsula') || f.includes('drágea') || f.includes('gragea')) return 'Sólidos';
+  if (f.includes('injetável') || f.includes('inj')) return 'Injetáveis';
+  if (f.includes('suspensão') || f.includes('suspension') || f.includes('xarope') || f.includes('jarabe') || f.includes('solução') || f.includes('solucion') || f.includes('gotas') || f.includes('elixir')) return 'Suspensões/Líquidos';
+  if (f.includes('creme') || f.includes('pomada') || f.includes('gel') || f.includes('unguento')) return 'Cremes/Pomadas';
+  if (f.includes('matéria-prima') || f.includes('materia-prima') || f.includes('polvo') || f.includes('pó') || f.includes('granulado') || f.includes('api')) return 'Sólidos';
   return null;
 }
 
@@ -71,6 +82,14 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
   let demandaInfo = {};
 
   // Step 1: Look up in DEMANDA database for product info
+  if (formaSelecionada && formaSelecionada !== 'Sólidos' && formaSelecionada !== 'Injetáveis' && formaSelecionada !== 'Suspensões/Líquidos' && formaSelecionada !== 'Cremes/Pomadas') {
+    const normalized = inferFormFromPharmForm(formaSelecionada);
+    if (normalized) {
+      console.log(`[MFVCQ] Form normalized: "${formaSelecionada}" -> "${normalized}"`);
+      formaSelecionada = normalized;
+    }
+  }
+
   if (codigoPa || ativo) {
     const found = data.demanda.find(p =>
       (codigoPa && String(p.codigo_pa) === String(codigoPa)) ||

@@ -93,14 +93,27 @@ export interface AnalysisResult {
   equipments: Equipment[];
   standards: Standard[];
   totalTime: number;
-  totalTimePhysChem: number; // Total time for Physico-chemical tests
-  totalTimeMicro: number;    // Total time for Microbiological tests
-  fullText?: string;         // Full transcribed text of the document
-  visualContent?: string;    // Description of images/tables
-  images?: string[];         // Filenames of extracted images
+  totalTimePhysChem: number;
+  totalTimeMicro: number;
+  fullText?: string;
+  visualContent?: string;
+  images?: string[];
   timestamp: number;
-  mfvcq?: MfvcqInfo;        // MFVCQ cross-reference data
-  mfvcqAnalysis?: MfvcqAnalysis; // Full MFVCQ analysis (loaded on expand)
+  mfvcq?: MfvcqInfo;
+  mfvcqAnalysis?: MfvcqAnalysis;
+  basfluxo?: {
+    celula: string;
+    quantidade_lotes: number;
+    resumo_tempos: any;
+    testes: {
+      teste: string;
+      rota: string;
+      fixo: { atividades: number; total_min: number; mo_min: number; maq_min: number };
+      variavel: { atividades: number; total_min: number; mo_min: number; maq_min: number };
+      total_compartilhado_min: number;
+      mo_pct: number;
+    }[];
+  };
 }
 
 export interface GlobalSettings {

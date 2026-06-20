@@ -92,20 +92,17 @@ app.post('/api/analyze', async (req, res) => {
     try {
       const productName = result.product?.productName || '';
       const activePrinciple = result.product?.activePrinciples || '';
+      const productForm = (result.product?.pharmaceuticalForm || '').toLowerCase();
       
-      // Try active principle first (more likely to match), then product name
       const searchTerm = activePrinciple
-        ? activePrinciple.split(/[\s,;]+/)[0] // First word of active principle
-        : productName.split(/[\s\d]+/)[0];     // First word of product name
+        ? activePrinciple.split(/[\s,;]+/)[0]
+        : productName.split(/[\s\d]+/)[0];
       
       if (searchTerm && searchTerm.length > 3) {
         const mfvcqResults = searchProducts({ query: searchTerm, limit: 20 });
+        let found = null;
+        
         if (mfvcqResults && mfvcqResults.length > 0) {
-          // Filter by matching pharmaceutical form if available
-          const productForm = (result.product?.pharmaceuticalForm || '').toLowerCase();
-          let found = mfvcqResults[0];
-          
-          // Try to match by form -> celula mapping
           let targetCelulas = [];
           if (productForm.includes('comprimido') || productForm.includes('cpr') || productForm.includes('capsula')) {
             targetCelulas = ['SÓLIDOS 1', 'SÓLIDOS 2', 'SÓLIDOS 3', 'SÓLIDOS 4', '0x2a'];
@@ -125,17 +122,46 @@ app.post('/api/analyze', async (req, res) => {
               })
             : null;
           
-          if (celulaMatch) found = celulaMatch;
+          found = celulaMatch || (mfvcqResults && mfvcqResults.length > 0 ? mfvcqResults[0] : null);
           
-          result.mfvcq = {
-            matched: true,
-            codigo_pa: found.codigo_pa,
-            celula: found.celula,
-            ativo: found.ativo,
-            demanda_media: found.media_12_meses,
-            descricao: found.descricao
-          };
-          console.log(`[API] MFVCQ match found for: ${productName}`);
+          if (found) {
+            result.mfvcq = {
+              matched: true,
+              codigo_pa: found.codigo_pa,
+              celula: found.celula,
+              ativo: found.ativo,
+              demanda_media: found.media_12_meses,
+              descricao: found.descricao
+            };
+            console.log(`[API] MFVCQ match found for: ${productName}`);
+          }
+        }
+        
+        // BASEFLUXO enrichment — applies even without MFVCQ match (by form)
+        try {
+          const basfluxo = analyzeProduct({
+            ativo: found?.ativo || activePrinciple || searchTerm,
+            forma: result.product?.pharmaceuticalForm || '',
+            lotes: 1
+          });
+          if (basfluxo && basfluxo.analises_cq?.length > 0) {
+            result.basfluxo = {
+              celula: basfluxo.celula,
+              quantidade_lotes: basfluxo.quantidade_lotes,
+              resumo_tempos: basfluxo.resumo_tempos,
+              testes: basfluxo.analises_cq.map(t => ({
+                teste: t.teste,
+                rota: t.rota,
+                fixo: t.fixo,
+                variavel: t.variavel,
+                total_compartilhado_min: t.total_compartilhado_min,
+                mo_pct: t.mo_pct
+              }))
+            };
+            console.log(`[API] BASEFLUXO flow added: ${basfluxo.analises_cq.length} tests`);
+          }
+        } catch (bfErr) {
+          console.error('[API] BASEFLUXO enrichment error:', bfErr);
         }
       }
     } catch (e) {

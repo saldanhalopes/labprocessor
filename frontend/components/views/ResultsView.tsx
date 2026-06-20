@@ -358,6 +358,53 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                   </div>
                 )}
 
+                {/* BASEFLUXO ROTA Breakdown */}
+                {res.basfluxo?.testes && res.basfluxo.testes.length > 0 && (
+                  <div className="px-6 py-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BarChart3 className="w-4 h-4 text-indigo-600" />
+                      <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">
+                        ROTA — Quem faz o quê ({res.basfluxo.celula})
+                      </span>
+                      <span className="text-[10px] text-slate-400 ml-auto">
+                        Fixo: {res.basfluxo.resumo_tempos?.fixo_horas}h | Var/lote: {res.basfluxo.resumo_tempos?.variavel_por_lote_horas}h
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-slate-400 border-b border-slate-100">
+                            <th className="text-left py-1 font-medium">Teste</th>
+                            <th className="text-left py-1 font-medium">Rota</th>
+                            <th className="text-right py-1 font-medium w-16">Fixo</th>
+                            <th className="text-right py-1 font-medium w-16">Var</th>
+                            <th className="text-right py-1 font-medium w-16">Total</th>
+                            <th className="text-right py-1 font-medium w-12">MO%</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {res.basfluxo.testes.slice(0, 11).map((t: any, i: number) => (
+                            <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                              <td className="py-1 text-slate-800 font-medium">{t.teste}</td>
+                              <td className="py-1">
+                                <span className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-mono">{t.rota}</span>
+                              </td>
+                              <td className="py-1 text-right font-mono text-blue-600">{t.fixo?.total_min || 0}</td>
+                              <td className="py-1 text-right font-mono text-indigo-600">{t.variavel?.total_min || 0}</td>
+                              <td className="py-1 text-right font-mono font-bold text-slate-800">{t.total_compartilhado_min}</td>
+                              <td className="py-1 text-right text-slate-400">{t.mo_pct || 0}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex gap-4 mt-2 text-[10px] text-slate-400">
+                      <span>👤 Analista: {res.basfluxo.resumo_tempos?.carga_homem_horas}h ({res.basfluxo.resumo_tempos?.carga_homem_pct}%)</span>
+                      <span>🤖 Máquina: {res.basfluxo.resumo_tempos?.carga_maquina_horas}h</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Table Section helper */}
                 {(() => {
                   const sourceRows = (editingId === res.fileId && editForm) ? editForm.rows : res.rows;
