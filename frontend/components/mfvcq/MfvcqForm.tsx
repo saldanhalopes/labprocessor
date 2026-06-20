@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Loader2, FlaskConical } from 'lucide-react';
+import { Search, Loader2, FlaskConical, Layers } from 'lucide-react';
 
 interface MfvcqFormProps {
   onResult: (result: any) => void;
@@ -13,6 +13,7 @@ export const MfvcqForm: React.FC<MfvcqFormProps> = ({ onResult, onSearchResult, 
   const [mediaMensal, setMediaMensal] = useState('');
   const [fatorConversao, setFatorConversao] = useState('1');
   const [tamanhoBulk, setTamanhoBulk] = useState('');
+  const [lotes, setLotes] = useState('1');
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [formas, setFormas] = useState<string[]>([]);
@@ -36,7 +37,8 @@ export const MfvcqForm: React.FC<MfvcqFormProps> = ({ onResult, onSearchResult, 
           forma: forma || undefined,
           mediaMensal: parseFloat(mediaMensal) || 0,
           fatorConversao: parseFloat(fatorConversao) || 1,
-          tamanhoBulk: parseFloat(tamanhoBulk) || 0
+          tamanhoBulk: parseFloat(tamanhoBulk) || 0,
+          lotes: parseInt(lotes) || 1
         })
       });
       const data = await res.json();
@@ -83,12 +85,22 @@ export const MfvcqForm: React.FC<MfvcqFormProps> = ({ onResult, onSearchResult, 
           </select>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">N° de Lotes</label>
+            <div className="relative">
+              <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input type="number" min="1" value={lotes} onChange={e => setLotes(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none" />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Média Mensal</label>
             <input type="number" value={mediaMensal} onChange={e => setMediaMensal(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none" />
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Fator</label>
             <input type="number" step="0.1" value={fatorConversao} onChange={e => setFatorConversao(e.target.value)}

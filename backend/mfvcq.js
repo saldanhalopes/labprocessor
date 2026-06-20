@@ -59,7 +59,10 @@ function findFlowByForm(forma) {
   return null;
 }
 
-export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorConversao = 1, tamanhoBulk = 0 }) {
+function sumMO(lista) { return lista.reduce((s, a) => s + (a.execucao === 'MO' ? (a.tempo_corrida_minutos || 0) : 0), 0); }
+function sumMAQ(lista) { return lista.reduce((s, a) => s + (a.execucao === 'MAQ' ? (a.tempo_corrida_minutos || 0) : 0), 0); }
+
+export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorConversao = 1, tamanhoBulk = 0, lotes = 1 }) {
   const data = loadData();
   const ativoUpper = (ativo || '').toUpperCase();
   let formaSelecionada = forma || null;
@@ -120,45 +123,69 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     }
   }
 
-  // Step 5: Build analysis list with MO/MAQ breakdown
-  let tempoTotalMinutos = 0;
-  let tempoTotalMO = 0;
-  let tempoTotalMAQ = 0;
+  // Step 5: Build analysis list with FIXO (Padrão) vs VARIÁVEL (Amostra) breakdown
+  const nLotes = Math.max(1, Number(lotes) || 1);
+  let totalFixoMin = 0, totalFixoMO = 0, totalFixoMAQ = 0;
+  let totalVarMin = 0, totalVarMO = 0, totalVarMAQ = 0;
   const analisesCq = [];
 
   for (const [teste, atividades] of Object.entries(fluxoForma)) {
     if (Array.isArray(atividades) && atividades.length > 0) {
       const item = atividades[0];
-      let tempoTeste = 0;
-      let tempoMO = 0;
-      let tempoMAQ = 0;
 
-      for (const a of atividades) {
-        const t = a.tempo_corrida_minutos || 0;
-        tempoTeste += t;
-        if (a.execucao === 'MO') tempoMO += t;
-        else if (a.execucao === 'MAQ') tempoMAQ += t;
-      }
+      // Separate by padrao_amostra
+      const fixas = atividades.filter(a => a.padrao_amostra === 'Padrão');
+      const variaveis = atividades.filter(a => a.padrao_amostra === 'Amostra');
 
-      tempoTotalMinutos += tempoTeste;
-      tempoTotalMO += tempoMO;
-      tempoTotalMAQ += tempoMAQ;
+      const fixoMO = sumMO(fixas);
+      const fixoMAQ = sumMAQ(fixas);
+      const fixoTotal = fixoMO + fixoMAQ;
+
+      const varMO = sumMO(variaveis);
+      const varMAQ = sumMAQ(variaveis);
+      const varTotal = varMO + varMAQ;
+
+      // Tempo total considerando compartilhamento
+      const tempoTesteCompartilhado = fixoTotal + (varTotal * nLotes);
+
+      totalFixoMin += fixoTotal;
+      totalFixoMO += fixoMO;
+      totalFixoMAQ += fixoMAQ;
+      totalVarMin += varTotal;
+      totalVarMO += varMO;
+      totalVarMAQ += varMAQ;
 
       analisesCq.push({
         tipo: 'Produto Acabado',
         teste,
         similaridade: item.similaridade || 'NÃO APLICÁVEL',
         rota: item.rota || 'DESCONHECIDA',
-        resumo: {
-          total_min: Math.round(tempoTeste * 100) / 100,
-          mo_min: Math.round(tempoMO * 100) / 100,
-          maq_min: Math.round(tempoMAQ * 100) / 100,
-          mo_pct: tempoTeste > 0 ? Math.round((tempoMO / tempoTeste) * 100) : 0
+        fixo: {
+          atividades: fixas.length,
+          total_min: Math.round(fixoTotal * 100) / 100,
+          mo_min: Math.round(fixoMO * 100) / 100,
+          maq_min: Math.round(fixoMAQ * 100) / 100
         },
+        variavel: {
+          atividades: variaveis.length,
+          total_min: Math.round(varTotal * 100) / 100,
+          mo_min: Math.round(varMO * 100) / 100,
+          maq_min: Math.round(varMAQ * 100) / 100
+        },
+        total_compartilhado_min: Math.round(tempoTesteCompartilhado * 100) / 100,
+        total_por_lote_min: Math.round((fixoTotal + varTotal) * 100) / 100,
+        mo_pct: (fixoTotal + varTotal) > 0
+          ? Math.round(((fixoMO + varMO) / (fixoTotal + varTotal)) * 100) : 0,
         atividades
       });
     }
   }
+
+  // Totais gerais com compartilhamento de calibração
+  const tempoUnitario = totalFixoMin + totalVarMin;
+  const tempoCompartilhado = totalFixoMin + (totalVarMin * nLotes);
+  const totalMO = totalFixoMO + (totalVarMO * nLotes);
+  const totalMAQ = totalFixoMAQ + (totalVarMAQ * nLotes);
 
   // Step 6: Calculate demand
   const demandaConvertida = Number(mediaMensal) * Number(fatorConversao);
@@ -175,27 +202,52 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     descricao: demandaInfo.descricao || null,
     forma_farmaceutica: formaSelecionada || null,
     celula,
+    quantidade_lotes: nLotes,
     demanda: {
       ...demandaInfo,
       media_12_meses: Number(mediaMensal) || demandaInfo.media_12_meses || 0,
       fator_conversao: Number(fatorConversao) || 1,
       demanda_convertida: demandaConvertida,
       tamanho_bulk: Number(tamanhoBulk) || 0,
-      demanda_em_lotes: Math.round(demandaLotes * 100) / 100
+      demanda_em_lotes: Math.round(demandaLotes * 100) / 100,
+      total_lotes: nLotes
     },
     analises_cq: analisesCq,
     resumo_tempos: {
-      tempo_unitario_minutos: Math.round(tempoTotalMinutos * 100) / 100,
-      tempo_unitario_horas: Math.round((tempoTotalMinutos / 60) * 100) / 100,
-      carga_homem_minutos: Math.round(tempoTotalMO * 100) / 100,
-      carga_homem_horas: Math.round((tempoTotalMO / 60) * 100) / 100,
-      carga_maquina_minutos: Math.round(tempoTotalMAQ * 100) / 100,
-      carga_maquina_horas: Math.round((tempoTotalMAQ / 60) * 100) / 100,
-      carga_homem_pct: tempoTotalMinutos > 0 ? Math.round((tempoTotalMO / tempoTotalMinutos) * 100) : 0,
-      tempo_total_lotes_minutos: Math.round(tempoTotalMinutos * demandaLotes * 100) / 100,
-      tempo_total_lotes_horas: Math.round((tempoTotalMinutos * demandaLotes / 60) * 100) / 100,
-      carga_homem_mensal_h: Math.round((tempoTotalMO * demandaLotes / 60) * 100) / 100,
-      carga_maquina_mensal_h: Math.round((tempoTotalMAQ * demandaLotes / 60) * 100) / 100
+      // Por lote (sem compartilhamento — modelo antigo para 1 lote)
+      tempo_unitario_minutos: Math.round(tempoUnitario * 100) / 100,
+      tempo_unitario_horas: Math.round((tempoUnitario / 60) * 100) / 100,
+
+      // Fixo (calibração/padrões — executado 1x)
+      fixo_minutos: Math.round(totalFixoMin * 100) / 100,
+      fixo_horas: Math.round((totalFixoMin / 60) * 100) / 100,
+
+      // Variável (amostras — executado por lote)
+      variavel_por_lote_minutos: Math.round(totalVarMin * 100) / 100,
+      variavel_por_lote_horas: Math.round((totalVarMin / 60) * 100) / 100,
+
+      // Total com compartilhamento para N lotes
+      tempo_compartilhado_minutos: Math.round(tempoCompartilhado * 100) / 100,
+      tempo_compartilhado_horas: Math.round((tempoCompartilhado / 60) * 100) / 100,
+      media_por_lote_horas: Math.round((tempoCompartilhado / nLotes / 60) * 100) / 100,
+
+      // Carga Homem vs Máquina (compartilhada)
+      carga_homem_minutos: Math.round(totalMO * 100) / 100,
+      carga_homem_horas: Math.round((totalMO / 60) * 100) / 100,
+      carga_maquina_minutos: Math.round(totalMAQ * 100) / 100,
+      carga_maquina_horas: Math.round((totalMAQ / 60) * 100) / 100,
+      carga_homem_pct: tempoCompartilhado > 0 ? Math.round((totalMO / tempoCompartilhado) * 100) : 0,
+
+      // Comparação com modelo antigo (sem compartilhamento)
+      tempo_sem_compartilhamento_horas: Math.round((tempoUnitario * nLotes / 60) * 100) / 100,
+      economia_horas: Math.round(((tempoUnitario * nLotes - tempoCompartilhado) / 60) * 100) / 100,
+      economia_pct: tempoUnitario * nLotes > 0
+        ? Math.round(((tempoUnitario * nLotes - tempoCompartilhado) / (tempoUnitario * nLotes)) * 100) : 0,
+
+      // Carga mensal estimada
+      carga_homem_mensal_h: Math.round(((totalFixoMO + (totalVarMO * demandaLotes)) / 60) * 100) / 100,
+      carga_maquina_mensal_h: Math.round(((totalFixoMAQ + (totalVarMAQ * demandaLotes)) / 60) * 100) / 100,
+      tempo_total_mensal_h: Math.round(((totalFixoMin + (totalVarMin * demandaLotes)) / 60) * 100) / 100
     }
   };
 }
