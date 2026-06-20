@@ -301,7 +301,8 @@ function matchTestToBasfluxo(geminiName) {
     .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove accents
 
   // Teor / Doseamento / Assay → TEOR HPLC
-  if (g.includes('TEOR') || g.includes('DOSEAMENTO') || g.includes('ASSAY') || g.includes('DOSAGE') || g.includes('DOSAGEM'))
+  if (g.includes('TEOR') || g.includes('DOSEAMENTO') || g.includes('ASSAY') || g.includes('DOSAGE') || g.includes('DOSAGEM')
+    || g.includes('VALOR') || g.includes('VALORACION') || g.includes('VALORIZACION') || g.includes('TITULACION'))
     return 'TEOR HPLC 1';
 
   // Degradação / Impurezas / Substâncias Relacionadas → DEGRADAÇÃO HPLC
@@ -325,7 +326,7 @@ function matchTestToBasfluxo(geminiName) {
     return 'PESO MÉDIO 1';
 
   // Umidade → UMIDADE
-  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER') || g.includes('AGUA'))
+  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER') || g.includes('AGUA') || g.includes('HUMEDAD'))
     return 'UMIDADE IV';
 
   // Uniformidade → UNIFORMIDADE POR VARIAÇÃO DE PESO
