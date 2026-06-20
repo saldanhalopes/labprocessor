@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { AnalysisResult, Language, GlobalSettings } from '../../types';
-import { Search, Beaker, FileText, ChevronDown, ChevronUp, Download, Save, Pill, ScrollText, Tag, FlaskConical, Bug, Trash2, Edit2, Check, X } from 'lucide-react';
+import { Search, Beaker, FileText, ChevronDown, ChevronUp, Download, Save, Pill, ScrollText, Tag, FlaskConical, Bug, Trash2, Edit2, Check, X, BarChart3 } from 'lucide-react';
 import { generateCSV, isMicrobiology, calculateParallelLeadTime, recalculateRow } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
+import { MfvcqBadge } from '../mfvcq/MfvcqBadge';
 
 interface ResultsViewProps {
   results: AnalysisResult[];
@@ -197,6 +198,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                     ) : (
                       <h3 className="text-lg font-bold text-slate-800">{res.product.productName || "Produto Desconhecido"}</h3>
                     )}
+                    {res.mfvcq?.matched && (
+                      <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-[10px] font-bold flex items-center gap-1">
+                        <BarChart3 className="w-3 h-3" /> MFVCQ
+                      </span>
+                    )}
                     {editingId === res.fileId ? (
                       <input
                         type="text"
@@ -342,6 +348,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                   <div className="px-6 py-4 bg-slate-50/30 border-b border-slate-100 flex items-start gap-3 text-sm text-slate-600">
                     <ScrollText className="w-5 h-5 text-slate-400 mt-0.5 flex-shrink-0" />
                     <p><span className="font-bold text-slate-700">{t.composition}:</span> {res.product.composition}</p>
+                  </div>
+                )}
+
+                {/* MFVCQ Badge Section */}
+                {res.mfvcq?.matched && (
+                  <div className="px-6 py-3">
+                    <MfvcqBadge mfvcq={res.mfvcq} productName={res.product.productName} />
                   </div>
                 )}
 

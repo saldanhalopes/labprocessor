@@ -55,6 +55,35 @@ export interface ProductData {
   composition?: string; // Resumo da composição
 }
 
+export interface MfvcqInfo {
+  matched: boolean;
+  codigo_pa?: number;
+  celula?: string;
+  ativo?: string;
+  demanda_media?: number;
+  descricao?: string;
+}
+
+export interface MfvcqAnalysis {
+  celula: string;
+  quantidade_lotes: number;
+  analises_cq: any[];
+  resumo_tempos: {
+    tempo_unitario_horas: number;
+    fixo_horas: number;
+    variavel_por_lote_horas: number;
+    tempo_compartilhado_horas: number;
+    media_por_lote_horas: number;
+    carga_homem_horas: number;
+    carga_maquina_horas: number;
+    carga_homem_pct: number;
+    economia_pct: number;
+    carga_homem_mensal_h: number;
+    carga_maquina_mensal_h: number;
+    tempo_total_mensal_h: number;
+  };
+}
+
 export interface AnalysisResult {
   fileId: string;
   fileName: string;
@@ -70,6 +99,8 @@ export interface AnalysisResult {
   visualContent?: string;    // Description of images/tables
   images?: string[];         // Filenames of extracted images
   timestamp: number;
+  mfvcq?: MfvcqInfo;        // MFVCQ cross-reference data
+  mfvcqAnalysis?: MfvcqAnalysis; // Full MFVCQ analysis (loaded on expand)
 }
 
 export interface GlobalSettings {

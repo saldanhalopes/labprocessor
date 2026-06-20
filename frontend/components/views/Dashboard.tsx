@@ -542,12 +542,10 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
                   <h2 className="text-3xl font-black text-slate-800 tracking-tight">{t.upload.title}</h2>
                   <p className="text-slate-500 mt-2">{t.upload.subtitle}</p>
                   
-                  {!((import.meta as any).env?.VITE_GEMINI_API_KEY) && (
-                    <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-xl border border-red-200 flex items-center gap-2 max-w-md mx-auto">
-                      <AlertTriangle className="w-5 h-5" />
-                      <span><strong>Erro:</strong> Chave da API (VITE_GEMINI_API_KEY) não encontrada no ambiente.</span>
-                    </div>
-                  )}
+                   <div className="mt-4 p-4 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 flex items-center gap-2 max-w-md mx-auto">
+                     <AlertTriangle className="w-5 h-5" />
+                     <span>A chave Gemini é gerenciada pelo backend. Configure em <strong>Settings → Gemini API Key</strong> se necessário.</span>
+                   </div>
                 </div>
 
                 <FileUpload 
