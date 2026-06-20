@@ -136,7 +136,13 @@ export function findSimilar(geminiTestName) {
       let aliasHits = 0;
       for (const alias of aliases) {
         const aWords = tokenize(alias);
-        const matches = aWords.filter(aw => qWords.some(qw => qw.includes(aw) || aw.includes(qw)));
+        const matches = aWords.filter(aw => qWords.some(qw => {
+          if (qw === aw) return true;
+          // Prevent "SOLUCAO" matching "DISSOLUCAO" — require 70% overlap
+          if (qw.includes(aw) && aw.length >= qw.length * 0.7) return true;
+          if (aw.includes(qw) && qw.length >= aw.length * 0.7) return true;
+          return false;
+        }));
         aliasHits = Math.max(aliasHits, matches.length / Math.max(1, aWords.length));
       }
       score = Math.round(aliasHits * 60);

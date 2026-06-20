@@ -467,6 +467,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                   const physChemRows = sourceRows.filter(row => !isMicrobiology(row));
                   const microRows = sourceRows.filter(row => isMicrobiology(row));
 
+                  const findRotas = (testName: string) => res.basfluxo?.testes?.find((t: any) => t.geminiMatch === testName && !t.stub);
+
                   const renderTable = (rows: any[], title: string, icon: React.ReactNode, type: 'phys' | 'micro') => (
                     <div className="mt-4">
                       <div className={`px-6 py-2 flex items-center gap-2 ${type === 'phys' ? 'bg-teal-50 text-teal-800' : 'bg-pink-50 text-pink-800'} border-y border-slate-100`}>
@@ -508,6 +510,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                                         className="w-full bg-white border border-slate-300 px-2 py-1 rounded text-sm outline-none font-bold"
                                       />
                                     ) : row.testName}
+                                {(() => { const m = findRotas(row.testName); return m ? <span className="block text-[8px] text-indigo-600 font-bold truncate mt-0.5">⚙ {m.teste} · Fixo {(m.fixo?.total_min/60).toFixed(1)}h · Var {(m.variavel?.total_min/60).toFixed(1)}h</span> : null; })()}
                                   </td>
                                   <td className="px-6 py-4">
                                     {isEditingItem ? (
