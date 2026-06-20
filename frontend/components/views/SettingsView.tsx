@@ -3,6 +3,7 @@ import { GlobalSettings, Language } from '../../types';
 import { Save, Database, Trash2, Key } from 'lucide-react';
 import { translations } from '../../utils/translations';
 import { useToast } from '../../context/ToastContext';
+import { DiretrizesTable } from '../settings/DiretrizesTable';
 
 interface SettingsViewProps {
   settings: GlobalSettings;
@@ -344,7 +345,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           ))}
           <button onClick={() => {
             const name = prompt('Nome do novo teste:');
-            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],diretrizes:{t_prep:'',t_analysis:'',t_run:'',t_calc:'',heuristicas:''},como_quantificar:'',mo_pct:0,fixo_min:0,var_min:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
+            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],diretrizes:[],como_quantificar:'',mo_pct:0,fixo_min:0,var_min:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
           }} className="px-3 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
             + Novo
           </button>
@@ -397,9 +398,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
               </div>
             </div>
             <div>
-              <label className="text-slate-500 font-medium block mb-0.5">Diretrizes (JSON)</label>
-              <textarea value={JSON.stringify(testConfig[selectedTest].diretrizes||{},null,2)} onChange={e=>{try{updateTestField('diretrizes',JSON.parse(e.target.value))}catch{}}}
-                rows={6} className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono resize-y" />
+              <label className="text-slate-500 font-medium block mb-0.5">Diretrizes (tabela)</label>
+              <DiretrizesTable
+                diretrizes={(testConfig[selectedTest].diretrizes || []).map((d: any) => typeof d === 'string' ? { componente: '', descricao: d, heuristica: '', fixo_min: 0, var_min: 0 } : d)}
+                onChange={(d: any) => updateTestField('diretrizes', d)}
+              />
             </div>
             <div>
               <label className="text-slate-500 font-medium block mb-0.5">Como Quantificar</label>
