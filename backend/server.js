@@ -87,6 +87,28 @@ app.post('/api/analyze', async (req, res) => {
     result.fileId = result.fileId || `result_${Date.now()}`;
     result.fileName = fileName;
 
+    // Cross-reference with MFVCQ
+    try {
+      const productName = result.product?.productName || '';
+      if (productName) {
+        const mfvcqResults = searchProducts({ query: productName, limit: 1 });
+        if (mfvcqResults && mfvcqResults.length > 0) {
+          const found = mfvcqResults[0];
+          result.mfvcq = {
+            matched: true,
+            codigo_pa: found.codigo_pa,
+            celula: found.celula,
+            ativo: found.ativo,
+            demanda_media: found.media_12_meses,
+            descricao: found.descricao
+          };
+          console.log(`[API] MFVCQ match found for: ${productName}`);
+        }
+      }
+    } catch (e) {
+      console.error('[API] MFVCQ cross-reference error:', e);
+    }
+
     res.json(result);
   } catch (error) {
     console.error('[API] Error in /api/analyze:', error);

@@ -10,6 +10,7 @@ import { ReagentsView } from './ReagentsView';
 import { ProfileView } from './ProfileView';
 import { AdminView } from './AdminView';
 import StandardsView from './StandardsView';
+import { MfvcqView } from './MfvcqView';
 import { SummaryDashboardView } from './SummaryDashboardView';
 import { analyzeDocument } from '../../services/geminiService';
 import { extractPdfImages } from '../../utils/pdfImages';
@@ -20,7 +21,7 @@ import { useToast } from '../../context/ToastContext';
 import { DEFAULT_SETTINGS, generateCSV, recalculateRow, isMicrobiology, calculateParallelLeadTime } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
 
-type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download';
+type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'mfvcq';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -388,6 +389,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
   const tabs = [
     { id: 'dashboard', label: t.nav.dashboard, icon: BarChart3 },
     { id: 'upload', label: t.nav.upload, icon: Upload },
+    { id: 'mfvcq', label: t.nav.mfvcq, icon: BarChart3 },
     { id: 'view', label: t.nav.view, icon: Eye },
     { id: 'reagents', label: t.nav.reagents, icon: FlaskConical },
     { id: 'charts', label: t.nav.charts, icon: BarChart3 },
@@ -600,6 +602,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
             { activeTab === 'profile' && <ProfileView user={user} onUpdateUser={onUpdateUser} language={language} />}
 
             {activeTab === 'admin' && user.isAdmin && <AdminView currentUser={user} language={language} />}
+
+            {activeTab === 'mfvcq' && <MfvcqView language={language} showToast={showToast} />}
           </div>
         </div>
       </main>

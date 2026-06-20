@@ -13,6 +13,7 @@ export const translations = {
       summary: 'Resumo Geral',
       profile: 'Perfil',
       admin: 'Admin',
+      mfvcq: 'MFVCQ',
       download: 'Baixar CSV',
       logout: 'Sair'
     },
@@ -111,6 +112,7 @@ export const translations = {
       summary: 'Resumen General',
       profile: 'Perfil',
       admin: 'Admin',
+      mfvcq: 'MFVCQ',
       download: 'Descargar CSV',
       logout: 'Salir'
     },
@@ -209,6 +211,7 @@ export const translations = {
       summary: 'General Summary',
       profile: 'Profile',
       admin: 'Admin',
+      mfvcq: 'MFVCQ',
       download: 'Download CSV',
       logout: 'Logout'
     },
