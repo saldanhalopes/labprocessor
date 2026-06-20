@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 
 interface RotaDiretriz {
@@ -19,6 +19,7 @@ interface Rota {
 interface RotasTableProps {
   rotas: Rota[];
   onChange: (rotas: Rota[]) => void;
+  onTotalsChange?: (fixo: number, varTotal: number) => void;
 }
 
 export const RotasTable: React.FC<RotasTableProps> = ({ rotas, onChange }) => {
@@ -60,8 +61,12 @@ export const RotasTable: React.FC<RotasTableProps> = ({ rotas, onChange }) => {
     onChange(updated);
   };
 
-  const totalFixoTeste = rotas.reduce((s, r) => s + r.diretrizes.reduce((a, d) => a + (Number(d.fixo_min) || 0), 0), 0);
-  const totalVarTeste = rotas.reduce((s, r) => s + r.diretrizes.reduce((a, d) => a + (Number(d.var_min) || 0), 0), 0);
+  const totalFixoTeste = rotas.reduce((s, r) => s + (r.diretrizes||[]).reduce((a, d) => a + (Number(d.fixo_min) || 0), 0), 0);
+  const totalVarTeste = rotas.reduce((s, r) => s + (r.diretrizes||[]).reduce((a, d) => a + (Number(d.var_min) || 0), 0), 0);
+
+  useEffect(() => {
+    if (onTotalsChange) onTotalsChange(totalFixoTeste, totalVarTeste);
+  }, [totalFixoTeste, totalVarTeste]);
 
   return (
     <div className="border border-slate-200 rounded-lg overflow-hidden">

@@ -3,9 +3,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { loadVault, findSimilar, createStub } from './knowledge.js';
 
+function loadTestConfig() {
+  try {
+    if (fs.existsSync(TEST_CONFIG_PATH)) {
+      const data = JSON.parse(fs.readFileSync(TEST_CONFIG_PATH, 'utf-8'));
+      console.log(`[TestConfig] Loaded: ${Object.keys(data).length} tests from config`);
+      return data;
+    }
+  } catch(e) { console.error('[TestConfig] Load error:', e.message); }
+  return {};
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REFS_DIR = path.join(__dirname, 'reference');
+const TEST_CONFIG_PATH = path.join(__dirname, 'config', 'tests.json');
 
 let basefluxo = null;
 let demanda = null;
@@ -352,6 +364,54 @@ function matchTestToBasfluxo(geminiName) {
   return null;
 }
 
+function buildConfiguredRotas(testName, scale) {
+  const config = loadTestConfig();
+  const t = config[testName];
+  console.log(`[Config] Looking for "${testName}" - found: ${!!t} rotas: ${t?.rotas?.length}`);
+  if (!t?.rotas?.length) return null;
+
+  const atividades = [];
+  for (const rota of t.rotas) {
+    if (!rota.nome && !rota.diretrizes?.length) continue;
+    const dirs = rota.diretrizes || [];
+    for (const d of dirs) {
+      atividades.push({
+        descricao: `${rota.nome}: ${d.componente} - ${d.descricao}`,
+        rota: rota.nome,
+        execucao: rota.execucao || 'MAQ',
+        padrao_amostra: (d.var_min || 0) === 0 ? 'Padrão' : 'Amostra',
+        tempo_min: Math.round((((d.fixo_min || 0) + (d.var_min || 0)) * scale) * 100) / 100
+      });
+    }
+    // If rota has no diretrizes, add as a single activity
+    if (!dirs.length) {
+      atividades.push({
+        descricao: rota.nome,
+        rota: rota.nome,
+        execucao: rota.execucao || 'MAQ',
+        padrao_amostra: 'Padrão',
+        tempo_min: 0
+      });
+    }
+  }
+
+  return {
+    rotas: t.rotas.map(r => ({
+      nome: r.nome,
+      tipo: r.tipo || 'Máquina',
+      execucao: r.execucao || 'MAQ',
+      descricao: r.descricao || '',
+      diretrizes: (r.diretrizes || []).map(d => ({
+        componente: d.componente,
+        descricao: d.descricao,
+        fixo_min: Math.round((d.fixo_min || 0) * scale * 100) / 100,
+        var_min: Math.round((d.var_min || 0) * scale * 100) / 100
+      }))
+    })),
+    atividades
+  };
+}
+
 export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
   const full = analyzeProduct({ ativo, forma, lotes });
 
@@ -375,6 +435,8 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
         // Scale BASEFLUXO times to match Gemini total
         const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
         const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
+        // Use configured rotas from tests.json if available
+        const configRotas = buildConfiguredRotas(match.teste, scale);
         return {
           teste: t.teste,
           geminiMatch: g.name,
@@ -388,7 +450,8 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
           variavel: { ...t.variavel, total_min: Math.round((t.variavel?.total_min || 0) * scale * 100) / 100 },
           total_compartilhado_min: Math.round(((t.fixo?.total_min || 0) + (t.variavel?.total_min || 0) * lotes) * scale * 100) / 100,
           mo_pct: t.mo_pct,
-          atividades: t.atividades.map(a => ({
+          configRotas: configRotas?.rotas || null,
+          atividades: configRotas?.atividades || t.atividades.map(a => ({
             descricao: a.atividade,
             rota: a.rota,
             execucao: a.execucao,
@@ -405,6 +468,7 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
         if (!t) return null;
         const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
         const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
+        const configRotas = buildConfiguredRotas(kwMatch, scale);
         return {
           teste: t.teste,
           geminiMatch: g.name,
@@ -418,7 +482,8 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
           variavel: { ...t.variavel, total_min: Math.round((t.variavel?.total_min || 0) * scale * 100) / 100 },
           total_compartilhado_min: Math.round(((t.fixo?.total_min || 0) + (t.variavel?.total_min || 0) * lotes) * scale * 100) / 100,
           mo_pct: t.mo_pct,
-          atividades: t.atividades.map(a => ({
+          configRotas: configRotas?.rotas || null,
+          atividades: configRotas?.atividades || t.atividades.map(a => ({
             descricao: a.atividade,
             rota: a.rota,
             execucao: a.execucao,

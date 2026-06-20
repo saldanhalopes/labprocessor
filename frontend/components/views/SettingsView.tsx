@@ -386,6 +386,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
               <RotasTable
                 rotas={(testConfig[selectedTest].rotas || []).map((r: any) => typeof r === 'string' ? { nome: r, tipo: 'Máquina', execucao: 'MAQ', descricao: '', diretrizes: [] } : r)}
                 onChange={(r: any) => updateTestField('rotas', r)}
+                onTotalsChange={(fixo, var_) => {
+                  // Update test-level fixo/var from rotas totals
+                  setTestConfig(prev => ({
+                    ...prev,
+                    [selectedTest]: { ...prev[selectedTest], fixo_total_min: fixo, var_total_min: var_ }
+                  }));
+                }}
               />
             </div>
             <div>
