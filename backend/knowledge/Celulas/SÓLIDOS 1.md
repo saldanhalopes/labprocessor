@@ -1,0 +1,52 @@
+---
+nome: SÓLIDOS 1
+tipo: Sólidos
+produtos: 302
+ativos: 82
+demanda_total: 10743589.58
+tags:
+  - celula
+  - solidos
+---
+# SÓLIDOS 1
+
+**Tipo principal:** Sólidos
+**Produtos:** 302 | **Ativos:** 82
+**Demanda total:** 10.743.590 und/mês
+
+## Ativos
+- [[CETOPROFENO 150 MG]]
+- [[BETATRINTA - BETAMETASONA]]
+- [[ASSERT-SERTRALINA 50-100 MG]]
+- [[ABIRATERONA]]
+- [[ANASTROZOL 1MG]]
+- [[TADALAFILA]]
+- [[QUET XR - QUETIAPINA 50 MG]]
+- [[CARBOLITIUM 450MG NF]]
+- [[IMATINIBE MESIL]]
+- [[HEPARINA]]
+- [[AIRES - ACETILCISTEÍNA GRAN]]
+- [[DEJAVU-CITRATO DE SILDENAFILA 50MG]]
+- [[BUP 150MG]]
+- [[DOMPERIDONA-DOMPERIX CPR]]
+- [[VENLAFAXIN-VENLAFAXINA]]
+- [[TRAMADOL CAP]]
+- [[MELOCOX - MELOXICAM INJ]]
+- [[LENALIDOMIDA]]
+- [[B2COOL]]
+- [[GLEPTOFERRIL]]
+- [[RISS-RISPERIDONA 3MG]]
+- [[DIVALPROATO]]
+- [[BILASTINA 20MG]]
+- [[RIVAROXABANA]]
+- [[DUOMO-MESILATO 2MG]]
+- [[RISS-RISPERIDONA 1MG]]
+- [[BART H - IRBESATANA 300MH + 12,5MG]]
+- [[ALTA D]]
+- [[DOXORRUBICINA]]
+- [[FLUXENE 10 E 20MG]]
+
+... +52 mais
+
+## Produtos (302)
+[[420656]], [[414197]], [[426774]], [[420673]], [[428558]], [[414196]], [[412780]], [[413430]], [[430034]], [[408377]], [[401443]], [[400003]], [[407759]], [[429307]], [[426775]], [[405300]], [[403036]], [[424470]], [[428063]], [[402456]], [[427501]], [[430038]], [[428547]], [[424025]], [[400066]], [[428710]], [[404665]], [[430035]], [[428064]], [[427532]], [[426331]], [[426932]], [[405556]], [[404865]], [[430037]], [[408839]], [[429427]], [[428730]], [[428550]], [[404867]], [[427036]], [[427545]], [[426444]], [[424182]], [[400814]], [[427571]], [[424475]], [[426332]], [[402002]], [[418853]]

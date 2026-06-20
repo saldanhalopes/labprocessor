@@ -1,0 +1,27 @@
+---
+ativo: BART H / IRBESATANA 300MH + 12,5MG
+produtos: 8
+celulas:
+  - SÓLIDOS 1
+demanda_total: 153933.5
+bulk_maximo: 500000
+tags:
+  - ativo
+  - solidos 1
+---
+# BART H / IRBESATANA 300MH + 12,5MG
+
+**Produtos:** 8
+**Células:** SÓLIDOS 1
+**Demanda total:** 153.934 und/mês
+**Maior bulk:** 500.000 und
+
+## Produtos
+- [[408839]] — IRBESARTANA 300MG+HIDROCL 12,5MG 30CPR (SÓLIDOS 1)
+- [[427571]] — BART H 300MG+12,5MG 30CPR (SÓLIDOS 1)
+- [[419038]] — BART H 300MG+12,5MG CPR BULK GUA (SÓLIDOS 1)
+- [[427570]] — BART H 300MG+12,5MG 15CPR AG (SÓLIDOS 1)
+- [[428468]] — IRBESART+HCT 300MG+12.5MG 30CPR AL (SÓLIDOS 1)
+- [[428650]] — BART H 300 MG + 12,5 MG 4 CPR AG (SÓLIDOS 1)
+- [[423580]] — BEZART H 300MG/12,5MG 15CPR AG COL (SÓLIDOS 1)
+- [[423581]] — BEZART H 300MG/12,5MG 30CPR  COL (SÓLIDOS 1)

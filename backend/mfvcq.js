@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { loadVault, findSimilar, createStub } from './knowledge.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -351,50 +352,96 @@ function matchTestToBasfluxo(geminiName) {
 }
 
 export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
-  // Get full analysis
   const full = analyzeProduct({ ativo, forma, lotes });
 
   if (!full || !full.analises_cq?.length) return null;
 
-  // Match Gemini tests to BASEFLUXO tests
+  const vault = loadVault();
   const geminiTests = (geminiRows || []).map(r => r.testName || r.teste || '');
+
   const matchedBasfluxo = geminiTests
     .map(gName => {
-      const basfluxoName = matchTestToBasfluxo(gName);
-      if (!basfluxoName) return null;
-      const t = full.analises_cq.find(a => a.teste === basfluxoName);
-      if (!t) return null;
-      return {
-        teste: t.teste,
-        geminiMatch: gName,
-        rota: t.rota,
-        fixo: t.fixo,
-        variavel: t.variavel,
-        total_compartilhado_min: t.total_compartilhado_min,
-        mo_pct: t.mo_pct,
-        atividades: t.atividades.map(a => ({
-          descricao: a.atividade,
-          rota: a.rota,
-          execucao: a.execucao,
-          padrao_amostra: a.padrao_amostra,
-          tempo_min: a.tempo_corrida_minutos
-        }))
-      };
+      // Try vault first, then fall back to keyword matcher
+      let match = findSimilar(gName);
+      if (match) {
+        const t = full.analises_cq.find(a => a.teste === match.teste);
+        if (!t) {
+          // Vault found a test but it's not in the current BASEFLUXO flow
+          return { geminiMatch: gName, score: match.score, source: 'vault', stub: true };
+        }
+        return {
+          teste: t.teste,
+          geminiMatch: gName,
+          score: match.score,
+          source: 'vault',
+          rota: t.rota,
+          fixo: t.fixo,
+          variavel: t.variavel,
+          total_compartilhado_min: t.total_compartilhado_min,
+          mo_pct: t.mo_pct,
+          atividades: t.atividades.map(a => ({
+            descricao: a.atividade,
+            rota: a.rota,
+            execucao: a.execucao,
+            padrao_amostra: a.padrao_amostra,
+            tempo_min: a.tempo_corrida_minutos
+          }))
+        };
+      }
+
+      // Fallback: keyword-based matcher
+      const kwMatch = matchTestToBasfluxo(gName);
+      if (kwMatch) {
+        const t = full.analises_cq.find(a => a.teste === kwMatch);
+        if (!t) return null;
+        return {
+          teste: t.teste,
+          geminiMatch: gName,
+          score: 60,
+          source: 'keyword',
+          rota: t.rota,
+          fixo: t.fixo,
+          variavel: t.variavel,
+          total_compartilhado_min: t.total_compartilhado_min,
+          mo_pct: t.mo_pct,
+          atividades: t.atividades.map(a => ({
+            descricao: a.atividade,
+            rota: a.rota,
+            execucao: a.execucao,
+            padrao_amostra: a.padrao_amostra,
+            tempo_min: a.tempo_corrida_minutos
+          }))
+        };
+      }
+
+      // No match — create stub
+      const technique = geminiRows.find(r => r.testName === gName)?.technique || '';
+      createStub({ testName: gName, technique, productName: ativo || '' });
+      return { geminiMatch: gName, score: 0, source: 'stub', stub: true };
     })
     .filter(Boolean);
+
+  const withRotas = matchedBasfluxo.filter(t => !t.stub);
 
   return {
     celula: full.celula,
     quantidade_lotes: full.quantidade_lotes,
+    stats: {
+      totalGeminiTests: geminiTests.length,
+      matched: withRotas.length,
+      stubs: matchedBasfluxo.length - withRotas.length,
+      vaultMatches: matchedBasfluxo.filter(t => t.source === 'vault').length,
+      keywordMatches: matchedBasfluxo.filter(t => t.source === 'keyword').length
+    },
     resumo_tempos: {
-      ...full.resumo_tempos,
-      // Recalculate totals only for matched tests
-      tempo_compartilhado_horas: matchedBasfluxo.reduce((s, t) =>
-        s + (t.total_compartilhado_min / 60), 0),
-      carga_homem_horas: matchedBasfluxo.reduce((s, t) =>
-        s + ((t.fixo?.mo_min || 0) + (t.variavel?.mo_min || 0)) / 60, 0),
-      carga_maquina_horas: matchedBasfluxo.reduce((s, t) =>
-        s + ((t.fixo?.maq_min || 0) + (t.variavel?.maq_min || 0)) / 60, 0),
+      tempo_compartilhado_horas: withRotas.reduce((s, t) => s + (t.total_compartilhado_min / 60), 0),
+      carga_homem_horas: withRotas.reduce((s, t) => s + ((t.fixo?.mo_min || 0) + (t.variavel?.mo_min || 0)) / 60, 0),
+      carga_maquina_horas: withRotas.reduce((s, t) => s + ((t.fixo?.maq_min || 0) + (t.variavel?.maq_min || 0)) / 60, 0),
+      fixo_horas: withRotas.reduce((s, t) => s + (t.fixo?.total_min || 0) / 60, 0),
+      variavel_por_lote_horas: withRotas.reduce((s, t) => s + (t.variavel?.total_min || 0) / 60, 0),
+      carga_homem_pct: withRotas.length > 0
+        ? Math.round(withRotas.reduce((s, t) => s + ((t.fixo?.mo_min || 0) + (t.variavel?.mo_min || 0)), 0)
+          / withRotas.reduce((s, t) => s + t.total_compartilhado_min, 0) * 100) : 0
     },
     testes: matchedBasfluxo
   };

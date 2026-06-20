@@ -1,0 +1,30 @@
+---
+ativo: TAMISA 20
+produtos: 9
+celulas:
+  - SÓLIDOS 2 e 5
+  - SUSP/LIQ/CR/POM I, II e III
+demanda_total: 248069.25
+bulk_maximo: 3750000
+tags:
+  - ativo
+  - solidos 2 e 5
+  - susp/liq/cr/pom i, ii e iii
+---
+# TAMISA 20
+
+**Produtos:** 9
+**Células:** SÓLIDOS 2 e 5, SUSP/LIQ/CR/POM I, II e III
+**Demanda total:** 248.069 und/mês
+**Maior bulk:** 3.750.000 und
+
+## Produtos
+- [[406503]] — TAMISA 20MCG 63CP NF (SÓLIDOS 2 e 5)
+- [[406504]] — TAMISA 20MCG 21CP NF (SÓLIDOS 2 e 5)
+- [[415792]] — TAMISA 20MCG 21CP AG NF (SUSP/LIQ/CR/POM I, II e III)
+- [[425778]] — TAMISA 20MCG + 75MCG 21CPR EXP ESB (SUSP/LIQ/CR/POM I, II e III)
+- [[419513]] — STACY 20MCG + 0,75MCG 21CPR AG GUA (SUSP/LIQ/CR/POM I, II e III)
+- [[419512]] — STACY 20MCG + 0,75MCG 21CPR GUA (SUSP/LIQ/CR/POM I, II e III)
+- [[414601]] — TAMISA 20 75+20MCG 21CPR AG CH (SUSP/LIQ/CR/POM I, II e III)
+- [[419192]] — TAMISA 20 75+20MCG 21CPR PER (SUSP/LIQ/CR/POM I, II e III)
+- [[428860]] — GESTODENO+EE 75MCG+20MCG 21CPR COL (SUSP/LIQ/CR/POM I, II e III)

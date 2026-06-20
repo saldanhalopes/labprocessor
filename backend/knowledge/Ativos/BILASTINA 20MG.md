@@ -1,0 +1,31 @@
+---
+ativo: BILASTINA 20MG
+produtos: 12
+celulas:
+  - SÓLIDOS 1
+demanda_total: 307278.24
+bulk_maximo: 2000000
+tags:
+  - ativo
+  - solidos 1
+---
+# BILASTINA 20MG
+
+**Produtos:** 12
+**Células:** SÓLIDOS 1
+**Demanda total:** 307.278 und/mês
+**Maior bulk:** 2.000.000 und
+
+## Produtos
+- [[426331]] — BILASTINA 20 MG 15CPR (SÓLIDOS 1)
+- [[426332]] — BILASTINA 20 MG 30 CPR (SÓLIDOS 1)
+- [[425457]] — NAIRE 20 MG 15CPR (SÓLIDOS 1)
+- [[426224]] — HISBILA 20MG 15CPR (SÓLIDOS 1)
+- [[425459]] — NAIRE 20 MG 2CPR (AG) (SÓLIDOS 1)
+- [[426226]] — HISBILA 20MG 2CPR AG (SÓLIDOS 1)
+- [[426223]] — HISBILA 20MG 30CPR (SÓLIDOS 1)
+- [[426407]] — TYNNA 20 MG COMP X 15 (SÓLIDOS 1)
+- [[430683]] — NAIRE 20MG 30CPR AL (SÓLIDOS 1)
+- [[426410]] — TYNNA 20 MG COMP X 2 (AG) (SÓLIDOS 1)
+- [[426408]] — TYNNA 20 MG COMP X 30 (SÓLIDOS 1)
+- [[430682]] — NAIRE 20MG 2CPR AG AL (SÓLIDOS 1)

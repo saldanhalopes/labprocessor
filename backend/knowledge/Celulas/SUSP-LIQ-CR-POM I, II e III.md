@@ -1,0 +1,52 @@
+---
+nome: SUSP/LIQ/CR/POM I, II e III
+tipo: Sólidos
+produtos: 217
+ativos: 75
+demanda_total: 4829286.6
+tags:
+  - celula
+  - solidos
+---
+# SUSP/LIQ/CR/POM I, II e III
+
+**Tipo principal:** Sólidos
+**Produtos:** 217 | **Ativos:** 75
+**Demanda total:** 4.829.287 und/mês
+
+## Ativos
+- [[NOEX]]
+- [[DIL ASTRO-AZITROMICINA]]
+- [[VENLAFAXIN-VENLAFAXINA]]
+- [[ASTRO - AZITROMICINA SUS]]
+- [[PIEMONTE - MONTELUCASTE SACHE]]
+- [[HOLMES H 20MG + 12,5MG]]
+- [[CREVAGIN]]
+- [[PIEMONTE - MONTELUCASTE 4MG E 5MG]]
+- [[DIACQUA-ESPIRONOLACTONA]]
+- [[MANTIDAN 100MG]]
+- [[ACEBROFILINA XPE]]
+- [[DOMPERIX - DOMPERIDONA SUS]]
+- [[PITAVASTATINA]]
+- [[PIEMONTE - MONTELUCASTE 10MG]]
+- [[CARBOLITIUM 300MG]]
+- [[DIL LIOFILIZADOS INJETÁVEIS]]
+- [[LENALIDOMIDA]]
+- [[DESLORATADINA XPE]]
+- [[PERIVASC-DIOSMINA + FLAV]]
+- [[TESTOSTERONA]]
+- [[PRIMERA 30]]
+- [[DIUBLOK-ATENOLOL]]
+- [[LEVETIRACETAM CPR]]
+- [[AMATO-TOPIRAMATO]]
+- [[DESVENLAFAXINA]]
+- [[TAMISA 30 NF]]
+- [[ALTA D]]
+- [[20 BI]]
+- [[MOXIFLOXACINO]]
+- [[CERAZETTE EMBALA]]
+
+... +45 mais
+
+## Produtos (217)
+[[406053]], [[310945]], [[406307]], [[410196]], [[415433]], [[412395]], [[406400]], [[413646]], [[415430]], [[410201]], [[403614]], [[403133]], [[428222]], [[400002]], [[406052]], [[405297]], [[414077]], [[400001]], [[414085]], [[426107]], [[313665]], [[427502]], [[408862]], [[421845]], [[420426]], [[427553]], [[404894]], [[413647]], [[404474]], [[426104]], [[430488]], [[420427]], [[426110]], [[403432]], [[424207]], [[419988]], [[424841]], [[407233]], [[424208]], [[412418]], [[429421]], [[430866]], [[412448]], [[null]], [[427569]], [[408433]], [[428028]], [[430517]], [[408863]], [[428724]]

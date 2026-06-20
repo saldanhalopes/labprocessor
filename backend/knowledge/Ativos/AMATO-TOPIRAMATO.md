@@ -1,0 +1,34 @@
+---
+ativo: AMATO/TOPIRAMATO 
+produtos: 11
+celulas:
+  - INJETÁVEIS e ONCOLÓGICOS
+  - SUSP/LIQ/CR/POM I, II e III
+  - SÓLIDOS 2 e 5
+demanda_total: 242784.58
+bulk_maximo: 5301204
+tags:
+  - ativo
+  - injetaveis e oncologicos
+  - susp/liq/cr/pom i, ii e iii
+  - solidos 2 e 5
+---
+# AMATO/TOPIRAMATO 
+
+**Produtos:** 11
+**Células:** INJETÁVEIS e ONCOLÓGICOS, SUSP/LIQ/CR/POM I, II e III, SÓLIDOS 2 e 5
+**Demanda total:** 242.785 und/mês
+**Maior bulk:** 5.301.204 und
+
+## Produtos
+- [[403433]] — TOPIRAMATO  50MG 60CPR (C1) (INJETÁVEIS e ONCOLÓGICOS)
+- [[403434]] — TOPIRAMATO 100MG 60CPR (C1) (INJETÁVEIS e ONCOLÓGICOS)
+- [[403432]] — TOPIRAMATO  25MG 60CPR (C1) (SUSP/LIQ/CR/POM I, II e III)
+- [[404338]] — AMATO  50MG 60CPR (C1) (SÓLIDOS 2 e 5)
+- [[404339]] — AMATO 100MG 60CPR (C1) (INJETÁVEIS e ONCOLÓGICOS)
+- [[404337]] — AMATO  25MG 60CPR (C1) (SUSP/LIQ/CR/POM I, II e III)
+- [[406667]] — AMATO  25MG 12CPR AG (C1) (SUSP/LIQ/CR/POM I, II e III)
+- [[406668]] — AMATO  50MG 12CPR AG (C1) (SÓLIDOS 2 e 5)
+- [[419890]] — TEMPORA 100MG 60CPR (C1) CRI (SUSP/LIQ/CR/POM I, II e III)
+- [[406669]] — AMATO 100MG 12CPR AG (C1) (INJETÁVEIS e ONCOLÓGICOS)
+- [[419888]] — TEMPORA  25MG 60CPR (C1) CRI (SÓLIDOS 2 e 5)

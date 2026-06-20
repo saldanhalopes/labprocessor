@@ -1,0 +1,42 @@
+---
+ativo: PROMESTRIENO
+produtos: 15
+celulas:
+  - SÓLIDOS 3 e 4
+  - INJETÁVEIS e ONCOLÓGICOS
+  - SUSP/LIQ/CR/POM I, II e III
+  - SÓLIDOS 2 e 5
+  - SÓLIDOS 1
+demanda_total: 222206
+bulk_maximo: 500
+tags:
+  - ativo
+  - solidos 3 e 4
+  - injetaveis e oncologicos
+  - susp/liq/cr/pom i, ii e iii
+  - solidos 2 e 5
+  - solidos 1
+---
+# PROMESTRIENO
+
+**Produtos:** 15
+**Células:** SÓLIDOS 3 e 4, INJETÁVEIS e ONCOLÓGICOS, SUSP/LIQ/CR/POM I, II e III, SÓLIDOS 2 e 5, SÓLIDOS 1
+**Demanda total:** 222.206 und/mês
+**Maior bulk:** 500 und
+
+## Produtos
+- [[409000]] — PROMESTRIENO 10MG/G 30G + APLIC (SÓLIDOS 3 e 4)
+- [[409013]] — ANTROFI CR 30G + 20 APLIC (SÓLIDOS 3 e 4)
+- [[414294]] — PROMIM CR 30G + 20 APLIC (INJETÁVEIS e ONCOLÓGICOS)
+- [[410278]] — ANTROFI CR 15G AG (INJETÁVEIS e ONCOLÓGICOS)
+- [[414295]] — PROMIM CR 15G + 10 APLIC AG SUP (SUSP/LIQ/CR/POM I, II e III)
+- [[420226]] — ANTROFI CR 30G + 20 APLIC GUA (INJETÁVEIS e ONCOLÓGICOS)
+- [[421885]] — ANTROFI CR 30G + 20 APLIC AL (INJETÁVEIS e ONCOLÓGICOS)
+- [[420227]] — ANTROFI CR 15G + 10 APLIC AG GUA (SÓLIDOS 3 e 4)
+- [[421887]] — ANTROFI CR 15G + 10 APLIC AG AL (SÓLIDOS 2 e 5)
+- [[418925]] — ANTROFI CR 15G + 10 APLIC AG PAR (SÓLIDOS 3 e 4)
+- [[417101]] — ANTROFI CR 15G + 10 APLIC AG URU (INJETÁVEIS e ONCOLÓGICOS)
+- [[419515]] — ANTROFI CR 15G + 10 APLIC AG COL (SÓLIDOS 3 e 4)
+- [[418924]] — ANTROFI CR 30G + 20 APLIC PAR (SÓLIDOS 1)
+- [[419514]] — ANTROFI CR 30G + 20 APLIC COL (SÓLIDOS 1)
+- [[417100]] — ANTROFI CR 30G + 20 APLIC URU (SÓLIDOS 1)

@@ -1,0 +1,35 @@
+---
+ativo: BETINA / BETAISTINA 16MG
+produtos: 12
+celulas:
+  - SÓLIDOS 2 e 5
+  - SÓLIDOS 1
+  - SÓLIDOS 3 e 4
+demanda_total: 140564.85
+bulk_maximo: 2240000
+tags:
+  - ativo
+  - solidos 2 e 5
+  - solidos 1
+  - solidos 3 e 4
+---
+# BETINA / BETAISTINA 16MG
+
+**Produtos:** 12
+**Células:** SÓLIDOS 2 e 5, SÓLIDOS 1, SÓLIDOS 3 e 4
+**Demanda total:** 140.565 und/mês
+**Maior bulk:** 2.240.000 und
+
+## Produtos
+- [[407876]] — BETAISTINA 16MG 30CPR (SÓLIDOS 2 e 5)
+- [[407891]] — BETINA 16MG 30CPR (SÓLIDOS 1)
+- [[423583]] — HISTIVERT 16MG 30CPR COL (SÓLIDOS 2 e 5)
+- [[428338]] — BETISTIN 16MG 20CPR AL2 (SÓLIDOS 1)
+- [[423551]] — BETINA 16MG 30CPR CH (SÓLIDOS 2 e 5)
+- [[428339]] — BETISTIN 16MG 10CPR AG AL2 (SÓLIDOS 1)
+- [[423582]] — HISTIVERT 16MG 10CPR AG COL (SÓLIDOS 2 e 5)
+- [[413603]] — BETINA 16MG 10CPR AG (SÓLIDOS 1)
+- [[423550]] — BETINA 16MG 15CPR AG CH (SÓLIDOS 2 e 5)
+- [[418807]] — BETINA 16MG 10CPR AG EQU (SÓLIDOS 2 e 5)
+- [[427323]] — BETISTIN 16MG 20CPR AL (SÓLIDOS 3 e 4)
+- [[431447]] — HISTIVERT 16MG 10CPR AG VEN (SÓLIDOS 2 e 5)

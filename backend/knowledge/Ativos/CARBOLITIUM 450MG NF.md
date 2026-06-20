@@ -1,0 +1,38 @@
+---
+ativo: CARBOLITIUM 450MG NF
+produtos: 11
+celulas:
+  - SÓLIDOS 1
+  - 0x2a
+  - SÓLIDOS 2 e 5
+  - SUSP/LIQ/CR/POM I, II e III
+  - INJETÁVEIS e ONCOLÓGICOS
+demanda_total: 354624.83
+bulk_maximo: 1000000
+tags:
+  - ativo
+  - solidos 1
+  - 0x2a
+  - solidos 2 e 5
+  - susp/liq/cr/pom i, ii e iii
+  - injetaveis e oncologicos
+---
+# CARBOLITIUM 450MG NF
+
+**Produtos:** 11
+**Células:** SÓLIDOS 1, 0x2a, SÓLIDOS 2 e 5, SUSP/LIQ/CR/POM I, II e III, INJETÁVEIS e ONCOLÓGICOS
+**Demanda total:** 354.625 und/mês
+**Maior bulk:** 1.000.000 und
+
+## Produtos
+- [[430034]] — CARBOLITIUM 450MG 60CPR (C1) NF (EI03) (SÓLIDOS 1)
+- [[430038]] — CARBOLITIUM 450MG 30CPR (C1) NF (EI03) (SÓLIDOS 1)
+- [[430035]] — CARBOLITIUM 450MG 90CPR (C1) NF (EI03) (SÓLIDOS 1)
+- [[430037]] — CARBOLITIUM 450MG 15CPR AG (C1) NF (EI03) (SÓLIDOS 1)
+- [[429336]] — KALITIUM 450MG CPR BULK CH (0x2a)
+- [[427993]] — CARBOLITIUM CR 450MG 30CPR (C1) NV (SÓLIDOS 2 e 5)
+- [[427599]] — CARBOLITIUM CR 450MG 15CPR AG (C1) (SÓLIDOS 2 e 5)
+- [[426106]] — CARBOLITIUM CR 450MG 90CPR (C1) (SÓLIDOS 2 e 5)
+- [[430251]] — CARLIT XR 450MG 30CPR (C1) SUP (EI03) (SUSP/LIQ/CR/POM I, II e III)
+- [[426105]] — CARBOLITIUM CR 450MG 60CPR (C1) (SÓLIDOS 2 e 5)
+- [[430248]] — CARLIT XR 450MG 15CPR (C1) SUP (EI03) (INJETÁVEIS e ONCOLÓGICOS)

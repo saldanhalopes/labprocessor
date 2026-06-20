@@ -1,0 +1,26 @@
+---
+ativo: HOLMES H 40MG + 25MG
+produtos: 7
+celulas:
+  - HORMONIOS
+demanda_total: 261778.1
+bulk_maximo: 950000
+tags:
+  - ativo
+  - hormonios
+---
+# HOLMES H 40MG + 25MG
+
+**Produtos:** 7
+**Células:** HORMONIOS
+**Demanda total:** 261.778 und/mês
+**Maior bulk:** 950.000 und
+
+## Produtos
+- [[412403]] — OLMESARTANA 40MG+HIDROCLOR 25MG 30CPR (HORMONIOS)
+- [[412423]] — HOLMES H 40MG+25MG 30CPR (HORMONIOS)
+- [[414469]] — ASEA HCT 40MG+25MG 30CPR SUP (HORMONIOS)
+- [[413657]] — HOLMES H 40MG+25MG 5CPR AG (HORMONIOS)
+- [[428055]] — OLSAR H 40MG+25MG 30CPR (HORMONIOS)
+- [[414467]] — ASEA HCT 40MG+25MG 5CPR AG SUP (HORMONIOS)
+- [[414468]] — ASEA HCT 40MG+25MG 10CPR SUP (HORMONIOS)

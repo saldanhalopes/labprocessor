@@ -1,0 +1,38 @@
+---
+ativo: PREDNISOLONA CPR
+produtos: 17
+celulas:
+  - SÓLIDOS 2 e 5
+  - SÓLIDOS 3 e 4
+demanda_total: 515776.71
+bulk_maximo: 5000000
+tags:
+  - ativo
+  - solidos 2 e 5
+  - solidos 3 e 4
+---
+# PREDNISOLONA CPR
+
+**Produtos:** 17
+**Células:** SÓLIDOS 2 e 5, SÓLIDOS 3 e 4
+**Demanda total:** 515.777 und/mês
+**Maior bulk:** 5.000.000 und
+
+## Produtos
+- [[421907]] — PREDNISOLONA  20MG 10CPR (SÓLIDOS 2 e 5)
+- [[421632]] — PREDNISOLONA 40MG 7CPR (SÓLIDOS 2 e 5)
+- [[421626]] — PRENI  20MG 10CPR (SÓLIDOS 2 e 5)
+- [[421629]] — PRENI 20MG 5CPR AG (SÓLIDOS 2 e 5)
+- [[421906]] — PREDNISOLONA   5MG 20CPR (SÓLIDOS 2 e 5)
+- [[421631]] — PREDNISOLONA 5MG 10CPR (SÓLIDOS 2 e 5)
+- [[421630]] — PRENI 40MG 4CPR AG (SÓLIDOS 2 e 5)
+- [[421627]] — PRENI 40MG 7CPR (SÓLIDOS 2 e 5)
+- [[428102]] — PERCOIDE 20MG 5CPR AG (SÓLIDOS 2 e 5)
+- [[428101]] — PERCOIDE 20MG 10CPR (SÓLIDOS 2 e 5)
+- [[428104]] — PERCOIDE 40MG 4CPR AG (SÓLIDOS 2 e 5)
+- [[428103]] — PERCOIDE 40MG  7CPR (SÓLIDOS 2 e 5)
+- [[428754]] — PRENI 20MG 10CPR EXP PLATIN POINT (SÓLIDOS 2 e 5)
+- [[428753]] — PRENI  5MG 20CPR EXP PLATIN POINT (SÓLIDOS 2 e 5)
+- [[421625]] — PRENI   5MG 20CPR (SÓLIDOS 2 e 5)
+- [[421628]] — PRENI 5MG 5CPR AG (SÓLIDOS 3 e 4)
+- [[421624]] — PRENI    5MG 10CPR (SÓLIDOS 3 e 4)

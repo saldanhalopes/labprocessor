@@ -1,0 +1,53 @@
+---
+ativo: ESZOPICLONA
+produtos: 22
+celulas:
+  - HORMONIOS
+  - SÓLIDOS 2 e 5
+  - SÓLIDOS 3 e 4
+  - SÓLIDOS 1
+  - 0x2a
+  - SUSP/LIQ/CR/POM I, II e III
+  - INJETÁVEIS e ONCOLÓGICOS
+demanda_total: 434417.92
+bulk_maximo: 4119040
+tags:
+  - ativo
+  - hormonios
+  - solidos 2 e 5
+  - solidos 3 e 4
+  - solidos 1
+  - 0x2a
+  - susp/liq/cr/pom i, ii e iii
+  - injetaveis e oncologicos
+---
+# ESZOPICLONA
+
+**Produtos:** 22
+**Células:** HORMONIOS, SÓLIDOS 2 e 5, SÓLIDOS 3 e 4, SÓLIDOS 1, 0x2a, SUSP/LIQ/CR/POM I, II e III, INJETÁVEIS e ONCOLÓGICOS
+**Demanda total:** 434.418 und/mês
+**Maior bulk:** 4.119.040 und
+
+## Produtos
+- [[429219]] — PRYSMA 3MG 20CPR (B1) (HORMONIOS)
+- [[412561]] — PRYSMA 1MG 30 CPR (B1) (SÓLIDOS 2 e 5)
+- [[425181]] — EZONIA 3MG 30CPR (B1) (SÓLIDOS 3 e 4)
+- [[425181]] — EZONIA 3MG 30CPR (B1) (SÓLIDOS 3 e 4)
+- [[427591]] — EQUITAM 120MG 30CPR (SÓLIDOS 1)
+- [[429218]] — PRYSMA 2MG 20CPR (B1) (SÓLIDOS 2 e 5)
+- [[431718]] — EZONIA 1MG 30CPR (B1)  (EI03) (SÓLIDOS 2 e 5)
+- [[425180]] — EZONIA 2MG 30CPR (B1) (SÓLIDOS 3 e 4)
+- [[427589]] — EQUITAM  80MG 30CPR (SÓLIDOS 3 e 4)
+- [[425180]] — EZONIA 2MG 30CPR (B1) (SÓLIDOS 3 e 4)
+- [[429315]] — HEZO 3MG 20CPR (B1) SUP (HORMONIOS)
+- [[429344]] — EZONIA 3MG 20CPR (B1) (0x2a)
+- [[427587]] — EQUITAM  80MG 10CPR AG (SÓLIDOS 1)
+- [[431422]] — BONSONO 3MG 20CPR (B1) COL (SÓLIDOS 2 e 5)
+- [[427592]] — EQUITAM 120MG 5CPR AG (SUSP/LIQ/CR/POM I, II e III)
+- [[430995]] — LUNOX 3MG 30 CPR (SÓLIDOS 3 e 4)
+- [[429343]] — EZONIA 2MG 20CPR (B1) (SÓLIDOS 3 e 4)
+- [[431409]] — BONSONO 2MG 20CPR (B1) COL (SÓLIDOS 2 e 5)
+- [[429314]] — HEZO 2MG 20CPR (B1) SUP (SÓLIDOS 2 e 5)
+- [[430994]] — LUNOX 2MG 30 CPR (SÓLIDOS 3 e 4)
+- [[431410]] — BONSONO 3MG 10 CPR AG (B1) COL (INJETÁVEIS e ONCOLÓGICOS)
+- [[431407]] — BONSONO 2MG 10 CPR AG (B1) COL (SUSP/LIQ/CR/POM I, II e III)

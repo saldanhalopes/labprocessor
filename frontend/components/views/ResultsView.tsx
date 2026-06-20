@@ -367,12 +367,21 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                         ROTA — Quem faz o quê ({res.basfluxo.celula})
                       </span>
                       <span className="text-[10px] text-slate-400">
-                        {res.basfluxo.testes.length} testes extraídos
+                        {res.basfluxo.stats ? `${res.basfluxo.stats.matched}/${res.basfluxo.stats.totalGeminiTests} testes com ROTA` : `${res.basfluxo.testes.length} testes extraídos`}
+                        {res.basfluxo.stats?.stubs > 0 && <span className="text-amber-500 ml-1">⚠ {res.basfluxo.stats.stubs} stubs</span>}
                       </span>
                     </div>
 
                     {res.basfluxo.testes.map((t: any, ti: number) => {
-                      // Skip tests with zero total
+                      if (t.stub) {
+                        return (
+                          <div key={ti} className="flex items-center gap-2 py-1 text-xs mb-1">
+                            <span className="w-4 h-4 flex items-center justify-center">⚠️</span>
+                            <span className="text-amber-700 flex-1 truncate">{t.geminiMatch}</span>
+                            <span className="text-amber-400 text-[10px]">sem ROTA — stub</span>
+                          </div>
+                        );
+                      }
                       if (!t.total_compartilhado_min && !t.fixo?.total_min && !t.variavel?.total_min) return null;
 
                       // Group activities by ROTA
@@ -394,7 +403,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                             <span className="text-blue-600 w-14 text-right font-mono">{t.fixo?.total_min || 0}</span>
                             <span className="text-indigo-600 w-14 text-right font-mono">{t.variavel?.total_min || 0}</span>
                             <span className="text-slate-800 w-14 text-right font-mono font-bold">{t.total_compartilhado_min}</span>
-                            <span className="text-slate-400 w-10 text-right">{t.mo_pct || 0}%</span>
+                            <span className="text-slate-400 w-10 text-right">
+                              {t.score ? <span className="px-1 rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold">{t.score}%</span> : '—'}
+                            </span>
                           </summary>
                           <div className="ml-6 mt-1 mb-2 space-y-1">
                             {/* Activities by ROTA */}

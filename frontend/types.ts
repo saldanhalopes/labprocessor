@@ -108,6 +108,9 @@ export interface AnalysisResult {
     testes: {
       teste: string;
       geminiMatch?: string;
+      score?: number;
+      source?: string;
+      stub?: boolean;
       rota: string;
       fixo: { atividades: number; total_min: number; mo_min: number; maq_min: number };
       variavel: { atividades: number; total_min: number; mo_min: number; maq_min: number };

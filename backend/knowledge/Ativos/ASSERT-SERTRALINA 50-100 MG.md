@@ -1,0 +1,28 @@
+---
+ativo: ASSERT/SERTRALINA 50/100 MG
+produtos: 9
+celulas:
+  - SÓLIDOS 1
+demanda_total: 485556.7
+bulk_maximo: 3111111
+tags:
+  - ativo
+  - solidos 1
+---
+# ASSERT/SERTRALINA 50/100 MG
+
+**Produtos:** 9
+**Células:** SÓLIDOS 1
+**Demanda total:** 485.557 und/mês
+**Maior bulk:** 3.111.111 und
+
+## Produtos
+- [[426774]] — CLORIDRATO DE SERTRALINA 50MG 30CPR (C1) (SÓLIDOS 1)
+- [[426775]] — CLORIDRATO SERTRALINA 100MG 30CPR (C1) (SÓLIDOS 1)
+- [[427036]] — ASSERT 50MG 30CPR (C1) (SÓLIDOS 1)
+- [[427037]] — ASSERT 100MG 30 CPR (C1) (SÓLIDOS 1)
+- [[404696]] — SERTRALINA 100MG 30CPR (C1) (SÓLIDOS 1)
+- [[428074]] — ASSERT 100MG 10CPR AG (C1) (SÓLIDOS 1)
+- [[427039]] — ASSERT 50MG 10 CPR AG (C1) (SÓLIDOS 1)
+- [[427043]] — ASSERT 100MG 10 CPR (C1) (SÓLIDOS 1)
+- [[427042]] — ASSERT 50MG 10 CPR (C1) (SÓLIDOS 1)

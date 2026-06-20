@@ -1,0 +1,34 @@
+---
+ativo: CETOPROFENO 150 MG
+produtos: 11
+celulas:
+  - SÓLIDOS 1
+  - HORMONIOS
+  - SÓLIDOS 3 e 4
+demanda_total: 1151139.33
+bulk_maximo: 1500000
+tags:
+  - ativo
+  - solidos 1
+  - hormonios
+  - solidos 3 e 4
+---
+# CETOPROFENO 150 MG
+
+**Produtos:** 11
+**Células:** SÓLIDOS 1, HORMONIOS, SÓLIDOS 3 e 4
+**Demanda total:** 1.151.139 und/mês
+**Maior bulk:** 1.500.000 und
+
+## Produtos
+- [[420656]] — CETOPROFENO 10CPR (SÓLIDOS 1)
+- [[420657]] — BICERTO 10CPR (HORMONIOS)
+- [[427579]] — ALGIE 10CPR (SÓLIDOS 1)
+- [[427580]] — ALGIE 2CPR AG (SÓLIDOS 1)
+- [[420659]] — BICERTO  2CPR AG (SÓLIDOS 1)
+- [[429524]] — DOLOSTAT BI 150MG CPR BULK CH (SÓLIDOS 1)
+- [[425034]] — TRIPLOA 150 MG CPR LIB PROL X 2 AG (SÓLIDOS 1)
+- [[425024]] — TRIPLOA 150 MG CPR LIB PROL X 10 (SÓLIDOS 1)
+- [[427389]] — BICERTO 150MG CPR BULK PER (HORMONIOS)
+- [[426154]] — BICERTO 150 MG 2 CPR AG COL (SÓLIDOS 3 e 4)
+- [[426153]] — BICERTO 150 MG 10 CPR COL (SÓLIDOS 3 e 4)

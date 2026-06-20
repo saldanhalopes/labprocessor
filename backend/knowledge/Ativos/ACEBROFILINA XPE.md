@@ -1,0 +1,33 @@
+---
+ativo: ACEBROFILINA XPE
+produtos: 10
+celulas:
+  - SUSP/LIQ/CR/POM I, II e III
+  - SÓLIDOS 3 e 4
+  - SÓLIDOS 2 e 5
+demanda_total: 252435.67
+bulk_maximo: 11300
+tags:
+  - ativo
+  - susp/liq/cr/pom i, ii e iii
+  - solidos 3 e 4
+  - solidos 2 e 5
+---
+# ACEBROFILINA XPE
+
+**Produtos:** 10
+**Células:** SUSP/LIQ/CR/POM I, II e III, SÓLIDOS 3 e 4, SÓLIDOS 2 e 5
+**Demanda total:** 252.436 und/mês
+**Maior bulk:** 11.300 und
+
+## Produtos
+- [[400002]] — ACEBROFILINA PED XPE 120ML (SUSP/LIQ/CR/POM I, II e III)
+- [[400001]] — ACEBROFILINA AD XPE 120ML (SUSP/LIQ/CR/POM I, II e III)
+- [[418161]] — FILINAR ADU XPE 120ML CL SUP (SUSP/LIQ/CR/POM I, II e III)
+- [[418163]] — FILINAR ADU XPE  60ML CL AG SUP (SUSP/LIQ/CR/POM I, II e III)
+- [[418162]] — FILINAR PED XPE  60ML CL AG SUP (SÓLIDOS 3 e 4)
+- [[418160]] — FILINAR PED XPE 120ML CL SUP (SUSP/LIQ/CR/POM I, II e III)
+- [[431686]] — FILINAR  25MG XPE 120 ML PAR (SÓLIDOS 2 e 5)
+- [[431685]] — FILINAR  50MG XPE 120 ML PAR (SUSP/LIQ/CR/POM I, II e III)
+- [[431684]] — FILINAR  50MG XPE 60 ML AG PAR (SUSP/LIQ/CR/POM I, II e III)
+- [[431687]] — FILINAR  25MG XPE 60 ML AG PAR (SÓLIDOS 2 e 5)

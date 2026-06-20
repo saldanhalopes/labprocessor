@@ -1,0 +1,37 @@
+---
+ativo: ESC / ESCITALOPRAM 20MG
+produtos: 12
+celulas:
+  - SÓLIDOS 2 e 5
+  - SUSP/LIQ/CR/POM I, II e III
+  - HORMONIOS
+  - SÓLIDOS 3 e 4
+demanda_total: 1153682.58
+bulk_maximo: 1800000
+tags:
+  - ativo
+  - solidos 2 e 5
+  - susp/liq/cr/pom i, ii e iii
+  - hormonios
+  - solidos 3 e 4
+---
+# ESC / ESCITALOPRAM 20MG
+
+**Produtos:** 12
+**Células:** SÓLIDOS 2 e 5, SUSP/LIQ/CR/POM I, II e III, HORMONIOS, SÓLIDOS 3 e 4
+**Demanda total:** 1.153.683 und/mês
+**Maior bulk:** 1.800.000 und
+
+## Produtos
+- [[407652]] — ESCITALOPRAM 20MG 30CPR (C1) (SÓLIDOS 2 e 5)
+- [[425199]] — ESC 20MG 60CPR (C1) (SÓLIDOS 2 e 5)
+- [[425309]] — ESCITALOPRAM 20  MG CPR (C1) (SUSP/LIQ/CR/POM I, II e III)
+- [[425200]] — ESC 20MG 7CPR AG (C1) (SÓLIDOS 2 e 5)
+- [[425194]] — ESCITALOPRAM 20MG CPR BULK COL (HORMONIOS)
+- [[407664]] — ESC 20MG 30CPR (C1) (SÓLIDOS 2 e 5)
+- [[428430]] — ESC 20MG CPR BULK (C1) CH (HORMONIOS)
+- [[420858]] — ESCITALOPRAM 20MG CPR BULK CEL (HORMONIOS)
+- [[418826]] — ETALPRAM 20MG CPR BULK (C1) URU (SUSP/LIQ/CR/POM I, II e III)
+- [[417061]] — CONECT 20MG CPR BULK (C1) AL (SÓLIDOS 3 e 4)
+- [[420537]] — ESC 20MG 30TAB (C1) EXP MELH TKM (SÓLIDOS 3 e 4)
+- [[427295]] — ESCITALOPRAM 20 MG 30 COMP REV ECU (HORMONIOS)

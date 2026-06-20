@@ -1,0 +1,41 @@
+---
+ativo: BUP 150MG
+produtos: 16
+celulas:
+  - SÓLIDOS 1
+  - INJETÁVEIS e ONCOLÓGICOS
+  - SÓLIDOS 3 e 4
+  - SÓLIDOS 2 e 5
+demanda_total: 186069.3
+bulk_maximo: 2632190
+tags:
+  - ativo
+  - solidos 1
+  - injetaveis e oncologicos
+  - solidos 3 e 4
+  - solidos 2 e 5
+---
+# BUP 150MG
+
+**Produtos:** 16
+**Células:** SÓLIDOS 1, INJETÁVEIS e ONCOLÓGICOS, SÓLIDOS 3 e 4, SÓLIDOS 2 e 5
+**Demanda total:** 186.069 und/mês
+**Maior bulk:** 2.632.190 und
+
+## Produtos
+- [[429307]] — BUPROPIONA 60CPR CL (C1) NF (SÓLIDOS 1)
+- [[429306]] — BUPROPIONA 30CPR CL (C1) NF (INJETÁVEIS e ONCOLÓGICOS)
+- [[425043]] — BUPROPIONA CLOR 300MG 30CPR LIB PROL(C1) (SÓLIDOS 3 e 4)
+- [[418963]] — BUPROPIONA 30CPR CL (C1) (SÓLIDOS 3 e 4)
+- [[429303]] — BUP 60CPR (C1) NF (SÓLIDOS 1)
+- [[423608]] — BUTRINO 150MG 30CPR CH (SÓLIDOS 2 e 5)
+- [[429302]] — BUP 30CPR (C1) NF (SÓLIDOS 1)
+- [[420892]] — BUPRION 30CPR (C1) COL (SÓLIDOS 3 e 4)
+- [[425045]] — BUPROPIONA CLOR 300MG 60CPR LIB PROL(C1) (SÓLIDOS 2 e 5)
+- [[403894]] — BUP 60CPR (C1) (SÓLIDOS 3 e 4)
+- [[418964]] — BUPROPIONA 60CPR CL (C1) (SÓLIDOS 3 e 4)
+- [[403893]] — BUP 30CPR (C1) (SÓLIDOS 1)
+- [[425044]] — BUPROPIONA CLOR 150MG 60CPR LIB PROL(C1) (SÓLIDOS 1)
+- [[421302]] — BUP CPR BULK ARG (SÓLIDOS 2 e 5)
+- [[429305]] — BUP 12CPR AG (C1) NF (SÓLIDOS 3 e 4)
+- [[404422]] — BUP 12CPR AG (C1) (SÓLIDOS 1)

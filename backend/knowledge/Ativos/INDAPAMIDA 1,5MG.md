@@ -1,0 +1,27 @@
+---
+ativo: INDAPAMIDA 1,5MG
+produtos: 8
+celulas:
+  - HORMONIOS
+demanda_total: 1314367.17
+bulk_maximo: 2800000
+tags:
+  - ativo
+  - hormonios
+---
+# INDAPAMIDA 1,5MG
+
+**Produtos:** 8
+**Células:** HORMONIOS
+**Demanda total:** 1.314.367 und/mês
+**Maior bulk:** 2.800.000 und
+
+## Produtos
+- [[412740]] — INDAPAMIDA 30CPR (HORMONIOS)
+- [[412742]] — INDAPAMIDA 60CPR (HORMONIOS)
+- [[421379]] — INDAPAMIDA CPR BULK BIO (HORMONIOS)
+- [[428757]] — INDAPAMIDA 1,5MG 30CPR EXP PLATIN POINT (HORMONIOS)
+- [[425685]] — AINDA 1,5MG 10 CPR AG AL (HORMONIOS)
+- [[426650]] — AINDA SR 1.5MG 30CPR URU (HORMONIOS)
+- [[427204]] — INDAPAMIDA 1.5 MG 30 CPR ECU (HORMONIOS)
+- [[425684]] — AINDA 1,5MG 30 CPR AL (HORMONIOS)

@@ -1,0 +1,40 @@
+---
+ativo: TRAZODONA
+produtos: 17
+celulas:
+  - SÓLIDOS 2 e 5
+  - SÓLIDOS 1
+  - PRODUTO PRONTO
+demanda_total: 360864.74
+bulk_maximo: 2500000
+tags:
+  - ativo
+  - solidos 2 e 5
+  - solidos 1
+  - produto pronto
+---
+# TRAZODONA
+
+**Produtos:** 17
+**Células:** SÓLIDOS 2 e 5, SÓLIDOS 1, PRODUTO PRONTO
+**Demanda total:** 360.865 und/mês
+**Maior bulk:** 2.500.000 und
+
+## Produtos
+- [[425447]] — SONIC 50MG 60CPR (C1) (SÓLIDOS 2 e 5)
+- [[425445]] — TRAZODONA CLOR 50 MG 60CPR (C1) (SÓLIDOS 2 e 5)
+- [[425448]] — SONIC 100MG 30CPR (C1) (SÓLIDOS 1)
+- [[425446]] — TRAZODONA CLOR 100 MG 30CPR (C1) (SÓLIDOS 1)
+- [[425504]] — MOTRAZ 50MG 60CPR (C1) (SÓLIDOS 2 e 5)
+- [[425451]] — SONIC 50MG 5CPR AG (C1) (PRODUTO PRONTO)
+- [[426174]] — DOTRAZ 50 MG COM REV X 5 AG (SÓLIDOS 2 e 5)
+- [[426170]] — DOTRAZ 50 MG COM REV X 60 (SÓLIDOS 2 e 5)
+- [[425452]] — SONIC 100MG 5CPR AG (C1) (SÓLIDOS 2 e 5)
+- [[426177]] — DOTRAZ 100 MG COM REV X 5 AG (SÓLIDOS 1)
+- [[426175]] — DOTRAZ 100 MG COM REV X 30 (SÓLIDOS 1)
+- [[425505]] — MOTRAZ 100MG 30CPR (C1) (SÓLIDOS 1)
+- [[425506]] — MOTRAZ 50MG 5CPR  AG (C1) (SÓLIDOS 2 e 5)
+- [[425507]] — MOTRAZ 100MG 5CPR  AG (C1) (SÓLIDOS 1)
+- [[425509]] — MOTRAZ 100MG 5CPR (C1) (SÓLIDOS 1)
+- [[426176]] — DOTRAZ 100 MG COM REV X 5 (SÓLIDOS 1)
+- [[426172]] — DOTRAZ 50 MG COM REV X 5 (SÓLIDOS 2 e 5)

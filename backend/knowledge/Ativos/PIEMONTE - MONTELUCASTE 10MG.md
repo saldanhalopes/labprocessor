@@ -1,0 +1,30 @@
+---
+ativo: PIEMONTE / MONTELUCASTE 10MG
+produtos: 9
+celulas:
+  - SUSP/LIQ/CR/POM I, II e III
+  - SÓLIDOS 2 e 5
+demanda_total: 323339.67
+bulk_maximo: 1086950
+tags:
+  - ativo
+  - susp/liq/cr/pom i, ii e iii
+  - solidos 2 e 5
+---
+# PIEMONTE / MONTELUCASTE 10MG
+
+**Produtos:** 9
+**Células:** SUSP/LIQ/CR/POM I, II e III, SÓLIDOS 2 e 5
+**Demanda total:** 323.340 und/mês
+**Maior bulk:** 1.086.950 und
+
+## Produtos
+- [[414085]] — MONTELUCASTE 10MG 30CPR REV (SUSP/LIQ/CR/POM I, II e III)
+- [[426341]] — MONTELUCASTE SOD 10MG 60CPR (SUSP/LIQ/CR/POM I, II e III)
+- [[414088]] — PIEMONTE 10MG 30CPR REV (SUSP/LIQ/CR/POM I, II e III)
+- [[428282]] — ARIA 10MG 30CPR (SUSP/LIQ/CR/POM I, II e III)
+- [[426338]] — PIEMONTE 10MG 60 CPR (SUSP/LIQ/CR/POM I, II e III)
+- [[428761]] — MONTELUKAST 10MG CPR BULK CH (SUSP/LIQ/CR/POM I, II e III)
+- [[418631]] — PIEMONTE 10MG 5CPR AG (SÓLIDOS 2 e 5)
+- [[428280]] — ARIA 10MG  5CPR AG (SUSP/LIQ/CR/POM I, II e III)
+- [[425967]] — PIEMONTE 10MG CPR BULK URU (SUSP/LIQ/CR/POM I, II e III)

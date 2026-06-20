@@ -1,0 +1,33 @@
+---
+ativo: CICLOBENZAPRINA/MUSCULARE
+produtos: 10
+celulas:
+  - SÓLIDOS 2 e 5
+  - SÓLIDOS 1
+  - SÓLIDOS 3 e 4
+demanda_total: 358710.37
+bulk_maximo: 4166666
+tags:
+  - ativo
+  - solidos 2 e 5
+  - solidos 1
+  - solidos 3 e 4
+---
+# CICLOBENZAPRINA/MUSCULARE
+
+**Produtos:** 10
+**Células:** SÓLIDOS 2 e 5, SÓLIDOS 1, SÓLIDOS 3 e 4
+**Demanda total:** 358.710 und/mês
+**Maior bulk:** 4.166.666 und
+
+## Produtos
+- [[403364]] — CICLOBENZAPRINA 10MG  30CPR (SÓLIDOS 2 e 5)
+- [[404677]] — CICLOBENZAPRINA 10MG  15CPR (SÓLIDOS 2 e 5)
+- [[403236]] — MUSCULARE 10MG 15CPR (SÓLIDOS 2 e 5)
+- [[403238]] — MUSCULARE 10MG 30CPR (SÓLIDOS 2 e 5)
+- [[403368]] — CICLOBENZAPRINA  5MG  30CPR (SÓLIDOS 1)
+- [[404681]] — CICLOBENZAPRINA  5MG  15CPR (SÓLIDOS 1)
+- [[403244]] — MUSCULARE  5MG 15CPR (SÓLIDOS 3 e 4)
+- [[407436]] — MUSCULARE 10MG 8CPR AG (SÓLIDOS 1)
+- [[403246]] — MUSCULARE  5MG 30CPR (SÓLIDOS 2 e 5)
+- [[407435]] — MUSCULARE  5MG 8CPR AG (SÓLIDOS 3 e 4)
