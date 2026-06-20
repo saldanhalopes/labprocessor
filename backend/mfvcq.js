@@ -120,21 +120,41 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     }
   }
 
-  // Step 5: Build analysis list
+  // Step 5: Build analysis list with MO/MAQ breakdown
   let tempoTotalMinutos = 0;
+  let tempoTotalMO = 0;
+  let tempoTotalMAQ = 0;
   const analisesCq = [];
 
   for (const [teste, atividades] of Object.entries(fluxoForma)) {
     if (Array.isArray(atividades) && atividades.length > 0) {
       const item = atividades[0];
-      const tempoTeste = atividades.reduce((sum, a) => sum + (a.tempo_corrida_minutos || 0), 0);
+      let tempoTeste = 0;
+      let tempoMO = 0;
+      let tempoMAQ = 0;
+
+      for (const a of atividades) {
+        const t = a.tempo_corrida_minutos || 0;
+        tempoTeste += t;
+        if (a.execucao === 'MO') tempoMO += t;
+        else if (a.execucao === 'MAQ') tempoMAQ += t;
+      }
+
       tempoTotalMinutos += tempoTeste;
+      tempoTotalMO += tempoMO;
+      tempoTotalMAQ += tempoMAQ;
 
       analisesCq.push({
         tipo: 'Produto Acabado',
         teste,
         similaridade: item.similaridade || 'NÃO APLICÁVEL',
         rota: item.rota || 'DESCONHECIDA',
+        resumo: {
+          total_min: Math.round(tempoTeste * 100) / 100,
+          mo_min: Math.round(tempoMO * 100) / 100,
+          maq_min: Math.round(tempoMAQ * 100) / 100,
+          mo_pct: tempoTeste > 0 ? Math.round((tempoMO / tempoTeste) * 100) : 0
+        },
         atividades
       });
     }
@@ -165,10 +185,17 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     },
     analises_cq: analisesCq,
     resumo_tempos: {
-      tempo_unitario_minutos: tempoTotalMinutos,
+      tempo_unitario_minutos: Math.round(tempoTotalMinutos * 100) / 100,
       tempo_unitario_horas: Math.round((tempoTotalMinutos / 60) * 100) / 100,
+      carga_homem_minutos: Math.round(tempoTotalMO * 100) / 100,
+      carga_homem_horas: Math.round((tempoTotalMO / 60) * 100) / 100,
+      carga_maquina_minutos: Math.round(tempoTotalMAQ * 100) / 100,
+      carga_maquina_horas: Math.round((tempoTotalMAQ / 60) * 100) / 100,
+      carga_homem_pct: tempoTotalMinutos > 0 ? Math.round((tempoTotalMO / tempoTotalMinutos) * 100) : 0,
       tempo_total_lotes_minutos: Math.round(tempoTotalMinutos * demandaLotes * 100) / 100,
-      tempo_total_lotes_horas: Math.round((tempoTotalMinutos * demandaLotes / 60) * 100) / 100
+      tempo_total_lotes_horas: Math.round((tempoTotalMinutos * demandaLotes / 60) * 100) / 100,
+      carga_homem_mensal_h: Math.round((tempoTotalMO * demandaLotes / 60) * 100) / 100,
+      carga_maquina_mensal_h: Math.round((tempoTotalMAQ * demandaLotes / 60) * 100) / 100
     }
   };
 }
