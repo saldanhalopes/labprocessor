@@ -91,10 +91,42 @@ app.post('/api/analyze', async (req, res) => {
     // Cross-reference with MFVCQ
     try {
       const productName = result.product?.productName || '';
-      if (productName) {
-        const mfvcqResults = searchProducts({ query: productName, limit: 1 });
+      const activePrinciple = result.product?.activePrinciples || '';
+      
+      // Try active principle first (more likely to match), then product name
+      const searchTerm = activePrinciple
+        ? activePrinciple.split(/[\s,;]+/)[0] // First word of active principle
+        : productName.split(/[\s\d]+/)[0];     // First word of product name
+      
+      if (searchTerm && searchTerm.length > 3) {
+        const mfvcqResults = searchProducts({ query: searchTerm, limit: 20 });
         if (mfvcqResults && mfvcqResults.length > 0) {
-          const found = mfvcqResults[0];
+          // Filter by matching pharmaceutical form if available
+          const productForm = (result.product?.pharmaceuticalForm || '').toLowerCase();
+          let found = mfvcqResults[0];
+          
+          // Try to match by form -> celula mapping
+          let targetCelulas = [];
+          if (productForm.includes('comprimido') || productForm.includes('cpr') || productForm.includes('capsula')) {
+            targetCelulas = ['SÓLIDOS 1', 'SÓLIDOS 2', 'SÓLIDOS 3', 'SÓLIDOS 4', '0x2a'];
+          } else if (productForm.includes('inj')) {
+            targetCelulas = ['INJETÁVEIS'];
+          } else if (productForm.includes('susp') || productForm.includes('xar')) {
+            targetCelulas = ['SUSP', 'LIQ'];
+          }
+          
+          const celulaMatch = targetCelulas.length > 0
+            ? mfvcqResults.find(p => {
+                const d = (p.descricao || '').toUpperCase();
+                const hasForm = productForm.includes('comprimido') || productForm.includes('cpr')
+                  ? d.includes('CPR') || d.includes('COMP')
+                  : true;
+                return hasForm && targetCelulas.some(c => (p.celula || '').toUpperCase().includes(c.toUpperCase()));
+              })
+            : null;
+          
+          if (celulaMatch) found = celulaMatch;
+          
           result.mfvcq = {
             matched: true,
             codigo_pa: found.codigo_pa,
