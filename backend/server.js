@@ -16,6 +16,7 @@ import { saveToPinecone } from './pgvector.js';
 import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
+import { analyzeProduct, searchProducts, getIndices, getTemplate } from './mfvcq.js';
 
 
 const app = express();
@@ -322,6 +323,60 @@ app.get('/api/users/:username', async (req, res) => {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date(), uptime: process.uptime() });
+});
+
+// --- MFVCQ DATA ENDPOINTS ---
+
+/**
+ * Analyze a product (QC flow + demand)
+ */
+app.post('/api/mfvcq/analyze', (req, res) => {
+  try {
+    const result = analyzeProduct(req.body);
+    res.json(result);
+  } catch (error) {
+    console.error('[MFVCQ] Error analyzing product:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Search products in demand database
+ */
+app.get('/api/mfvcq/search', (req, res) => {
+  try {
+    const { q, limit } = req.query;
+    if (!q) return res.status(400).json({ error: 'Query parameter "q" is required' });
+    const results = searchProducts({ query: q, limit: parseInt(limit) || 10 });
+    res.json(results);
+  } catch (error) {
+    console.error('[MFVCQ] Error searching:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get search indices (active ingredients, forms, tests, routes, cells)
+ */
+app.get('/api/mfvcq/indices', (req, res) => {
+  try {
+    res.json(getIndices());
+  } catch (error) {
+    console.error('[MFVCQ] Error getting indices:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Get new product template
+ */
+app.get('/api/mfvcq/template', (req, res) => {
+  try {
+    res.json(getTemplate());
+  } catch (error) {
+    console.error('[MFVCQ] Error getting template:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Debug endpoint for database

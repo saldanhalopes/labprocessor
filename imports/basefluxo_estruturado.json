@@ -1,0 +1,2050 @@
+{
+  "ATIVO": {
+    "FORMA FARMACÊUTICA": {
+      "TESTE": [
+        {
+          "similaridade": "SIMILARIDADE",
+          "rota": "ROTA",
+          "atividade": "ATIVIDADES",
+          "padrao_amostra": "PADRÃO/AMOSTRA",
+          "execucao": "MO/MAQ",
+          "tempo_corrida_minutos": 0
+        }
+      ]
+    }
+  },
+  "ABIRATERONA": {
+    "Sólidos": {
+      "TEOR HPLC 1": [
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida das Padrão Calibração",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 350.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Single do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 140.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 140.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida das Padrão Controle",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 140.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida da FM",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Padrão STD",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do System",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Processar resutado das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Condicionar Sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BOMBA DE LAVAGEM",
+          "atividade": "Lavagem da Coluna",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AGITADOR",
+          "atividade": "Tempo da amostra no Agitador",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Processar curva dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "CONJ FILTRO",
+          "atividade": "Filtrar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Purgar sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da amostra no Ultrassom",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar/diluir as amostras teor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar/Diluir Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Método Empower",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Finalizar documentação",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da fase móvel no ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 20.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Diluir as amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar amostras uniformidade",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesagem de amostra",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesagem de padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Transcrever resultados obtidos",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Condicionar Sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência Método Empower",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência sample set - Amostra",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência sample set - Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Sample Set - Amostra",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Sample Set - Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Limpeza do sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Pegar Coluna Cromatográgica",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Purgar sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Registrar coluna cromatográfica",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Registrar HPLC",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Leitura do Método",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente para preparo da fase móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente para preparo do diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Verificar Single dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Verificar/trocar as Soluções do HPLC",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar as amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes da Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Limpeza do sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo do diluente no  ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo do padrão no ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes da Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR COLUNAS",
+          "atividade": "Lavagem da Coluna",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar pesagem das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar preparo do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Abrir método de análise",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar amostra de teor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Finalizar Logbook",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Imprimir Ids com os resultados",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Lançar resultado SAP",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Single do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR COLUNAS",
+          "atividade": "Finalizar Logbook",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida das Placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 0.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Padrão LOQ",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 0.0
+        }
+      ],
+      "DEGRADAÇÃO HPLC 1": [
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Single do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 210.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Padrão Calibração",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 210.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do FM",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Padrão LOQ",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do System",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 70.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Condicionar Sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BOMBA DE LAVAGEM",
+          "atividade": "Lavagem da Coluna",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Padrão Controle",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo de corrida do Padrão STD",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Processar resutado das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "CONJ FILTRO",
+          "atividade": "Filtrar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Purgar sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da Amostra no Ultrassom",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da Padrão no Ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar/diluir as amostras/placebo degradação",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar/Diluir Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AGITADOR",
+          "atividade": "Tempo da Amostra no Agitador",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Processar curva dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da fase móvel no ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 20.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Diluir as amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesagem de padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Método Empower",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Finalizar documentação",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Transcrever resultados obtidos",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar as amostras placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes da Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Limpeza do sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "MESMO HPLC 1",
+          "rota": "HPLC DAD",
+          "atividade": "Tempo do padrão no ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo do diluente no  ultrassom",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Leitura do Método",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar placebo",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente para preparo da fase móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente para preparo do diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar as amostras placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes da Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Condicionar Sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência Método Empower",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência sample set - Amostra",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência sample set - Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Sample Set - Amostra",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Sample Set - Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Limpeza do sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Pegar Coluna Cromatográgica",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Purgar sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Registrar coluna cromatográfica",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Registrar HPLC",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Verificar Single dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Verificar/trocar as Soluções do HPLC",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR COLUNAS",
+          "atividade": "Lavagem da Coluna",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Abrir método de análise",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Abrir planilha de placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar amostra de degradação",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar Placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar preparo do padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AGITADOR",
+          "atividade": "Tempo da Padrão no agitador",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 5.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Finalizar Logbook",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Imprimir Ids com os resultados",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Lançar resultado SAP",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Single do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR COLUNAS",
+          "atividade": "Finalizar Logbook",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        }
+      ],
+      "DISSOLUÇÃO HPLC 1": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Processar resutado das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "DISSOLUTOR",
+          "atividade": "Tempo da amostra no Dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Condicionar Sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BOMBA DE LAVAGEM",
+          "atividade": "Lavagem da Coluna",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 60.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida das amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 49.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do Padrão Calibração",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 35.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Processar curva dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "CONJ FILTRO",
+          "atividade": "Filtrar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "DISSOLUTOR",
+          "atividade": "Aquecer meio no dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Purgar sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "MILLIQ",
+          "atividade": "Preparar meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Lavagem do Dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar/diluir as amostras dissolução",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Preparar/Diluir Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "DISSOLUTOR",
+          "atividade": "Lavagem do Dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 30.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Método Empower",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Finalizar documentação",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da fase móvel no ultrassom",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 20.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Colocar meio de dissolução no dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Diluir as amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesagem de padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Transcrever resultados obtidos",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do Padrão Controle",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 14.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AGITADOR",
+          "atividade": "Tempo da amostra no Agitador",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AGITADOR",
+          "atividade": "Tempo do diluente no  ultrassom/agitador magnético",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Condicionar Sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência Método Empower",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência sample set - Amostra",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Conferência sample set - Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Sample Set - Amostra",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Criar Sample Set - Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Limpeza do sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Pegar Coluna Cromatográgica",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Purgar sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Registrar HPLC",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Verificar as Soluções do HPLC",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Verificar Single dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes da Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Pesar reagentes do meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Limpeza do sistema",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do Padrão STD",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo da amostra no Ultrassom",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ULTRASSOM",
+          "atividade": "Tempo do padrão no ultrassom",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Ajustar pH do meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.96
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Coletar amostras no dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar amostra de dissolução",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Leitura do Método",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente para preparo da fase móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente para preparo do diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar reagente parapreparo do meio",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes da Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pesar reagentes do meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 9.8
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR COLUNAS",
+          "atividade": "Lavagem da Coluna",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do Diluente",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 7.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do FM",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 7.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Finalizar Logbook",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Imprimir Ids com os resultados",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Lançar resultado SAP",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Abrir método de análise",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.98
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Filtrar Fase Móvel",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Pegar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar dissolutor",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar pH do meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar preparo da amostra",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA BANCADA (PREP HPLC)",
+          "atividade": "Registrar preparo do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA EQUIP - HPLC",
+          "atividade": "Single do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Single do Padrão",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 5.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "pHMETRO",
+          "atividade": "Ajustar pH do meio de dissolução",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 5.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR COLUNAS",
+          "atividade": "Finalizar Logbook",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 2.45
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do Padrão LOQ",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 0.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do Placebo",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 0.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "HPLC UV",
+          "atividade": "Tempo de corrida do System",
+          "padrao_amostra": "Padrão",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 0.0
+        }
+      ],
+      "ATIVIDADE MOVIMENTADOR": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "Troca dos descartes dos hplc 's",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 17.199
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "riteriar o residuo do laboratório",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 3.8220000000000005
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "Pegar Vidraria para preparo das amostras/placebo",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "Pegar Vidraria preparo dos Padrões",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 4.9
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "reposição consumíveis",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 3.8220000000000005
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "Descarte de vidrarias",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.9555000000000001
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "Lavagem previa dos balões",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.9555000000000001
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR MOVIMENTADOR",
+          "atividade": "Impressão das etiquetas",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.9110000000000003
+        }
+      ],
+      "DESINTEGRAÇÃO": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA TF",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "DESINTEGRADOR",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 15.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "MILLIQ",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        }
+      ],
+      "FRACIONAMENTO DE AMOSTRA": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Realizar fracionamento de amostra + documentação",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 5.733
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Preencher etiquetas de fracionamento e colocar nos saquinhos",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.9110000000000003
+        }
+      ],
+      "DUREZA": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA TF",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "DURÔMETRO",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        }
+      ],
+      "PESO MÉDIO 1": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA TF",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        }
+      ],
+      "UMIDADE IV": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA TF",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA IV",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        }
+      ],
+      "UNIFORMIDADE POR VARIAÇÃO DE PESO 1": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "BALANÇA",
+          "atividade": "Execução do teste",
+          "padrao_amostra": "Amostra",
+          "execucao": "MAQ",
+          "tempo_corrida_minutos": 10.0
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA TF",
+          "atividade": "Planilhar resultados",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 7.35
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "ANALISTA TF",
+          "atividade": "Imprimir planilha",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.47
+        }
+      ],
+      "SEPARAÇÃO_AMOSTRAS": [
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Pegar laudo do quadro Heijunka",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.9110000000000003
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Pegar as Amostras",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.9110000000000003
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Entrar na planilha de famílias",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.9555000000000001
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Agrupar impressões nas pastas",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.3822
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Enviar amostras fracionadas + formulários extras para as linhas (Famílias)",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 1.9110000000000003
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Visitar o quadro reijunka para avaliação do FIFO de produtos",
+          "padrao_amostra": "Padrão",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.9555000000000001
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Imprimir páginas extras para testes conforme famílias",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.5733
+        },
+        {
+          "similaridade": "NÃO APLICÁVEL",
+          "rota": "AUXILIAR FRACIONADOR",
+          "atividade": "Buscar impressões",
+          "padrao_amostra": "Amostra",
+          "execucao": "MO",
+          "tempo_corrida_minutos": 0.3822
+        }
+      ]
+    }
+  }
+}
