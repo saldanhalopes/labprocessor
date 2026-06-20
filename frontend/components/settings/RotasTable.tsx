@@ -73,7 +73,7 @@ export const RotasTable: React.FC<RotasTableProps> = ({ rotas, onChange }) => {
         return (
           <div key={i} className="border-b border-slate-100 last:border-b-0">
             {/* Rota header */}
-            <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer" onClick={() => r.diretrizes.length > 0 && toggle(i)}>
+            <div className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer" onClick={() => toggle(i)}>
               <span className="text-[10px]">{icon}</span>
               <input
                 value={r.nome}
@@ -95,16 +95,17 @@ export const RotasTable: React.FC<RotasTableProps> = ({ rotas, onChange }) => {
                 className="w-32 px-1.5 py-0.5 border border-slate-200 rounded text-[10px] outline-none focus:border-indigo-400 bg-transparent hidden md:block"
               />
               <span className="text-[9px] text-slate-400 font-mono">{r.diretrizes.length} dir</span>
-              {r.diretrizes.length > 0 && (expanded[i] ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />)}
+              {expanded[i] ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />}
               <button onClick={(e) => { e.stopPropagation(); removeRota(i); }} className="p-0.5 hover:bg-red-50 rounded text-red-400 hover:text-red-600">
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
 
             {/* Diretrizes sub-table */}
-            {expanded[i] && r.diretrizes.length > 0 && (
+            {expanded[i] && (
               <div className="bg-slate-50/50 border-t border-slate-100">
-                <table className="w-full text-[10px]">
+                {r.diretrizes.length > 0 && (
+                  <table className="w-full text-[10px]">
                   <thead>
                     <tr className="text-slate-400 border-b border-slate-100">
                       <th className="text-left px-3 py-0.5 font-medium">Componente</th>
@@ -147,6 +148,7 @@ export const RotasTable: React.FC<RotasTableProps> = ({ rotas, onChange }) => {
                     </tr>
                   </tbody>
                 </table>
+                )}
                 <button onClick={() => addDiretriz(i)}
                   className="w-full py-0.5 text-[9px] text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 flex items-center justify-center gap-1 transition-colors">
                   <Plus className="w-2.5 h-2.5" /> Adicionar componente
