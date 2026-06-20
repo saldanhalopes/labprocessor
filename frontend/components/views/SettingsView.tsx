@@ -345,7 +345,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           ))}
           <button onClick={() => {
             const name = prompt('Nome do novo teste:');
-            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],diretrizes:[],como_quantificar:'',mo_pct:0,fixo_min:0,var_min:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
+            if (name) { setTestConfig(prev => ({...prev, [name]: {tecnica:'',categoria:'',descricao:'',rotas:[],diretrizes:[],como_quantificar:'',mo_pct:0,aliases:[],status:'stub'}})); setSelectedTest(name); }
           }} className="px-3 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
             + Novo
           </button>
@@ -384,18 +384,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
               <label className="text-slate-500 font-medium block mb-0.5">Rotas (separadas por vírgula)</label>
               <input value={(testConfig[selectedTest].rotas||[]).join(', ')} onChange={e=>updateTestField('rotas',e.target.value.split(',').map(s=>s.trim()).filter(Boolean))}
                 className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500 font-mono" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-slate-500 font-medium block mb-0.5">Tempo Fixo (min)</label>
-                <input type="number" value={testConfig[selectedTest].fixo_min||0} onChange={e=>updateTestField('fixo_min',Number(e.target.value))}
-                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
-              </div>
-              <div>
-                <label className="text-slate-500 font-medium block mb-0.5">Tempo Variável (min)</label>
-                <input type="number" value={testConfig[selectedTest].var_min||0} onChange={e=>updateTestField('var_min',Number(e.target.value))}
-                  className="w-full px-2 py-1.5 border border-slate-300 rounded text-xs outline-none focus:ring-1 focus:ring-indigo-500" />
-              </div>
             </div>
             <div>
               <label className="text-slate-500 font-medium block mb-0.5">Diretrizes (tabela)</label>
