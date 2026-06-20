@@ -366,8 +366,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                       <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">
                         ROTA — Quem faz o quê ({res.basfluxo.celula})
                       </span>
-                      <span className="text-[10px] text-slate-400 ml-auto">
-                        Fixo: {res.basfluxo.resumo_tempos?.fixo_horas}h | Var/lote: {res.basfluxo.resumo_tempos?.variavel_por_lote_horas}h
+                      <span className="text-[10px] text-slate-400">
+                        {res.basfluxo.testes.length} testes extraídos
                       </span>
                     </div>
 
@@ -387,8 +387,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                           <summary className="flex items-center gap-3 py-1.5 px-2 cursor-pointer hover:bg-slate-50 rounded text-xs list-none">
                             <ChevronDown className="w-3 h-3 text-slate-400 group-open:hidden" />
                             <ChevronUp className="w-3 h-3 text-slate-400 hidden group-open:block" />
-                            <span className="font-medium text-slate-800 w-48 truncate">{t.teste}</span>
-                            <span className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-mono flex-1 truncate">{t.rota}</span>
+                            <span className="font-medium text-slate-800 w-48 truncate">
+                              {t.teste}
+                              {t.geminiMatch && <span className="block text-[9px] text-slate-400 truncate">← {t.geminiMatch}</span>}
+                            </span>
                             <span className="text-blue-600 w-14 text-right font-mono">{t.fixo?.total_min || 0}</span>
                             <span className="text-indigo-600 w-14 text-right font-mono">{t.variavel?.total_min || 0}</span>
                             <span className="text-slate-800 w-14 text-right font-mono font-bold">{t.total_compartilhado_min}</span>

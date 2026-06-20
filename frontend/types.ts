@@ -107,6 +107,7 @@ export interface AnalysisResult {
     resumo_tempos: any;
     testes: {
       teste: string;
+      geminiMatch?: string;
       rota: string;
       fixo: { atividades: number; total_min: number; mo_min: number; maq_min: number };
       variavel: { atividades: number; total_min: number; mo_min: number; maq_min: number };

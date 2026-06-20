@@ -293,3 +293,104 @@ export function getIndices() {
 export function getTemplate() {
   return JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'template_novo_produto.json'), 'utf-8'));
 }
+
+// Fuzzy match: Gemini test names → BASEFLUXO test names
+function matchTestToBasfluxo(geminiName) {
+  const g = (geminiName || '').toUpperCase();
+
+  // Teor / Doseamento / Assay → TEOR HPLC
+  if (g.includes('TEOR') || g.includes('DOSEAMENTO') || g.includes('ASSAY') || g.includes('DOSAGE') || g.includes('DOSAGEM'))
+    return 'TEOR HPLC 1';
+
+  // Degradação / Impurezas / Substâncias Relacionadas → DEGRADAÇÃO HPLC
+  if (g.includes('DEGRAD') || g.includes('SUBST') || g.includes('RELACIONADA') || g.includes('IMPUREZA') || g.includes('IMPURITY') || g.includes('RELATED'))
+    return 'DEGRADAÇÃO HPLC 1';
+
+  // Dissolução → DISSOLUÇÃO
+  if (g.includes('DISSOLU') || g.includes('DISSOLUTION'))
+    return 'DISSOLUÇÃO HPLC 1';
+
+  // Desintegração → DESINTEGRAÇÃO
+  if (g.includes('DESINTEGR') || g.includes('DISINTEGR'))
+    return 'DESINTEGRAÇÃO';
+
+  // Dureza → DUREZA
+  if (g.includes('DUREZA') || g.includes('HARDNESS'))
+    return 'DUREZA';
+
+  // Peso Médio → PESO MÉDIO
+  if ((g.includes('PESO') && g.includes('MEDIO')) || (g.includes('WEIGHT') && g.includes('AVERAGE')))
+    return 'PESO MÉDIO 1';
+
+  // Umidade → UMIDADE
+  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER') || g.includes('AGUA') || g.includes('ÁGUA'))
+    return 'UMIDADE IV';
+
+  // Uniformidade → UNIFORMIDADE
+  if (g.includes('UNIFORMIDADE') || g.includes('UNIFORMITY') || g.includes('VARIAÇÃO') || g.includes('VARIATION'))
+    return 'UNIFORMIDADE POR VARIAÇÃO DE PESO 1';
+
+  // Fracionamento → FRACIONAMENTO
+  if (g.includes('FRACIONAMENTO') || g.includes('FRACTION'))
+    return 'FRACIONAMENTO DE AMOSTRA';
+
+  // Separação → SEPARAÇÃO
+  if (g.includes('SEPARA') || g.includes('SEPARAT'))
+    return 'SEPARAÇÃO_AMOSTRAS';
+
+  // Movimentador → MOVIMENTADOR
+  if (g.includes('MOVIMENTADOR') || g.includes('HANDLING'))
+    return 'ATIVIDADE MOVIMENTADOR';
+
+  return null;
+}
+
+export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
+  // Get full analysis
+  const full = analyzeProduct({ ativo, forma, lotes });
+
+  if (!full || !full.analises_cq?.length) return null;
+
+  // Match Gemini tests to BASEFLUXO tests
+  const geminiTests = (geminiRows || []).map(r => r.testName || r.teste || '');
+  const matchedBasfluxo = geminiTests
+    .map(gName => {
+      const basfluxoName = matchTestToBasfluxo(gName);
+      if (!basfluxoName) return null;
+      const t = full.analises_cq.find(a => a.teste === basfluxoName);
+      if (!t) return null;
+      return {
+        teste: t.teste,
+        geminiMatch: gName,
+        rota: t.rota,
+        fixo: t.fixo,
+        variavel: t.variavel,
+        total_compartilhado_min: t.total_compartilhado_min,
+        mo_pct: t.mo_pct,
+        atividades: t.atividades.map(a => ({
+          descricao: a.atividade,
+          rota: a.rota,
+          execucao: a.execucao,
+          padrao_amostra: a.padrao_amostra,
+          tempo_min: a.tempo_corrida_minutos
+        }))
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    celula: full.celula,
+    quantidade_lotes: full.quantidade_lotes,
+    resumo_tempos: {
+      ...full.resumo_tempos,
+      // Recalculate totals only for matched tests
+      tempo_compartilhado_horas: matchedBasfluxo.reduce((s, t) =>
+        s + (t.total_compartilhado_min / 60), 0),
+      carga_homem_horas: matchedBasfluxo.reduce((s, t) =>
+        s + ((t.fixo?.mo_min || 0) + (t.variavel?.mo_min || 0)) / 60, 0),
+      carga_maquina_horas: matchedBasfluxo.reduce((s, t) =>
+        s + ((t.fixo?.maq_min || 0) + (t.variavel?.maq_min || 0)) / 60, 0),
+    },
+    testes: matchedBasfluxo
+  };
+}

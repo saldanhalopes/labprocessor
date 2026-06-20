@@ -16,7 +16,7 @@ import { saveToPinecone } from './pgvector.js';
 import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
-import { analyzeProduct, searchProducts, getIndices, getTemplate } from './mfvcq.js';
+import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
 import { getApiKey, updateApiKey } from './config.js';
 
 
@@ -138,35 +138,17 @@ app.post('/api/analyze', async (req, res) => {
           }
         }
         
-        // BASEFLUXO enrichment — applies even without MFVCQ match (by form)
+        // BASEFLUXO enrichment — matches Gemini tests to fluxo
         try {
-          const basfluxo = analyzeProduct({
+          const basfluxo = getBasfluxoForTests({
             ativo: found?.ativo || activePrinciple || searchTerm,
             forma: result.product?.pharmaceuticalForm || '',
+            geminiRows: result.rows || [],
             lotes: 1
           });
-          if (basfluxo && basfluxo.analises_cq?.length > 0) {
-            result.basfluxo = {
-              celula: basfluxo.celula,
-              quantidade_lotes: basfluxo.quantidade_lotes,
-              resumo_tempos: basfluxo.resumo_tempos,
-              testes: basfluxo.analises_cq.map(t => ({
-                teste: t.teste,
-                rota: t.rota,
-                fixo: t.fixo,
-                variavel: t.variavel,
-                total_compartilhado_min: t.total_compartilhado_min,
-                mo_pct: t.mo_pct,
-                atividades: t.atividades.map(a => ({
-                  descricao: a.atividade,
-                  rota: a.rota,
-                  execucao: a.execucao,
-                  padrao_amostra: a.padrao_amostra,
-                  tempo_min: a.tempo_corrida_minutos
-                }))
-              }))
-            };
-            console.log(`[API] BASEFLUXO flow added: ${basfluxo.analises_cq.length} tests`);
+          if (basfluxo && basfluxo.testes?.length > 0) {
+            result.basfluxo = basfluxo;
+            console.log(`[API] BASEFLUXO matched: ${basfluxo.testes.length}/${result.rows?.length || 0} tests`);
           }
         } catch (bfErr) {
           console.error('[API] BASEFLUXO enrichment error:', bfErr);
@@ -267,35 +249,14 @@ app.get('/api/results', async (req, res) => {
         const productName = r.product?.productName || '';
         const pharmForm = r.product?.pharmaceuticalForm || '';
         if (productName || pharmForm) {
-          const basfluxo = analyzeProduct({
+          const basfluxo = getBasfluxoForTests({
             ativo: productName.split(' ')[0],
             forma: pharmForm,
+            geminiRows: r.rows || [],
             lotes: 1
           });
-          if (basfluxo && basfluxo.analises_cq?.length > 0) {
-            return {
-              ...r,
-              basfluxo: {
-                celula: basfluxo.celula,
-                quantidade_lotes: basfluxo.quantidade_lotes,
-                resumo_tempos: basfluxo.resumo_tempos,
-                testes: basfluxo.analises_cq.map(t => ({
-                  teste: t.teste,
-                  rota: t.rota,
-                  fixo: t.fixo,
-                  variavel: t.variavel,
-                  total_compartilhado_min: t.total_compartilhado_min,
-                  mo_pct: t.mo_pct,
-                  atividades: t.atividades.map(a => ({
-                    descricao: a.atividade,
-                    rota: a.rota,
-                    execucao: a.execucao,
-                    padrao_amostra: a.padrao_amostra,
-                    tempo_min: a.tempo_corrida_minutos
-                  }))
-                }))
-              }
-            };
+          if (basfluxo && basfluxo.testes?.length > 0) {
+            return { ...r, basfluxo };
           }
         }
       } catch(e) {}
