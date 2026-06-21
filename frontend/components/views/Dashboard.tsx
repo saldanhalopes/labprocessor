@@ -241,18 +241,18 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         console.log("Analysis Result received in Dashboard:", result);
         newResults.push(result);
 
-        // Sync to Pinecone (Vector DB)
-        try {
-          await saveToPinecone(result);
-        } catch (pineError) {
-          console.error("Failed to sync to Pinecone:", pineError);
-        }
-
-        // Save to SQLite Backend
+        // Save to Database first (FK required by embeddings)
         try {
           await saveResultToDb(result);
         } catch (dbError) {
-          console.error("Failed to save to SQLite:", dbError);
+          console.error("Failed to save to DB:", dbError);
+        }
+
+        // Sync to pgvector (Vector DB) — after DB save for FK integrity
+        try {
+          await saveToPinecone(result);
+        } catch (pineError) {
+          console.error("Failed to sync to pgvector:", pineError);
         }
 
         // Calculate Lead Time and Workload for history
