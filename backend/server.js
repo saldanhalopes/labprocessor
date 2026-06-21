@@ -18,6 +18,7 @@ import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
 import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
 import { syncVaultFromConfig } from './knowledge.js';
+import { recordExtraction, getJournal, getStats, recordBias } from './learning.js';
 import { getApiKey, updateApiKey } from './config.js';
 
 
@@ -45,6 +46,7 @@ app.use('/data', express.static(path.join(process.cwd(), 'data')));
 // Document Analysis endpoint
 app.post('/api/analyze', async (req, res) => {
   try {
+    const analysisStart = Date.now();
     const { base64Data, mimeType, fileName, language } = req.body;
     if (!base64Data) {
       return res.status(400).json({ error: 'Missing base64Data in request body' });
@@ -91,12 +93,14 @@ app.post('/api/analyze', async (req, res) => {
     result.timestamp = result.timestamp || Date.now();
 
     // Cross-reference with MFVCQ
+    let mfvcqProductName = '';
     try {
       const productName = result.product?.productName || '';
       const activePrinciple = result.product?.activePrinciples || '';
       const productForm = (result.product?.pharmaceuticalForm || '').toLowerCase();
+      mfvcqProductName = productName;
       
-      const searchTerm = activePrinciple
+      const searchTerm = activePrinciple && typeof activePrinciple === 'string'
         ? activePrinciple.split(/[\s,;]+/)[0]
         : productName.split(/[\s\d]+/)[0];
       
@@ -157,6 +161,39 @@ app.post('/api/analyze', async (req, res) => {
       }
     } catch (e) {
       console.error('[API] MFVCQ cross-reference error:', e);
+    }
+
+    // Record learning event (always runs, even if cross-reference fails)
+    try {
+      const matched = result.basfluxo?.stats?.matched || 0;
+      const stubs = result.basfluxo?.stats?.stubs || 0;
+      const topMatches = (result.basfluxo?.testes || [])
+        .filter(t => !t.stub && t.teste)
+        .map(t => ({ geminiName: t.geminiMatch || '', basfluxoMatch: t.teste, score: t.score || 0, technique: '', source: t.source || 'unknown' }))
+        .slice(0, 20);
+      const biases = topMatches
+        .map(t => {
+          const match = result.basfluxo?.testes?.find(m => m.teste === t.basfluxoMatch);
+          if (match && match.geminiTotalMin > 0 && match.basfluxoTotalMin > 0) {
+            return recordBias(match.teste, match.geminiTotalMin, match.basfluxoTotalMin);
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      recordExtraction({
+        fileName,
+        productName: mfvcqProductName || result.product?.productName || '',
+        extractedTests: result.rows?.length || 0,
+        matchedTests: matched,
+        stubsCreated: stubs,
+        aliasesAdded: 0,
+        extractionDurationMs: Date.now() - analysisStart,
+        topMatches,
+        biases
+      });
+    } catch (learnErr) {
+      console.error('[API] Learning record error:', learnErr);
     }
 
     res.json(result);
@@ -589,6 +626,29 @@ app.get('/api/debug/db', async (req, res) => {
       timestamp: new Date()
     });
   }
+});
+
+// ===== LEARNING JOURNAL =====
+app.post('/api/learning/record', (req, res) => {
+  try {
+    const entry = recordExtraction(req.body);
+    res.json(entry);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/journal', (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+    res.json(getJournal({ days, limit, offset }));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/stats', (_req, res) => {
+  try {
+    res.json(getStats());
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ===== VAULT / OBSIDIAN KNOWLEDGE API =====
