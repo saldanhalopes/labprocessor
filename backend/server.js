@@ -591,6 +591,67 @@ app.get('/api/debug/db', async (req, res) => {
   }
 });
 
+// ===== VAULT / OBSIDIAN KNOWLEDGE API =====
+const VAULT_DIR = path.join(__dirname, 'knowledge');
+
+function scanVaultDir(dir) {
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      results.push({
+        name: entry.name,
+        type: 'folder',
+        children: scanVaultDir(path.join(dir, entry.name))
+      });
+    } else if (entry.name.endsWith('.md')) {
+      const fullPath = path.join(dir, entry.name);
+      const stat = fs.statSync(fullPath);
+      results.push({
+        name: entry.name,
+        type: 'file',
+        path: fullPath,
+        size: stat.size,
+        modified: stat.mtime.toISOString()
+      });
+    }
+  }
+  return results.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+app.get('/api/knowledge/vault', (_req, res) => {
+  try {
+    const tree = scanVaultDir(VAULT_DIR);
+    res.json({ tree });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Vault file read/write - manual path extraction (Express 5 wildcard compat)
+app.use('/api/knowledge/vault', (req, res) => {
+  const subPath = req.path.replace(/^\/+/, '').replace(/\/+$/, '');
+  if (!subPath) return; // root route handled by app.get above
+  if (req.method === 'GET') {
+    try {
+      const filePath = path.join(VAULT_DIR, subPath);
+      if (!filePath.startsWith(VAULT_DIR)) return res.status(403).json({ error: 'Forbidden' });
+      if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Not found' });
+      const content = fs.readFileSync(filePath, 'utf-8');
+      res.json({ path: subPath, content });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  } else if (req.method === 'PUT') {
+    const subPath = req.path.replace(/^\/+/, '').replace(/\/+$/, '');
+    if (!subPath) return res.status(400).json({ error: 'No file path' });
+    try {
+      const filePath = path.join(VAULT_DIR, subPath);
+      if (!filePath.startsWith(VAULT_DIR)) return res.status(403).json({ error: 'Forbidden' });
+      if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Not found' });
+      fs.writeFileSync(filePath, req.body.content, 'utf-8');
+      res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  }
+});
+
 // Fallback to index.html for SPA routing
 if (fs.existsSync(frontendDistPath)) {
   app.use((req, res, next) => {
