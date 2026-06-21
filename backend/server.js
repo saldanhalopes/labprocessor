@@ -751,11 +751,12 @@ function scanVaultDir(dir) {
       });
     } else if (entry.name.endsWith('.md')) {
       const fullPath = path.join(dir, entry.name);
+      const relativePath = path.relative(VAULT_DIR, fullPath).replace(/\\/g, '/');
       const stat = fs.statSync(fullPath);
       results.push({
         name: entry.name,
         type: 'file',
-        path: fullPath,
+        path: relativePath,
         size: stat.size,
         modified: stat.mtime.toISOString()
       });
@@ -775,6 +776,7 @@ app.get('/api/knowledge/vault', (_req, res) => {
 app.use('/api/knowledge/vault', (req, res) => {
   const subPath = req.path.replace(/^\/+/, '').replace(/\/+$/, '');
   if (!subPath) return; // root route handled by app.get above
+  console.log(`[Vault] ${req.method} ${subPath}`);
   if (req.method === 'GET') {
     try {
       const filePath = path.join(VAULT_DIR, subPath);
