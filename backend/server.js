@@ -16,9 +16,9 @@ import { saveToPinecone } from './pgvector.js';
 import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
-import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
+import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests, matchTestToBasfluxo } from './mfvcq.js';
 import { syncVaultFromConfig, getPendingAliases, verifyAlias } from './knowledge.js';
-import { recordExtraction, getJournal, getStats, recordBias, extractTimingPatterns, getRecentStubs, getBiasStats, detectPatterns } from './learning.js';
+import { recordExtraction, getJournal, getStats, recordBias, extractTimingPatterns, getRecentStubs, getBiasStats, detectPatterns, consolidateStubs } from './learning.js';
 import { getApiKey, updateApiKey } from './config.js';
 
 
@@ -213,6 +213,17 @@ app.post('/api/analyze', async (req, res) => {
         stubNames,
         biases
       });
+
+      // Auto-consolidate every 5 extractions
+      const totalExtractions = (getStats()).totalExtractions;
+      if (totalExtractions > 0 && totalExtractions % 5 === 0) {
+        try {
+          const consolidation = consolidateStubs(matchTestToBasfluxo);
+          if (consolidation.promoted?.length) {
+            console.log(`[Consolidate] Auto-triggered: promoted ${consolidation.promoted.length} stubs`);
+          }
+        } catch (e) { console.error('[Consolidate] Auto-trigger error:', e.message); }
+      }
 
       // Alert on high bias
       const highBiasTests = biases.filter(b => Math.abs(b.biasPct) >= 50);
@@ -700,6 +711,13 @@ app.get('/api/learning/bias', (_req, res) => {
 app.get('/api/learning/recent-stubs', (req, res) => {
   try {
     res.json(getRecentStubs(parseInt(req.query.limit) || 5));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/learning/consolidate', (_req, res) => {
+  try {
+    const result = consolidateStubs(matchTestToBasfluxo);
+    res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

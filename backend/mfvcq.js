@@ -304,7 +304,7 @@ export function getTemplate() {
 }
 
 // Fuzzy match: Gemini test names → BASEFLUXO test names
-function matchTestToBasfluxo(geminiName) {
+export function matchTestToBasfluxo(geminiName) {
   const g = (geminiName || '').toUpperCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove accents
 

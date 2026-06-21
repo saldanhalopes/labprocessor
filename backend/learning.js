@@ -56,12 +56,14 @@ export function recordExtraction(event) {
     timestamp: event.timestamp || new Date().toISOString(),
     fileName: event.fileName,
     productName: event.productName || '',
+    pharmaceuticalForm: event.pharmaceuticalForm || '',
     extractedTests: event.extractedTests || 0,
     matchedTests: event.matchedTests || 0,
     stubsCreated: event.stubsCreated || 0,
     aliasesAdded: event.aliasesAdded || 0,
     extractionDurationMs: event.extractionDurationMs || 0,
     topMatches: (event.topMatches || []).slice(0, 20),
+    stubNames: (event.stubNames || []).slice(0, 30),
     biases: (event.biases || []).slice(0, 10),
     source: event.source || 'upload'
   };
@@ -444,4 +446,87 @@ export function detectPatterns() {
   } catch (e) { /* non-critical */ }
 
   return patterns;
+}
+
+// ===== STUB CONSOLIDATION =====
+
+export function consolidateStubs(matchTestToBasfluxoFn) {
+  const entries = loadJournal();
+  if (entries.length < 3) return { promoted: [], summary: 'Need >= 3 extractions' };
+
+  const stubCounts = {};
+  const stubTechniques = {};
+  entries.forEach(e => {
+    (e.stubNames || []).forEach(s => {
+      if (!s.geminiName) return;
+      const name = s.geminiName.trim();
+      if (!stubCounts[name]) { stubCounts[name] = 0; stubTechniques[name] = {}; }
+      stubCounts[name]++;
+      const tech = (s.technique || 'Desconhecida').trim();
+      stubTechniques[name][tech] = (stubTechniques[name][tech] || 0) + 1;
+    });
+  });
+
+  const candidates = Object.entries(stubCounts)
+    .filter(([, count]) => count >= 3)
+    .map(([name, count]) => ({ name, count }));
+
+  if (!candidates.length) return { promoted: [], summary: 'No stubs with >= 3 appearances' };
+
+  const TESTS_PATH = path.join(__dirname, 'config', 'tests.json');
+  let config = {};
+  try { if (fs.existsSync(TESTS_PATH)) config = JSON.parse(fs.readFileSync(TESTS_PATH, 'utf-8')); } catch (e) {}
+
+  const promoted = [];
+
+  for (const stub of candidates) {
+    if (config[stub.name] && config[stub.name].status !== 'stub') continue;
+
+    const techs = stubTechniques[stub.name] || {};
+    const techEntries = Object.entries(techs);
+    const totalTech = techEntries.reduce((s, [, c]) => s + c, 0);
+    const dominantTech = techEntries.sort(([, a], [, b]) => b - a)[0];
+    const techName = dominantTech?.[0] || 'Desconhecida';
+    const techPct = totalTech > 0 ? Math.round((dominantTech?.[1] || 0) / totalTech * 100) : 0;
+
+    if (techPct < 75 && totalTech > 1) continue;
+
+    let basfluxoMatch = null;
+    try { basfluxoMatch = matchTestToBasfluxoFn ? matchTestToBasfluxoFn(stub.name) : null; } catch (e) {}
+
+    const existing = config[stub.name] || {};
+    config[stub.name] = {
+      ...existing,
+      tecnica: techName,
+      categoria: existing.categoria || 'Nao classificado',
+      descricao: existing.descricao || `Promovido apos ${stub.count} aparicoes.`,
+      aliases: [...new Set([...(existing.aliases || []), stub.name])],
+      status: 'completo',
+      promoted: true,
+      promotedAt: new Date().toISOString(),
+      appearanceCount: stub.count,
+      basfluxoMatch: basfluxoMatch || null
+    };
+    promoted.push({ name: stub.name, technique: techName, appearances: stub.count, basfluxoMatch });
+    console.log(`[Consolidate] Promoted: "${stub.name}" (${stub.count}x, ${techName})`);
+  }
+
+  if (promoted.length > 0) {
+    try {
+      fs.writeFileSync(TESTS_PATH, JSON.stringify(config, null, 2), 'utf-8');
+      // Sync vault
+      try {
+        const { syncVaultFromConfig } = require('./knowledge.js');
+        syncVaultFromConfig();
+      } catch (e) {}
+    } catch (e) { console.error('[Consolidate] Save error:', e.message); }
+  }
+
+  return {
+    promoted,
+    summary: promoted.length
+      ? `Promoted ${promoted.length} stubs`
+      : `No stubs qualified (${candidates.length} candidates)`,
+    candidatesChecked: candidates.length
+  };
 }
