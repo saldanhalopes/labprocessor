@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const VAULT_DIR = path.join(__dirname, 'knowledge');
+const TESTS_CONFIG_PATH = path.join(__dirname, 'config', 'tests.json');
 
 let vaultCache = null;
 
@@ -101,6 +102,13 @@ export function loadVault() {
   return vaultCache;
 }
 
+function loadConfigTests() {
+  try {
+    if (fs.existsSync(TESTS_CONFIG_PATH)) return JSON.parse(fs.readFileSync(TESTS_CONFIG_PATH, 'utf-8'));
+  } catch(e) {}
+  return {};
+}
+
 export function findSimilar(geminiTestName) {
   const vault = loadVault();
   const q = normalize(geminiTestName);
@@ -111,8 +119,16 @@ export function findSimilar(geminiTestName) {
   let best = null;
   let bestScore = 0;
 
-  for (const t of vault.tests) {
-    if (t.status === 'stub') continue;
+  // Also search tests.json config (primary source, always synced with UI)
+  const configTests = loadConfigTests();
+  const allTests = [
+    ...vault.tests.filter(t => t.status !== 'stub'),
+    ...Object.entries(configTests)
+      .filter(([name, t]) => t.status !== 'stub' && (t.aliases || []).length > 0)
+      .map(([name, t]) => ({ teste: name, aliases: t.aliases, status: t.status || 'completo', source: 'config' }))
+  ];
+
+  for (const t of allTests) {
     const aliases = (t.aliases || []).map(a => normalize(a));
     let score = 0;
 
@@ -237,6 +253,27 @@ criado: ${new Date().toISOString().split('T')[0]}
 
   fs.writeFileSync(filePath, content, 'utf-8');
 
+  // Also save to tests.json config
+  try {
+    const config = loadConfigTests();
+    if (!config[testName]) {
+      config[testName] = {
+        tecnica: technique || 'Desconhecida',
+        categoria: '',
+        descricao: '',
+        rotas: [],
+        diretrizes: [],
+        aliases: [testName, technique].filter(Boolean),
+        mo_pct: 0,
+        fixo_min: 0,
+        var_min: 0,
+        como_quantificar: '',
+        status: 'stub'
+      };
+      fs.writeFileSync(TESTS_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+    }
+  } catch(e) { console.error('[Stub] Config save error:', e.message); }
+
   // Invalidate cache
   vaultCache = null;
   console.log(`[Knowledge] Stub created: ${testName}`);
@@ -245,11 +282,45 @@ criado: ${new Date().toISOString().split('T')[0]}
 
 export function getVaultStats() {
   const vault = loadVault();
+  const config = loadConfigTests();
   return {
     tests: vault.tests.length,
     products: vault.produtos.length,
     ativos: vault.ativos.length,
     celulas: vault.celulas.length,
-    stubs: vault.tests.filter(t => t.status === 'stub').length
+    stubs: vault.tests.filter(t => t.status === 'stub').length,
+    configTests: Object.keys(config).length
   };
+}
+
+export function syncVaultFromConfig() {
+  const config = loadConfigTests();
+  let updated = 0;
+  for (const [name, t] of Object.entries(config)) {
+    const filePath = path.join(VAULT_DIR, 'Testes', `${name.replace(/[<>:"/\\|?*]/g, '-')}.md`);
+    const content = `---
+teste: "${name}"
+tecnica: "${t.tecnica || ''}"
+categoria: "${t.categoria || ''}"
+aliases: [${(t.aliases || []).map(a => `"${a}"`).join(', ')}]
+rotas: [${(t.rotas || []).map(r => `"${r.nome || r}"`).join(', ')}]
+mo_pct: ${t.mo_pct || 0}
+fixo_min: ${t.fixo_min || 0}
+var_min: ${t.var_min || 0}
+status: "${t.status || 'completo'}"
+---
+
+# ${name}
+
+${t.descricao || ''}
+
+**Técnica:** ${t.tecnica || ''}
+**Como quantificar:** ${t.como_quantificar || ''}
+`;
+    fs.writeFileSync(filePath, content, 'utf-8');
+    updated++;
+  }
+  vaultCache = null;
+  console.log(`[Knowledge] Synced ${updated} tests from config to vault`);
+  return updated;
 }

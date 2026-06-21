@@ -17,6 +17,7 @@ import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
 import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
+import { syncVaultFromConfig } from './knowledge.js';
 import { getApiKey, updateApiKey } from './config.js';
 
 
@@ -506,6 +507,8 @@ app.get('/api/config/skill/tests', (req, res) => {
 app.put('/api/config/skill/tests', (req, res) => {
   try {
     fs.writeFileSync(TESTS_FILE, JSON.stringify(req.body, null, 2), 'utf-8');
+    // Sync vault notes from updated config
+    syncVaultFromConfig();
     res.json({ success: true, message: 'Tests saved' });
   } catch (error) {
     res.status(500).json({ error: error.message });
