@@ -15,6 +15,64 @@ function loadPrompts() {
   return null;
 }
 
+function loadTestConfig() {
+  try {
+    const fp = path.join(__filedir, 'config', 'tests.json');
+    if (fs.existsSync(fp)) return JSON.parse(fs.readFileSync(fp, 'utf-8'));
+  } catch(e) {}
+  return {};
+}
+
+function buildDynamicExtractionGuide(lang) {
+  const config = loadTestConfig();
+  if (!Object.keys(config).length) return '';
+
+  const labels = {
+    pt: { heading: '## Referência de Testes Conhecidos',
+      tecnica: 'Técnica', fixo: 'Fixo(min)', var: 'Var(min)', rotas: 'Rotas envolvidas',
+      aliases: 'Também conhecido como', diretrizes: 'Diretrizes de extração' },
+    es: { heading: '## Referencia de Pruebas Conocidas',
+      tecnica: 'Técnica', fixo: 'Fijo(min)', var: 'Var(min)', rotas: 'Rutas involucradas',
+      aliases: 'También conocido como', diretrizes: 'Directrices de extracción' },
+    en: { heading: '## Known Test Reference',
+      tecnica: 'Technique', fixo: 'Fixed(min)', var: 'Var(min)', rotas: 'Routes involved',
+      aliases: 'Also known as', diretrizes: 'Extraction guidelines' }
+  };
+  const l = labels[lang] || labels.pt;
+
+  let guide = `\n${l.heading}\n\n`;
+  guide += 'Use esta tabela para identificar e classificar os testes encontrados no PDF:\n\n';
+
+  for (const [name, t] of Object.entries(config)) {
+    if (t.status === 'stub') continue;
+    const aliases = (t.aliases || []).join(', ');
+    const rotas = (t.rotas || []).map(r => r.nome || r).filter(Boolean);
+    const dirs = (t.diretrizes || []);
+    const totalFixo = dirs.reduce((s, d) => s + (Number(d.fixo_min) || 0), 0);
+    const totalVar = dirs.reduce((s, d) => s + (Number(d.var_min) || 0), 0);
+
+    guide += `### ${name}\n`;
+    guide += `- ${l.tecnica}: ${t.tecnica || '?'}\n`;
+    if (aliases) guide += `- ${l.aliases}: ${aliases}\n`;
+    if (rotas.length) guide += `- ${l.rotas}: ${rotas.join(', ')}\n`;
+    if (totalFixo + totalVar > 0) {
+      guide += `- ${l.fixo}: ${totalFixo} | ${l.var}: ${totalVar}\n`;
+    }
+    if (dirs.length) {
+      guide += `- ${l.diretrizes}:\n`;
+      dirs.forEach(d => {
+        guide += `  - **${d.componente}**: ${d.descricao || ''}`;
+        if (d.heuristica) guide += ` [Heurística: ${d.heuristica}]`;
+        if (d.fixo_min) guide += ` (Fixo: ${d.fixo_min}min)`;
+        if (d.var_min) guide += ` (Var: ${d.var_min}min)`;
+        guide += '\n';
+      });
+    }
+    guide += '\n';
+  }
+  return guide;
+}
+
 async function callOpenRouter({ messages, responseFormat }) {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY not configured in backend environment');
@@ -49,7 +107,7 @@ async function callOpenRouter({ messages, responseFormat }) {
 
 const getSystemPrompt = (language = 'pt') => {
   const prompts = loadPrompts();
-  if (prompts && prompts[language]) return prompts[language];
+  if (prompts && prompts[language]) return prompts[language] + '\n' + buildDynamicExtractionGuide(language);
 
   // Fallback built-in prompts (same as before)
   let langInstruction = "", langContext = "";
@@ -157,7 +215,7 @@ Retorne APENAS um JSON válido seguindo estritamente este esquema:
   ],
   "fullText": "string",
   "visualContent": "string"
-}`;
+}` + '\n' + buildDynamicExtractionGuide(language);
 };
 
 export async function analyzeDocumentServer(base64Data, mimeType, fileName, language = 'pt') {
