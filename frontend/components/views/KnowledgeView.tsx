@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BookOpen, FileText, FolderOpen, Save, RefreshCw, ExternalLink, Search, ChevronRight, ChevronDown, Loader2, Edit3 } from 'lucide-react';
+import { BookOpen, FileText, FolderOpen, Save, RefreshCw, ExternalLink, Search, ChevronRight, ChevronDown, Loader2, Edit3, Copy, Check } from 'lucide-react';
 
 interface VaultNode {
   name: string;
@@ -22,6 +22,10 @@ const KnowledgeView: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [frontmatter, setFrontmatter] = useState<Record<string, any> | null>(null);
+  const [vaultName, setVaultName] = useState(() => localStorage.getItem('obsidian_vault_name') || '');
+  const [pathCopied, setPathCopied] = useState(false);
+
+  const vaultPath = 'backend/knowledge';
 
   const loadTree = useCallback(async () => {
     setLoadingTree(true);
@@ -160,18 +164,66 @@ const KnowledgeView: React.FC = () => {
           {/* Open in Obsidian */}
           <div className="mt-4 p-4 bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl">
             <p className="text-xs font-bold text-violet-700 mb-2">Abrir no Obsidian Desktop</p>
-            <a
-              href="obsidian://open?vault=LabProcessor"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-bold hover:bg-violet-700 transition-colors w-full justify-center"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Abrir Vault
-            </a>
-            <p className="text-[10px] text-violet-400 mt-2 text-center">
-              Requer Obsidian instalado e vault configurado como "LabProcessor"
-            </p>
+
+            {vaultName ? (
+              <a
+                href={`obsidian://open?vault=${encodeURIComponent(vaultName)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-bold hover:bg-violet-700 transition-colors w-full justify-center"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Abrir Vault "{vaultName}"
+              </a>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-violet-600">
+                  Configure o nome do vault para usar o atalho.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={vaultName}
+                    onChange={e => setVaultName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && vaultName.trim()) { localStorage.setItem('obsidian_vault_name', vaultName.trim()); setVaultName(vaultName.trim()); }}}
+                    placeholder="Nome do vault..."
+                    className="flex-1 px-3 py-1.5 text-xs border border-violet-300 rounded-lg outline-none focus:ring-2 focus:ring-violet-300"
+                  />
+                  <button
+                    onClick={() => { if (vaultName.trim()) { localStorage.setItem('obsidian_vault_name', vaultName.trim()); setVaultName(vaultName.trim()); }}}
+                    className="px-3 py-1.5 text-xs font-bold bg-violet-600 text-white rounded-lg hover:bg-violet-700"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <details className="mt-3 text-[10px] text-violet-500">
+              <summary className="cursor-pointer hover:text-violet-700">Como configurar</summary>
+              <ol className="mt-1 space-y-0.5 list-decimal list-inside">
+                <li>Abra o Obsidian</li>
+                <li>Clique em "Open folder as vault"</li>
+                <li>Selecione a pasta <code className="bg-white px-1 rounded text-violet-700">backend/knowledge</code></li>
+                <li>Dê um nome ao vault (ex: "LabProcessor")</li>
+                <li>Digite o mesmo nome aqui em cima e clique Salvar</li>
+              </ol>
+            </details>
+          </div>
+
+          {/* Vault Path */}
+          <div className="mt-3 p-3 bg-white border border-slate-200 rounded-xl">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pasta do Vault</p>
+            <div className="flex items-center gap-2">
+              <code className="text-xs text-slate-600 bg-slate-50 px-2 py-0.5 rounded flex-1 truncate">{vaultPath}</code>
+              <button
+                onClick={() => { navigator.clipboard.writeText(vaultPath); setPathCopied(true); setTimeout(() => setPathCopied(false), 2000); }}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-violet-500 transition-colors shrink-0"
+                title="Copiar caminho"
+              >
+                {pathCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+            <p className="text-[9px] text-slate-400 mt-1">Abra esta pasta como vault no Obsidian</p>
           </div>
         </div>
 
