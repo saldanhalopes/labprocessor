@@ -220,13 +220,13 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         console.log("[Dashboard] Starting image extraction for:", file.name);
         let images: string[] = [];
         try {
-          // Promise that rejects after 10 seconds
+          // Promise that rejects after 30 seconds (worker cold start + render)
           const timeoutPromise = new Promise<string[]>((_, reject) => 
-            setTimeout(() => reject(new Error("Image extraction timed out")), 10000)
+            setTimeout(() => reject(new Error("Image extraction timed out")), 30000)
           );
           
           images = await Promise.race([
-            extractPdfImages(file),
+            extractPdfImages(file, 1), // Only first page — enough for AI context
             timeoutPromise
           ]);
           console.log(`[Dashboard] Extracted ${images.length} images from:`, file.name);

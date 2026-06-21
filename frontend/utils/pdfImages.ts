@@ -27,7 +27,7 @@ export async function extractPdfImages(file: File, maxPages: number = 3): Promis
 
     for (let i = 1; i <= numPages; i++) {
       const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 1.5 }); // Scale for decent quality
+      const viewport = page.getViewport({ scale: 1.0 }); // Lower scale = faster, still readable by AI
       
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
