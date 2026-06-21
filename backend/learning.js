@@ -203,3 +203,87 @@ export function getArchivedJournals() {
       .map(f => f.replace('.json', ''));
   } catch (e) { return []; }
 }
+
+export function extractTimingPatterns() {
+  const entries = loadJournal();
+  if (!entries.length) return {};
+
+  const testData = {};
+  entries.forEach(e => {
+    (e.topMatches || []).forEach(m => {
+      const key = m.basfluxoMatch || m.geminiName;
+      if (!key || key === 'unknown') return;
+      if (!testData[key]) testData[key] = { count: 0, geminiTimes: [], basfluxoTimes: [] };
+      testData[key].count++;
+      // Find the corresponding bias entry
+      const bias = (e.biases || []).find(b => b.testName === key);
+      if (bias) {
+        testData[key].geminiTimes.push(bias.geminiTotalMin);
+        testData[key].basfluxoTimes.push(bias.basfluxoTotalMin);
+      }
+    });
+  });
+
+  const patterns = {};
+  for (const [name, data] of Object.entries(testData)) {
+    if (data.count < 2) continue;
+    const gTimes = data.geminiTimes;
+    const bTimes = data.basfluxoTimes;
+    patterns[name] = {
+      count: data.count,
+      geminiTimeRange: gTimes.length ? `${Math.round(Math.min(...gTimes))}-${Math.round(Math.max(...gTimes))}min` : '',
+      basfluxoTimeRange: bTimes.length ? `${Math.round(Math.min(...bTimes))}-${Math.round(Math.max(...bTimes))}min` : '',
+      avgGeminiMin: gTimes.length ? Math.round(gTimes.reduce((a, b) => a + b, 0) / gTimes.length) : 0,
+      avgBasfluxoMin: bTimes.length ? Math.round(bTimes.reduce((a, b) => a + b, 0) / bTimes.length) : 0,
+      avgBiasPct: bTimes.length
+        ? Math.round(gTimes.reduce((s, g, i) => s + ((g - bTimes[i]) / bTimes[i]) * 100, 0) / gTimes.length)
+        : 0
+    };
+  }
+  return patterns;
+}
+
+export function getRecentStubs(limit = 5) {
+  const entries = loadJournal();
+  const stubs = [];
+  for (const e of entries) {
+    if (e.stubsCreated > 0) {
+      (e.topMatches || [])
+        .filter(m => m.source === 'stub' || m.score === 0)
+        .forEach(m => {
+          if (!stubs.some(s => s.name === m.geminiName)) {
+            stubs.push({ name: m.geminiName, firstSeen: e.timestamp, productName: e.productName });
+          }
+        });
+    }
+  }
+  return stubs.slice(0, limit);
+}
+
+export function getBiasStats() {
+  const entries = loadJournal();
+  if (!entries.length) return { byTest: {}, byTechnique: {}, globalAvgPct: 0 };
+
+  const byTest = {};
+  const globalBiases = [];
+
+  entries.forEach(e => {
+    (e.biases || []).forEach(b => {
+      if (!byTest[b.testName]) byTest[b.testName] = { count: 0, biases: [], avgPct: 0 };
+      byTest[b.testName].count++;
+      byTest[b.testName].biases.push(b.biasPct);
+      globalBiases.push(b.biasPct);
+    });
+  });
+
+  for (const [name, d] of Object.entries(byTest)) {
+    d.avgPct = Math.round(d.biases.reduce((a, b) => a + b, 0) / d.biases.length);
+  }
+
+  return {
+    byTest,
+    globalAvgPct: globalBiases.length
+      ? Math.round(globalBiases.reduce((a, b) => a + b, 0) / globalBiases.length)
+      : 0
+  };
+}

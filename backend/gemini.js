@@ -5,7 +5,25 @@ const MODEL = 'google/gemini-2.5-flash';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as learning from './learning.js';
 const __filedir = path.dirname(fileURLToPath(import.meta.url));
+
+let enrichmentCache = null;
+let enrichmentCacheTime = 0;
+const CACHE_TTL_MS = 3600000; // 1 hour
+
+function getEnrichment() {
+  if (enrichmentCache && Date.now() - enrichmentCacheTime < CACHE_TTL_MS) return enrichmentCache;
+  try {
+    enrichmentCache = {
+      patterns: learning.extractTimingPatterns(),
+      stubs: learning.getRecentStubs(5),
+      bias: learning.getBiasStats()
+    };
+    enrichmentCacheTime = Date.now();
+  } catch (e) { /* learning module may not have data yet */ }
+  return enrichmentCache || {};
+}
 
 function loadPrompts() {
   try {
@@ -28,17 +46,38 @@ function buildDynamicExtractionGuide(lang) {
   if (!Object.keys(config).length) return '';
 
   const labels = {
-    pt: { heading: '## Referência de Testes Conhecidos',
-      tecnica: 'Técnica', fixo: 'Fixo(min)', var: 'Var(min)', rotas: 'Rotas envolvidas',
-      aliases: 'Também conhecido como', diretrizes: 'Diretrizes de extração' },
+    pt: { heading: '## Referencia de Testes Conhecidos',
+      tecnica: 'Tecnica', fixo: 'Fixo(min)', var: 'Var(min)', rotas: 'Rotas envolvidas',
+      aliases: 'Tambem conhecido como', diretrizes: 'Diretrizes de extracao',
+      patterns: '## Padroes Observados em Extracoes Anteriores',
+      freq: 'Extraido', timesGemini: 'Tempo Gemini (faixa)',
+      timesBasfluxo: 'Tempo BASEFLUXO (faixa)',
+      hints: '## Dicas de Calibracao (Aprendizado)',
+      stubs: '## Testes Desconhecidos Recentes',
+      biasNote: 'Gemini tende a SUBESTIMAR (tempos menores que o real). Considere adicionar ~15% ao t_run, especialmente para HPLC.' },
     es: { heading: '## Referencia de Pruebas Conocidas',
-      tecnica: 'Técnica', fixo: 'Fijo(min)', var: 'Var(min)', rotas: 'Rutas involucradas',
-      aliases: 'También conocido como', diretrizes: 'Directrices de extracción' },
+      tecnica: 'Tecnica', fixo: 'Fijo(min)', var: 'Var(min)', rotas: 'Rutas involucradas',
+      aliases: 'Tambien conocido como', diretrizes: 'Directrices de extraccion',
+      patterns: '## Patrones Observados en Extracciones Anteriores',
+      freq: 'Extraido', timesGemini: 'Tiempo Gemini (rango)',
+      timesBasfluxo: 'Tiempo BASEFLUXO (rango)',
+      hints: '## Sugerencias de Calibracion (Aprendizaje)',
+      stubs: '## Pruebas Desconocidas Recientes',
+      biasNote: 'Gemini tiende a SUBESTIMAR (tiempos menores que el real). Considere sumar ~15% al t_run, especialmente para HPLC.' },
     en: { heading: '## Known Test Reference',
       tecnica: 'Technique', fixo: 'Fixed(min)', var: 'Var(min)', rotas: 'Routes involved',
-      aliases: 'Also known as', diretrizes: 'Extraction guidelines' }
+      aliases: 'Also known as', diretrizes: 'Extraction guidelines',
+      patterns: '## Observed Patterns from Previous Extractions',
+      freq: 'Extracted', timesGemini: 'Gemini Time (range)',
+      timesBasfluxo: 'BASEFLUXO Time (range)',
+      hints: '## Calibration Hints (Learned)',
+      stubs: '## Recent Unknown Tests',
+      biasNote: 'Gemini tends to UNDERESTIMATE (lower times than actual). Consider adding ~15% to t_run, especially for HPLC.' }
   };
   const l = labels[lang] || labels.pt;
+
+  // Load enrichment data (cached, from learning journal)
+  const enrichment = getEnrichment();
 
   let guide = `\n${l.heading}\n\n`;
   guide += 'Use esta tabela para identificar e classificar os testes encontrados no PDF:\n\n';
@@ -51,7 +90,11 @@ function buildDynamicExtractionGuide(lang) {
     const totalFixo = dirs.reduce((s, d) => s + (Number(d.fixo_min) || 0), 0);
     const totalVar = dirs.reduce((s, d) => s + (Number(d.var_min) || 0), 0);
 
-    guide += `### ${name}\n`;
+    // Enrichment data from journal
+    const p = (enrichment.patterns || {})[name];
+    const freqStr = p ? ` [${l.freq}: ${p.count}x, Gemini: ${p.geminiTimeRange}]` : '';
+
+    guide += `### ${name}${freqStr}\n`;
     guide += `- ${l.tecnica}: ${t.tecnica || '?'}\n`;
     if (aliases) guide += `- ${l.aliases}: ${aliases}\n`;
     if (rotas.length) guide += `- ${l.rotas}: ${rotas.join(', ')}\n`;
@@ -62,7 +105,7 @@ function buildDynamicExtractionGuide(lang) {
       guide += `- ${l.diretrizes}:\n`;
       dirs.forEach(d => {
         guide += `  - **${d.componente}**: ${d.descricao || ''}`;
-        if (d.heuristica) guide += ` [Heurística: ${d.heuristica}]`;
+        if (d.heuristica) guide += ` [Heuristica: ${d.heuristica}]`;
         if (d.fixo_min) guide += ` (Fixo: ${d.fixo_min}min)`;
         if (d.var_min) guide += ` (Var: ${d.var_min}min)`;
         guide += '\n';
@@ -70,6 +113,39 @@ function buildDynamicExtractionGuide(lang) {
     }
     guide += '\n';
   }
+
+  // Add bias calibration hints
+  const bias = enrichment.bias || {};
+  const highBiasTests = Object.entries(bias.byTest || {})
+    .filter(([_, d]) => Math.abs(d.avgPct) >= 25 && d.count >= 2)
+    .slice(0, 5);
+  if (highBiasTests.length > 0 || (bias.globalAvgPct || 0) !== 0) {
+    guide += `${l.hints}\n`;
+    guide += `${l.biasNote}\n`;
+    if (highBiasTests.length > 0) {
+      guide += '\nTestes com maior discrepancia:\n';
+      highBiasTests.forEach(([name, d]) => {
+        const dir = d.avgPct < 0 ? 'SUBESTIMADO' : 'SUPERESTIMADO';
+        guide += `- **${name}**: ${dir} em ${Math.abs(d.avgPct)}% (${d.count}x)\n`;
+      });
+    }
+    if (Math.abs(bias.globalAvgPct) >= 15) {
+      guide += `\nVies global: ${bias.globalAvgPct > 0 ? '+' : ''}${bias.globalAvgPct}%\n`;
+    }
+    guide += '\n';
+  }
+
+  // Recent stubs section
+  const stubs = enrichment.stubs || [];
+  if (stubs.length > 0) {
+    guide += `${l.stubs}\n`;
+    guide += 'Estes testes apareceram recentemente e ainda nao tem correspondencia:\n';
+    stubs.forEach(s => {
+      guide += `- ${s.name} (visto pela 1a vez em ${s.productName})\n`;
+    });
+    guide += '\n';
+  }
+
   return guide;
 }
 

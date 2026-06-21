@@ -18,7 +18,7 @@ import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
 import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
 import { syncVaultFromConfig, getPendingAliases, verifyAlias } from './knowledge.js';
-import { recordExtraction, getJournal, getStats, recordBias } from './learning.js';
+import { recordExtraction, getJournal, getStats, recordBias, extractTimingPatterns, getRecentStubs, getBiasStats } from './learning.js';
 import { getApiKey, updateApiKey } from './config.js';
 
 
@@ -649,6 +649,24 @@ app.get('/api/learning/journal', (req, res) => {
 app.get('/api/learning/stats', (_req, res) => {
   try {
     res.json(getStats());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/patterns', (_req, res) => {
+  try {
+    res.json(extractTimingPatterns());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/bias', (_req, res) => {
+  try {
+    res.json(getBiasStats());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/recent-stubs', (req, res) => {
+  try {
+    res.json(getRecentStubs(parseInt(req.query.limit) || 5));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
