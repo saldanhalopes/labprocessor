@@ -18,7 +18,8 @@ function getEnrichment() {
     enrichmentCache = {
       patterns: learning.extractTimingPatterns(),
       stubs: learning.getRecentStubs(5),
-      bias: learning.getBiasStats()
+      bias: learning.getBiasStats(),
+      structural: learning.detectPatterns()
     };
     enrichmentCacheTime = Date.now();
   } catch (e) { /* learning module may not have data yet */ }
@@ -49,7 +50,6 @@ function buildDynamicExtractionGuide(lang) {
     pt: { heading: '## Referencia de Testes Conhecidos',
       tecnica: 'Tecnica', fixo: 'Fixo(min)', var: 'Var(min)', rotas: 'Rotas envolvidas',
       aliases: 'Tambem conhecido como', diretrizes: 'Diretrizes de extracao',
-      patterns: '## Padroes Observados em Extracoes Anteriores',
       freq: 'Extraido', timesGemini: 'Tempo Gemini (faixa)',
       timesBasfluxo: 'Tempo BASEFLUXO (faixa)',
       hints: '## Dicas de Calibracao (Aprendizado)',
@@ -58,7 +58,6 @@ function buildDynamicExtractionGuide(lang) {
     es: { heading: '## Referencia de Pruebas Conocidas',
       tecnica: 'Tecnica', fixo: 'Fijo(min)', var: 'Var(min)', rotas: 'Rutas involucradas',
       aliases: 'Tambien conocido como', diretrizes: 'Directrices de extraccion',
-      patterns: '## Patrones Observados en Extracciones Anteriores',
       freq: 'Extraido', timesGemini: 'Tiempo Gemini (rango)',
       timesBasfluxo: 'Tiempo BASEFLUXO (rango)',
       hints: '## Sugerencias de Calibracion (Aprendizaje)',
@@ -67,7 +66,6 @@ function buildDynamicExtractionGuide(lang) {
     en: { heading: '## Known Test Reference',
       tecnica: 'Technique', fixo: 'Fixed(min)', var: 'Var(min)', rotas: 'Routes involved',
       aliases: 'Also known as', diretrizes: 'Extraction guidelines',
-      patterns: '## Observed Patterns from Previous Extractions',
       freq: 'Extracted', timesGemini: 'Gemini Time (range)',
       timesBasfluxo: 'BASEFLUXO Time (range)',
       hints: '## Calibration Hints (Learned)',
@@ -144,6 +142,43 @@ function buildDynamicExtractionGuide(lang) {
       guide += `- ${s.name} (visto pela 1a vez em ${s.productName})\n`;
     });
     guide += '\n';
+  }
+
+  // Co-occurrence and form patterns
+  const structural = enrichment.structural || {};
+  if (structural.ready) {
+    const cooccur = structural.cooccurrences || [];
+    if (cooccur.length) {
+      guide += '## Co-ocorrencias Frequentes\n';
+      guide += 'Pares de testes que frequentemente aparecem juntos no mesmo documento:\n';
+      cooccur.slice(0, 5).forEach(c => {
+        guide += `- **${c.tests[0]}** + **${c.tests[1]}**: ${c.count}x (${c.rate}% das extracoes)\n`;
+      });
+      guide += '\n';
+    }
+
+    const formData = structural.formTests || {};
+    const formsWithData = Object.entries(formData).filter(([f, tests]) => tests.length >= 2);
+    if (formsWithData.length) {
+      guide += '## Testes Provaveis por Forma Farmaceutica\n';
+      formsWithData.slice(0, 4).forEach(([form, tests]) => {
+        guide += `### ${form}\n`;
+        tests.slice(0, 5).forEach(t => {
+          guide += `- ${t.name}: ${t.pct}% das extracoes\n`;
+        });
+      });
+      guide += '\n';
+    }
+
+    const topStubs = structural.topStubs || [];
+    if (topStubs.length) {
+      guide += '## Stubs Mais Frequentes\n';
+      guide += 'Testes desconhecidos que mais apareceram:\n';
+      topStubs.slice(0, 5).forEach(s => {
+        guide += `- ${s.name}: ${s.count}x\n`;
+      });
+      guide += '\n';
+    }
   }
 
   return guide;

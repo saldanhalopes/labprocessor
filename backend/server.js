@@ -18,7 +18,7 @@ import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
 import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
 import { syncVaultFromConfig, getPendingAliases, verifyAlias } from './knowledge.js';
-import { recordExtraction, getJournal, getStats, recordBias, extractTimingPatterns, getRecentStubs, getBiasStats } from './learning.js';
+import { recordExtraction, getJournal, getStats, recordBias, extractTimingPatterns, getRecentStubs, getBiasStats, detectPatterns } from './learning.js';
 import { getApiKey, updateApiKey } from './config.js';
 
 
@@ -168,10 +168,28 @@ app.post('/api/analyze', async (req, res) => {
       const matched = result.basfluxo?.stats?.matched || 0;
       const stubs = result.basfluxo?.stats?.stubs || 0;
       const aliasesAdded = result.basfluxo?.stats?.aliasesAdded || 0;
+      const geminiRows = result.rows || [];
+
+      // Build topMatches with technique from Gemini extraction
       const topMatches = (result.basfluxo?.testes || [])
         .filter(t => !t.stub && t.teste)
-        .map(t => ({ geminiName: t.geminiMatch || '', basfluxoMatch: t.teste, score: t.score || 0, technique: '', source: t.source || 'unknown' }))
+        .map(t => {
+          const gr = geminiRows.find(r => (r.testName || r.teste) === t.geminiMatch);
+          return {
+            geminiName: t.geminiMatch || '',
+            basfluxoMatch: t.teste,
+            score: t.score || 0,
+            technique: gr?.technique || '',
+            source: t.source || 'unknown'
+          };
+        })
         .slice(0, 20);
+      const stubNames = (result.basfluxo?.testes || [])
+        .filter(t => t.stub)
+        .map(t => ({
+          geminiName: t.geminiMatch || '',
+          technique: geminiRows.find(r => (r.testName || r.teste) === t.geminiMatch)?.technique || ''
+        }));
       const biases = topMatches
         .map(t => {
           const match = result.basfluxo?.testes?.find(m => m.teste === t.basfluxoMatch);
@@ -185,12 +203,14 @@ app.post('/api/analyze', async (req, res) => {
       recordExtraction({
         fileName,
         productName: mfvcqProductName || result.product?.productName || '',
+        pharmaceuticalForm: result.product?.pharmaceuticalForm || '',
         extractedTests: result.rows?.length || 0,
         matchedTests: matched,
         stubsCreated: stubs,
         aliasesAdded,
         extractionDurationMs: Date.now() - analysisStart,
         topMatches,
+        stubNames,
         biases
       });
     } catch (learnErr) {
@@ -652,9 +672,15 @@ app.get('/api/learning/stats', (_req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/learning/patterns', (_req, res) => {
+app.get('/api/learning/timing-patterns', (_req, res) => {
   try {
     res.json(extractTimingPatterns());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/patterns', (_req, res) => {
+  try {
+    res.json(detectPatterns());
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

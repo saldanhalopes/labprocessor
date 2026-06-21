@@ -287,3 +287,101 @@ export function getBiasStats() {
       : 0
   };
 }
+
+const PATTERNS_PATH = path.join(LEARNING_DIR, 'patterns.json');
+
+export function detectPatterns() {
+  const entries = loadJournal();
+  if (entries.length < 2) return { cooccurrences: [], techniqueClusters: [], formTests: {}, ready: false };
+
+  // 1. Co-occurrence detection: which tests appear together frequently
+  const cooccurrenceMap = {};
+  entries.forEach(e => {
+    const testNames = [...new Set((e.topMatches || []).map(m => m.basfluxoMatch).filter(Boolean))];
+    for (let i = 0; i < testNames.length; i++) {
+      for (let j = i + 1; j < testNames.length; j++) {
+        const pair = [testNames[i], testNames[j]].sort().join('|||');
+        if (!cooccurrenceMap[pair]) cooccurrenceMap[pair] = { count: 0, tests: [testNames[i], testNames[j]] };
+        cooccurrenceMap[pair].count++;
+      }
+    }
+  });
+
+  const cooccurrences = Object.values(cooccurrenceMap)
+    .filter(c => c.count >= 2 && c.count / entries.length >= 0.5)
+    .map(c => ({ tests: c.tests, count: c.count, rate: Math.round((c.count / entries.length) * 100) }))
+    .sort((a, b) => b.count - a.count);
+
+  // 2. Technique clusters: which techniques are associated with which tests
+  const techniqueMap = {};
+  entries.forEach(e => {
+    (e.topMatches || []).forEach(m => {
+      const tech = m.technique || 'Desconhecida';
+      if (!techniqueMap[tech]) techniqueMap[tech] = { tests: {} };
+      if (m.basfluxoMatch) {
+        techniqueMap[tech].tests[m.basfluxoMatch] = (techniqueMap[tech].tests[m.basfluxoMatch] || 0) + 1;
+      }
+    });
+  });
+
+  const techniqueClusters = Object.entries(techniqueMap)
+    .filter(([tech]) => tech !== 'Desconhecida')
+    .map(([technique, data]) => ({
+      technique,
+      tests: Object.entries(data.tests)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([name, count]) => ({ name, count }))
+    }))
+    .filter(tc => tc.tests.length >= 2);
+
+  // 3. Form-to-test correlation
+  const formTests = {};
+  entries.forEach(e => {
+    const form = e.pharmaceuticalForm || 'Nao especificada';
+    if (!formTests[form]) formTests[form] = {};
+    (e.topMatches || []).forEach(m => {
+      if (m.basfluxoMatch) {
+        formTests[form][m.basfluxoMatch] = (formTests[form][m.basfluxoMatch] || 0) + 1;
+      }
+    });
+  });
+
+  // Convert to percentage per form
+  const formTestsPct = {};
+  for (const [form, tests] of Object.entries(formTests)) {
+    const totalExtractions = entries.filter(e => (e.pharmaceuticalForm || 'Nao especificada') === form).length;
+    formTestsPct[form] = Object.entries(tests)
+      .map(([name, count]) => ({ name, count, pct: Math.round((count / totalExtractions) * 100) }))
+      .sort((a, b) => b.pct - a.pct);
+  }
+
+  // 4. Stub growth: which stubs are appearing most
+  const stubCounts = {};
+  entries.forEach(e => {
+    (e.stubNames || []).forEach(s => {
+      if (s.geminiName) stubCounts[s.geminiName] = (stubCounts[s.geminiName] || 0) + 1;
+    });
+  });
+  const topStubs = Object.entries(stubCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const patterns = {
+    cooccurrences,
+    techniqueClusters,
+    formTests: formTestsPct,
+    topStubs,
+    totalExtractions: entries.length,
+    generatedAt: new Date().toISOString(),
+    ready: true
+  };
+
+  try {
+    ensureDir();
+    fs.writeFileSync(PATTERNS_PATH, JSON.stringify(patterns, null, 2), 'utf-8');
+  } catch (e) { /* non-critical */ }
+
+  return patterns;
+}
