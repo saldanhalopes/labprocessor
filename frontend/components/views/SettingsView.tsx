@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GlobalSettings, Language } from '../../types';
-import { Save, Database, Trash2, Key } from 'lucide-react';
+import { Save, Database, Trash2, Key, Workflow } from 'lucide-react';
 import { translations } from '../../utils/translations';
 import { useToast } from '../../context/ToastContext';
 import { RotasTable } from '../settings/RotasTable';
@@ -24,6 +24,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
   const [selectedTest, setSelectedTest] = useState('');
   const [savingTest, setSavingTest] = useState(false);
   const [showDynamicGuide, setShowDynamicGuide] = useState(false);
+  const [basefluxoData, setBasefluxoData] = useState<Record<string,any>>({});
+  const [basefluxoText, setBasefluxoText] = useState('');
+  const [savingBasefluxo, setSavingBasefluxo] = useState(false);
+  const [showBasefluxo, setShowBasefluxo] = useState(false);
 
   const buildDynamicGuide = () => {
     let guide = '## Referência de Testes Conhecidos\n\n';
@@ -69,7 +73,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
       const keys = Object.keys(data);
       if (keys.length > 0) setSelectedTest(keys[0]);
     }).catch(() => {});
+    fetch('/api/config/skill/basefluxo').then(r => r.json()).then(data => {
+      setBasefluxoData(data);
+      setBasefluxoText(JSON.stringify(data, null, 2));
+    }).catch(() => {});
   }, []);
+
+  const handleSaveBasefluxo = async () => {
+    setSavingBasefluxo(true);
+    try {
+      let parsed;
+      try { parsed = JSON.parse(basefluxoText); }
+      catch { showToast('JSON inválido!', 'error'); setSavingBasefluxo(false); return; }
+      const res = await fetch('/api/config/skill/basefluxo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsed)
+      });
+      if (res.ok) showToast('BASEFLUXO salvo!', 'success');
+      else showToast('Erro ao salvar BASEFLUXO', 'error');
+    } catch { showToast('Erro de conexão', 'error'); }
+    finally { setSavingBasefluxo(false); }
+  };
 
   const handleSavePrompt = async () => {
     setSavingPrompt(true);
@@ -455,6 +480,41 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
               {savingTest ? 'Salvando...' : 'Salvar Testes'}
             </button>
           </div>
+        )}
+      </div>
+
+      {/* BASEFLUXO Editor */}
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3 mb-6">
+          <Workflow className="w-6 h-6 text-teal-600" />
+          <h3 className="text-xl font-bold text-slate-800">BASEFLUXO — Fluxo de CQ</h3>
+          <span className="text-xs text-slate-400 ml-auto">{Object.keys(basefluxoData).filter(k => k !== 'FORMA FARMACÊUTICA').length} ativos</span>
+        </div>
+        <p className="text-xs text-slate-500 mb-4">
+          Edite o fluxo de controle de qualidade: ativos, formas farmacêuticas, testes e atividades com tempos.
+        </p>
+
+        <div className="flex gap-2 mb-4">
+          <button onClick={() => setShowBasefluxo(!showBasefluxo)}
+            className={`px-3 py-1 rounded text-xs font-bold ${showBasefluxo?'bg-teal-600 text-white':'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            {showBasefluxo ? 'Ocultar Editor' : 'Mostrar Editor JSON'}
+          </button>
+        </div>
+
+        {showBasefluxo && (
+          <>
+            <textarea
+              value={basefluxoText}
+              onChange={e => setBasefluxoText(e.target.value)}
+              rows={25}
+              className="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 outline-none font-mono text-xs resize-y"
+              spellCheck={false}
+            />
+            <button onClick={handleSaveBasefluxo} disabled={savingBasefluxo}
+              className="mt-3 px-6 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50 flex items-center gap-2">
+              {savingBasefluxo ? 'Salvando...' : 'Salvar BASEFLUXO'}
+            </button>
+          </>
         )}
       </div>
 

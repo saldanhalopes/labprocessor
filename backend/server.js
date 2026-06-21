@@ -591,6 +591,27 @@ app.put('/api/config/skill/tests', (req, res) => {
   }
 });
 
+const BASEFLUXO_FILE = path.join(__dirname, 'reference', 'basefluxo_estruturado.json');
+
+app.get('/api/config/skill/basefluxo', (_req, res) => {
+  try {
+    if (fs.existsSync(BASEFLUXO_FILE)) {
+      res.json(JSON.parse(fs.readFileSync(BASEFLUXO_FILE, 'utf-8')));
+    } else {
+      res.json({});
+    }
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/config/skill/basefluxo', (req, res) => {
+  try {
+    fs.writeFileSync(BASEFLUXO_FILE, JSON.stringify(req.body, null, 2), 'utf-8');
+    res.json({ success: true, message: 'BASEFLUXO saved' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- MFVCQ DATA ENDPOINTS ---
 
 /**
