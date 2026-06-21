@@ -15,6 +15,7 @@ export const translations = {
       admin: 'Admin',
       mfvcq: 'MFVCQ',
       knowledge: 'Vault',
+      learning: 'Aprendizado',
       download: 'Baixar CSV',
       logout: 'Sair'
     },
@@ -115,6 +116,7 @@ export const translations = {
       admin: 'Admin',
       mfvcq: 'MFVCQ',
       knowledge: 'Vault',
+      learning: 'Aprendizaje',
       download: 'Descargar CSV',
       logout: 'Salir'
     },
@@ -215,6 +217,7 @@ export const translations = {
       admin: 'Admin',
       mfvcq: 'MFVCQ',
       knowledge: 'Vault',
+      learning: 'Learning',
       download: 'Download CSV',
       logout: 'Logout'
     },

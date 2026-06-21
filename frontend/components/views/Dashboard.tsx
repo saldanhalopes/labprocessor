@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, BookOpen } from 'lucide-react';
+import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, BookOpen, Brain } from 'lucide-react';
 import { FileUpload } from '../FileUpload';
 import { ResultsView } from './ResultsView';
 import { ChartsView } from './ChartsView';
@@ -12,6 +12,7 @@ import { AdminView } from './AdminView';
 import StandardsView from './StandardsView';
 import { MfvcqView } from './MfvcqView';
 import KnowledgeView from './KnowledgeView';
+import LearningView from './LearningView';
 import { SummaryDashboardView } from './SummaryDashboardView';
 import { analyzeDocument } from '../../services/geminiService';
 import { extractPdfImages } from '../../utils/pdfImages';
@@ -22,7 +23,7 @@ import { useToast } from '../../context/ToastContext';
 import { DEFAULT_SETTINGS, generateCSV, recalculateRow, isMicrobiology, calculateParallelLeadTime } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
 
-type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'mfvcq' | 'knowledge';
+type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'mfvcq' | 'knowledge' | 'learning';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -397,6 +398,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     { id: 'upload', label: t.nav.upload, icon: Upload },
     { id: 'mfvcq', label: t.nav.mfvcq, icon: BarChart3 },
     { id: 'knowledge', label: t.nav.knowledge, icon: BookOpen },
+    { id: 'learning', label: t.nav.learning, icon: Brain },
     { id: 'view', label: t.nav.view, icon: Eye },
     { id: 'reagents', label: t.nav.reagents, icon: FlaskConical },
     { id: 'charts', label: t.nav.charts, icon: BarChart3 },
@@ -611,6 +613,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
             {activeTab === 'mfvcq' && <MfvcqView language={language} showToast={showToast} />}
 
             {activeTab === 'knowledge' && <KnowledgeView />}
+
+            {activeTab === 'learning' && <LearningView />}
           </div>
         </div>
       </main>
