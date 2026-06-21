@@ -215,7 +215,10 @@ const KnowledgeView: React.FC = () => {
                     </>
                   ) : (
                     <button
-                      onClick={() => setIsEditing(true)}
+                      onClick={() => {
+                        if (!editedContent && content) setEditedContent(content);
+                        setIsEditing(true);
+                      }}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
                     >
                       <Edit3 className="w-3 h-3" />
