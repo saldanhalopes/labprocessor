@@ -280,6 +280,8 @@ criado: ${new Date().toISOString().split('T')[0]}
   return { status: 'stub', teste: testName };
 }
 
+const PENDING_ALIASES_PATH = path.join(__dirname, 'data', 'learning', 'pending-aliases.json');
+
 export function getVaultStats() {
   const vault = loadVault();
   const config = loadConfigTests();
@@ -291,6 +293,81 @@ export function getVaultStats() {
     stubs: vault.tests.filter(t => t.status === 'stub').length,
     configTests: Object.keys(config).length
   };
+}
+
+// ===== ALIAS AUTO-EXPANSION =====
+
+function loadPendingAliases() {
+  try {
+    if (fs.existsSync(PENDING_ALIASES_PATH)) return JSON.parse(fs.readFileSync(PENDING_ALIASES_PATH, 'utf-8'));
+  } catch(e) {}
+  return [];
+}
+
+function savePendingAliases(list) {
+  const dir = path.dirname(PENDING_ALIASES_PATH);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(PENDING_ALIASES_PATH, JSON.stringify(list, null, 2), 'utf-8');
+}
+
+export function expandAlias(testName, newAlias, confidence) {
+  if (!testName || !newAlias) return { action: 'skip', reason: 'missing params' };
+
+  const config = loadConfigTests();
+  const test = config[testName];
+  if (!test) return { action: 'skip', reason: 'test not found in config' };
+
+  if ((test.aliases || []).some(a => normalize(a) === normalize(newAlias))) {
+    return { action: 'skip', reason: 'alias already exists' };
+  }
+
+  if (confidence >= 90) {
+    test.aliases = [...(test.aliases || []), newAlias];
+    fs.writeFileSync(TESTS_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+    syncVaultFromConfig();
+    console.log(`[Knowledge] Auto-expanded alias: "${testName}" \u2190 "${newAlias}" (confidence: ${confidence})`);
+    return { action: 'auto_added', testName, alias: newAlias, confidence };
+  }
+
+  if (confidence >= 70) {
+    const pending = loadPendingAliases();
+    if (pending.some(p => p.testName === testName && normalize(p.alias) === normalize(newAlias))) {
+      return { action: 'skip', reason: 'already pending' };
+    }
+    pending.push({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      testName,
+      alias: newAlias,
+      confidence,
+      added: new Date().toISOString(),
+      verified: false
+    });
+    savePendingAliases(pending);
+    console.log(`[Knowledge] Pending alias: "${testName}" \u2190 "${newAlias}" (confidence: ${confidence})`);
+    return { action: 'pending', testName, alias: newAlias, confidence };
+  }
+
+  return { action: 'skip', reason: 'confidence too low', confidence };
+}
+
+export function getPendingAliases() {
+  return loadPendingAliases();
+}
+
+export function verifyAlias(id, approve) {
+  const pending = loadPendingAliases();
+  const idx = pending.findIndex(p => p.id === id);
+  if (idx === -1) return { error: 'not found' };
+
+  const entry = pending[idx];
+  pending.splice(idx, 1);
+
+  if (approve) {
+    expandAlias(entry.testName, entry.alias, 100);
+  }
+
+  savePendingAliases(pending);
+  return { approved: approve, entry };
 }
 
 export function syncVaultFromConfig() {

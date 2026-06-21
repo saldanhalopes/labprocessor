@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { loadVault, findSimilar, createStub } from './knowledge.js';
+import { loadVault, findSimilar, createStub, expandAlias } from './knowledge.js';
 
 function loadTestConfig() {
   try {
@@ -409,6 +409,7 @@ function buildConfiguredRotas(testName, scale) {
 
 export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
   const full = analyzeProduct({ ativo, forma, lotes });
+  let aliasesAdded = 0;
 
   if (!full || !full.analises_cq?.length) return null;
 
@@ -423,6 +424,13 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
       // Try vault first, then fall back to keyword matcher
       let match = findSimilar(g.name);
       if (match) {
+        // Auto-expand alias — learn from this match
+        const expansion = expandAlias(match.teste, g.name.trim(), match.score);
+        if (expansion.action !== 'skip') {
+          if (expansion.action === 'auto_added') aliasesAdded++;
+          console.log(`[MFVCQ] Alias expansion: ${expansion.action} — "${match.teste}" ← "${g.name}"`);
+        }
+
         const t = full.analises_cq.find(a => a.teste === match.teste);
         if (!t) {
           return { geminiMatch: g.name, score: match.score, source: 'vault', stub: true };
@@ -505,7 +513,8 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
       matched: withRotas.length,
       stubs: matchedBasfluxo.length - withRotas.length,
       vaultMatches: matchedBasfluxo.filter(t => t.source === 'vault').length,
-      keywordMatches: matchedBasfluxo.filter(t => t.source === 'keyword').length
+      keywordMatches: matchedBasfluxo.filter(t => t.source === 'keyword').length,
+      aliasesAdded
     },
     resumo_tempos: {
       tempo_compartilhado_horas: withRotas.reduce((s, t) => s + (t.total_compartilhado_min / 60), 0),

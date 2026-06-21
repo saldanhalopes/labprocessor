@@ -17,7 +17,7 @@ import { analyzeDocumentServer } from './gemini.js';
 import { handleChatMessage } from './chat.js';
 import { hashPassword, comparePassword, generateToken, authMiddleware } from './auth.js';
 import { analyzeProduct, searchProducts, getIndices, getTemplate, getBasfluxoForTests } from './mfvcq.js';
-import { syncVaultFromConfig } from './knowledge.js';
+import { syncVaultFromConfig, getPendingAliases, verifyAlias } from './knowledge.js';
 import { recordExtraction, getJournal, getStats, recordBias } from './learning.js';
 import { getApiKey, updateApiKey } from './config.js';
 
@@ -167,6 +167,7 @@ app.post('/api/analyze', async (req, res) => {
     try {
       const matched = result.basfluxo?.stats?.matched || 0;
       const stubs = result.basfluxo?.stats?.stubs || 0;
+      const aliasesAdded = result.basfluxo?.stats?.aliasesAdded || 0;
       const topMatches = (result.basfluxo?.testes || [])
         .filter(t => !t.stub && t.teste)
         .map(t => ({ geminiName: t.geminiMatch || '', basfluxoMatch: t.teste, score: t.score || 0, technique: '', source: t.source || 'unknown' }))
@@ -187,7 +188,7 @@ app.post('/api/analyze', async (req, res) => {
         extractedTests: result.rows?.length || 0,
         matchedTests: matched,
         stubsCreated: stubs,
-        aliasesAdded: 0,
+        aliasesAdded,
         extractionDurationMs: Date.now() - analysisStart,
         topMatches,
         biases
@@ -648,6 +649,20 @@ app.get('/api/learning/journal', (req, res) => {
 app.get('/api/learning/stats', (_req, res) => {
   try {
     res.json(getStats());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/learning/pending-aliases', (_req, res) => {
+  try {
+    res.json(getPendingAliases());
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/learning/verify-alias/:id', (req, res) => {
+  try {
+    const approve = req.body.approve !== false;
+    const result = verifyAlias(req.params.id, approve);
+    res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
