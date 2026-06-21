@@ -114,20 +114,36 @@ function buildDynamicExtractionGuide(lang) {
 
   // Add bias calibration hints
   const bias = enrichment.bias || {};
-  const highBiasTests = Object.entries(bias.byTest || {})
-    .filter(([_, d]) => Math.abs(d.avgPct) >= 25 && d.count >= 2)
-    .slice(0, 5);
-  if (highBiasTests.length > 0 || (bias.globalAvgPct || 0) !== 0) {
+  const adjustments = bias.adjustments || [];
+  const techSummary = bias.techSummary || [];
+  if (adjustments.length > 0 || techSummary.length > 0 || (bias.globalAvgPct || 0) !== 0) {
     guide += `${l.hints}\n`;
     guide += `${l.biasNote}\n`;
-    if (highBiasTests.length > 0) {
-      guide += '\nTestes com maior discrepancia:\n';
-      highBiasTests.forEach(([name, d]) => {
-        const dir = d.avgPct < 0 ? 'SUBESTIMADO' : 'SUPERESTIMADO';
-        guide += `- **${name}**: ${dir} em ${Math.abs(d.avgPct)}% (${d.count}x)\n`;
+
+    // Per-test adjustments with concrete multipliers
+    if (adjustments.length > 0) {
+      guide += '\nAjustes especificos por teste:\n';
+      adjustments.filter(a => a.confidence === 'high' || a.count >= 3).forEach(a => {
+        guide += `- **${a.testName}** (${a.technique}): ${a.recommendation} (vies: ${a.biasPct}%, ${a.count}x, confianca: ${a.confidence})\n`;
+      });
+      const mediumAdj = adjustments.filter(a => a.confidence === 'medium' || a.count === 2);
+      if (mediumAdj.length) {
+        guide += '\nAjustes preliminares (poucos dados):\n';
+        mediumAdj.forEach(a => {
+          guide += `- **${a.testName}**: ${a.recommendation} (vies: ${a.biasPct}%, ${a.count}x)\n`;
+        });
+      }
+    }
+
+    // Per-technique summary
+    if (techSummary.length > 0) {
+      guide += '\nResumo por tecnica:\n';
+      techSummary.forEach(t => {
+        guide += `- ${t.note} (${t.count}x)\n`;
       });
     }
-    if (Math.abs(bias.globalAvgPct) >= 15) {
+
+    if (Math.abs(bias.globalAvgPct) >= 10) {
       guide += `\nVies global: ${bias.globalAvgPct > 0 ? '+' : ''}${bias.globalAvgPct}%\n`;
     }
     guide += '\n';

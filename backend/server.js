@@ -213,6 +213,13 @@ app.post('/api/analyze', async (req, res) => {
         stubNames,
         biases
       });
+
+      // Alert on high bias
+      const highBiasTests = biases.filter(b => Math.abs(b.biasPct) >= 50);
+      if (highBiasTests.length >= 2) {
+        console.log(`[Bias Alert] ${highBiasTests.length} tests with extreme bias (>50%) in ${fileName}:`);
+        highBiasTests.forEach(b => console.log(`  ${b.testName}: ${b.biasPct}%`));
+      }
     } catch (learnErr) {
       console.error('[API] Learning record error:', learnErr);
     }

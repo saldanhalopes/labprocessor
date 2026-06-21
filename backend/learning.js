@@ -262,26 +262,86 @@ export function getRecentStubs(limit = 5) {
 
 export function getBiasStats() {
   const entries = loadJournal();
-  if (!entries.length) return { byTest: {}, byTechnique: {}, globalAvgPct: 0 };
+  if (!entries.length) return { byTest: {}, byTechnique: {}, globalAvgPct: 0, adjustments: [] };
 
   const byTest = {};
   const globalBiases = [];
+  const byTechnique = {};
+  const techniqueToTests = {}; // for per-technique bias
 
   entries.forEach(e => {
     (e.biases || []).forEach(b => {
-      if (!byTest[b.testName]) byTest[b.testName] = { count: 0, biases: [], avgPct: 0 };
+      if (!byTest[b.testName]) byTest[b.testName] = { count: 0, biases: [], avgPct: 0, geminiAvg: 0, basfluxoAvg: 0 };
       byTest[b.testName].count++;
       byTest[b.testName].biases.push(b.biasPct);
       globalBiases.push(b.biasPct);
+
+      // Look up technique from topMatches
+      const match = (e.topMatches || []).find(m => m.basfluxoMatch === b.testName);
+      const tech = match?.technique || 'Desconhecida';
+      if (!byTechnique[tech]) byTechnique[tech] = { count: 0, biases: [], avgPct: 0 };
+      byTechnique[tech].count++;
+      byTechnique[tech].biases.push(b.biasPct);
+
+      if (!techniqueToTests[b.testName]) techniqueToTests[b.testName] = tech;
     });
   });
 
   for (const [name, d] of Object.entries(byTest)) {
     d.avgPct = Math.round(d.biases.reduce((a, b) => a + b, 0) / d.biases.length);
+    d.tech = techniqueToTests[name] || 'Desconhecida';
+    // Confidence: >= 5 samples = high, >= 2 = medium, < 2 = low
+    d.confidence = d.count >= 5 ? 'high' : d.count >= 2 ? 'medium' : 'low';
   }
+
+  for (const [tech, d] of Object.entries(byTechnique)) {
+    d.avgPct = Math.round(d.biases.reduce((a, b) => a + b, 0) / d.biases.length);
+  }
+
+  // Build adjustment recommendations for tests with consistent bias
+  const adjustments = Object.entries(byTest)
+    .filter(([_, d]) => d.count >= 2 && Math.abs(d.avgPct) >= 20)
+    .map(([name, d]) => {
+      const dir = d.avgPct < 0 ? 'subestimado' : 'superestimado';
+      // Adjustment factor: if -50% bias, suggest multiplying by ~2x (100/50)
+      // If +50% bias, suggest dividing by ~1.5x (150/100)
+      const factor = d.avgPct < 0
+        ? Math.round(100 / (100 + d.avgPct) * 10) / 10  // e.g. -78% -> 100/22 = 4.5x
+        : Math.round((100 + d.avgPct) / 100 * 10) / 10;  // e.g. +50% -> 150/100 = 1.5x
+      return {
+        testName: name,
+        biasPct: d.avgPct,
+        direction: dir,
+        suggestedFactor: factor,
+        confidence: d.confidence,
+        count: d.count,
+        technique: d.tech,
+        recommendation: factor > 0 && factor <= 10
+          ? `Multiplicar tempos por ~${factor}x para compensar`
+          : 'Verificar manualmente'
+      };
+    })
+    .sort((a, b) => Math.abs(b.biasPct) - Math.abs(a.biasPct))
+    .slice(0, 10);
+
+  // Global by-technique summary
+  const techSummary = Object.entries(byTechnique)
+    .filter(([tech]) => tech !== 'Desconhecida')
+    .map(([technique, d]) => ({
+      technique,
+      avgBiasPct: d.avgPct,
+      count: d.count,
+      note: d.avgPct < -20 ? `Gemini subestima ${technique} em ${Math.abs(d.avgPct)}%` :
+            d.avgPct > 20 ? `Gemini superestima ${technique} em ${d.avgPct}%` :
+            `${technique} razoavelmente calibrado`
+    }))
+    .sort((a, b) => Math.abs(b.avgBiasPct) - Math.abs(a.avgBiasPct));
 
   return {
     byTest,
+    byTechnique,
+    techSummary,
+    adjustments,
     globalAvgPct: globalBiases.length
       ? Math.round(globalBiases.reduce((a, b) => a + b, 0) / globalBiases.length)
       : 0
