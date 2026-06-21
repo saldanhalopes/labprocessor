@@ -23,6 +23,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
   const [testConfig, setTestConfig] = useState<Record<string,any>>({});
   const [selectedTest, setSelectedTest] = useState('');
   const [savingTest, setSavingTest] = useState(false);
+  const [showDynamicGuide, setShowDynamicGuide] = useState(false);
+
+  const buildDynamicGuide = () => {
+    let guide = '## Referência de Testes Conhecidos\n\n';
+    Object.entries(testConfig).forEach(([name, t]: [string, any]) => {
+      if (t.status === 'stub') return;
+      const aliases = (t.aliases || []).join(', ');
+      const rotas = (t.rotas || []).map((r: any) => r.nome || r).filter(Boolean);
+      const dirs = t.diretrizes || [];
+      const fixo = dirs.reduce((s: number, d: any) => s + (Number(d.fixo_min) || 0), 0);
+      const vr = dirs.reduce((s: number, d: any) => s + (Number(d.var_min) || 0), 0);
+      guide += `### ${name}\n`;
+      guide += `- Técnica: ${t.tecnica || '?'}\n`;
+      if (aliases) guide += `- Também conhecido como: ${aliases}\n`;
+      if (rotas.length) guide += `- Rotas: ${rotas.join(', ')}\n`;
+      if (fixo + vr > 0) guide += `- Fixo: ${fixo}min | Var: ${vr}min\n`;
+      if (dirs.length) {
+        guide += '- Diretrizes:\n';
+        dirs.forEach((d: any) => {
+          guide += `  - **${d.componente}**: ${d.descricao || ''}`;
+          if (d.heuristica) guide += ` [${d.heuristica}]`;
+          guide += d.fixo_min ? ` (Fixo:${d.fixo_min}min)` : '';
+          guide += d.var_min ? ` (Var:${d.var_min}min)` : '';
+          guide += '\n';
+        });
+      }
+      guide += '\n';
+    });
+    return guide;
+  };
   const { showToast } = useToast();
   const t = translations[language].settings;
 
@@ -298,8 +328,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           <span className="text-2xl">🧠</span>
           <h3 className="text-xl font-bold text-slate-800">Skill IA — Instruções de Extração</h3>
         </div>
+
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 text-xs text-slate-600">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-bold text-indigo-700">⚙️ Dados da Configuração de Testes</span>
+          </div>
+          <p>
+            Os nomes de testes, aliases, técnicas, rotas e diretrizes são <strong>auto-gerados</strong> a partir
+            da <strong>Configuração de Testes</strong> abaixo. Ao editar um teste nos Parâmetros, 
+            a IA automaticamente recebe as novas instruções no próximo PDF processado.
+          </p>
+          <p className="mt-1 text-indigo-500">
+            📋 {Object.keys(testConfig).length} testes configurados alimentam o prompt da IA.
+          </p>
+        </div>
+
         <p className="text-xs text-slate-500 mb-4">
-          Configure o prompt usado pela IA para extrair dados dos PDFs. Altere com cuidado — mudanças aqui afetam a qualidade da extração.
+          Abaixo está o <strong>prompt base</strong> (role, objetivos, formato JSON). 
+          A seção "Referência de Testes Conhecidos" é gerada automaticamente a cada chamada.
         </p>
 
         <div className="flex gap-2 mb-4">
@@ -323,6 +369,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave, on
           className="mt-3 px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2">
           {savingPrompt ? 'Salvando...' : 'Salvar Prompt'}
         </button>
+
+        <div className="mt-4 pt-4 border-t border-slate-100">
+          <button onClick={() => setShowDynamicGuide(!showDynamicGuide)}
+            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+            {showDynamicGuide ? '▼' : '▶'} Pré-visualizar guia dinâmico enviado à IA
+          </button>
+          {showDynamicGuide && (
+            <pre className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-mono text-slate-600 max-h-64 overflow-y-auto whitespace-pre-wrap">
+              {buildDynamicGuide()}
+            </pre>
+          )}
+        </div>
       </div>
 
       {/* Test Configuration */}
