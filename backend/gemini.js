@@ -234,7 +234,22 @@ async function callOpenRouter({ messages, responseFormat }) {
 
 const getSystemPrompt = (language = 'pt') => {
   const prompts = loadPrompts();
-  if (prompts && prompts[language]) return prompts[language] + '\n' + buildDynamicExtractionGuide(language);
+  let dynamicGuide = buildDynamicExtractionGuide(language);
+
+  // Guard: if dynamic guide is too large, truncate to avoid model output truncation
+  // Gemini Flash has ~1M token context, but very long prompts increase JSON error risk
+  const MAX_GUIDE_CHARS = 6000;
+  if (dynamicGuide.length > MAX_GUIDE_CHARS) {
+    console.log(`[Prompt] Guide truncated from ${dynamicGuide.length} to ${MAX_GUIDE_CHARS} chars`);
+    dynamicGuide = dynamicGuide.slice(0, MAX_GUIDE_CHARS);
+    // Try to cut at a clean section boundary
+    const lastHash = dynamicGuide.lastIndexOf('\n## ');
+    if (lastHash > MAX_GUIDE_CHARS * 0.7) {
+      dynamicGuide = dynamicGuide.slice(0, lastHash);
+    }
+  }
+
+  if (prompts && prompts[language]) return prompts[language] + '\n' + dynamicGuide;
 
   // Fallback built-in prompts (same as before)
   let langInstruction = "", langContext = "";
@@ -342,8 +357,112 @@ Retorne APENAS um JSON válido seguindo estritamente este esquema:
   ],
   "fullText": "string",
   "visualContent": "string"
-}` + '\n' + buildDynamicExtractionGuide(language);
+}`
+    + '\n' + dynamicGuide;
 };
+function repairJSON(text, errorMsg) {
+  const posMatch = errorMsg.match(/position (\d+)/);
+  const errPos = posMatch ? parseInt(posMatch[1]) : -1;
+
+  // Strategy 1: Try to fix the specific character at error position
+  if (errPos > 0 && errPos < text.length) {
+    // Common LLM JSON issues at error position:
+    // - Unescaped newline inside a string
+    // - Unescaped double quote inside a string
+    // - Single quotes instead of double quotes
+    // - Trailing comma before } or ]
+
+    // Try fixing unescaped newlines (replace \n within strings)
+    const fixed1 = fixUnescapedNewlines(text);
+    try {
+      const parsed = JSON.parse(fixed1);
+      console.log('[OpenRouter] JSON repaired: unescaped newlines fixed');
+      return parsed;
+    } catch (e1) {}
+
+    // Try removing trailing commas
+    const fixed2 = text.replace(/,\s*([}\]])/g, '$1');
+    try {
+      const parsed = JSON.parse(fixed2);
+      console.log('[OpenRouter] JSON repaired: trailing commas removed');
+      return parsed;
+    } catch (e2) {}
+
+    // Try fixing at specific position: remove problematic character
+    const fixed3 = text.slice(0, errPos) + text.slice(errPos + 1);
+    try {
+      const parsed = JSON.parse(fixed3);
+      console.log('[OpenRouter] JSON repaired: removed char at error position');
+      return parsed;
+    } catch (e3) {}
+
+    // Try inserting escape before position
+    const fixed4 = text.slice(0, errPos - 1) + '\\' + text.slice(errPos - 1);
+    try {
+      const parsed = JSON.parse(fixed4);
+      console.log('[OpenRouter] JSON repaired: inserted escape');
+      return parsed;
+    } catch (e4) {}
+  }
+
+  // Strategy 2: Try to salvage partial data (extract whatever parses)
+  try {
+    return salvagePartialJSON(text);
+  } catch (e) { return null; }
+}
+
+function fixUnescapedNewlines(json) {
+  let result = '';
+  let inString = false;
+  let i = 0;
+  while (i < json.length) {
+    const ch = json[i];
+    if (ch === '"' && (i === 0 || json[i - 1] !== '\\')) {
+      inString = !inString;
+      result += ch;
+    } else if (ch === '\n' && inString) {
+      result += '\\n';
+    } else if (ch === '\r' && inString) {
+      result += '\\r';
+    } else {
+      result += ch;
+    }
+    i++;
+  }
+  return result;
+}
+
+function salvagePartialJSON(text) {
+  // Extract what we can: find complete objects for product, rows, reagents, etc.
+  const extract = (key) => {
+    const regex = new RegExp(`"${key}"\\s*:\\s*(\\[.*?\\]|\\{.*?\\})`, 's');
+    const match = text.match(regex);
+    if (!match) return null;
+    try { return JSON.parse(match[1]); } catch (e) { return null; }
+  };
+
+  const product = (() => {
+    const m = text.match(/"product"\s*:\s*(\{[^}]+\})/);
+    if (!m) return {};
+    try { return JSON.parse(m[1]); } catch (e) { return {}; }
+  })();
+
+  const rows = extract('rows') || [];
+  const reagents = extract('reagents') || [];
+  const standards = extract('standards') || [];
+  const equipments = extract('equipments') || [];
+  const fullText = extractStringField(text, 'fullText') || '';
+  const visualContent = extractStringField(text, 'visualContent') || '';
+
+  console.log(`[OpenRouter] Salvaged partial JSON: ${rows.length} rows, ${reagents.length} reagents`);
+  return { product, rows, reagents, standards, equipments, fullText, visualContent };
+}
+
+function extractStringField(text, fieldName) {
+  const regex = new RegExp(`"${fieldName}"\\s*:\\s*"([^"]*(?:\\\\.[^"]*)*)"`);
+  const match = text.match(regex);
+  return match ? match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n') : '';
+}
 
 export async function analyzeDocumentServer(base64Data, mimeType, fileName, language = 'pt') {
   try {
@@ -382,7 +501,19 @@ export async function analyzeDocumentServer(base64Data, mimeType, fileName, lang
     try {
       return JSON.parse(cleanedText);
     } catch (e) {
-      console.error(`[OpenRouter] JSON Parse Error. Content: ${cleanedText.substring(0, 100)}...`);
+      console.error(`[OpenRouter] JSON Parse Error at pos ~${e.message.match(/position (\d+)/)?.[1] || '?'}: ${e.message.slice(0, 120)}`);
+      // Save raw text for debugging
+      const debugDir = path.join(__filedir, 'data', 'debug');
+      if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
+      const sanitized = fileName.replace(/[<>:"/\\|?*]/g, '_');
+      fs.writeFileSync(path.join(debugDir, `${sanitized}_raw.txt`), text, 'utf-8');
+      fs.writeFileSync(path.join(debugDir, `${sanitized}_cleaned.txt`), cleanedText, 'utf-8');
+      console.log(`[OpenRouter] Saved raw output to data/debug/${sanitized}_*.txt`);
+
+      // Attempt repair strategies
+      const repaired = repairJSON(cleanedText, e.message);
+      if (repaired) return repaired;
+
       throw new Error(`Model returned malformed JSON: ${e.message}`);
     }
   } catch (error) {
