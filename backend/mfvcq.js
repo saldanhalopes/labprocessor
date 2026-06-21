@@ -84,7 +84,31 @@ function sumMAQ(lista) { return lista.reduce((s, a) => s + (a.execucao === 'MAQ'
 
 export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorConversao = 1, tamanhoBulk = 0, lotes = 1 }) {
   const data = loadData();
-  const ativoUpper = (ativo || '').toUpperCase();
+
+  // Cross-language active ingredient synonyms
+  const ACTIVE_SYNONYMS = {
+    'ACETAMINOFEN': 'PARACETAMOL',
+    'ACETAMINOPHEN': 'PARACETAMOL',
+    'IBUPROFENO': 'IBUPROFEN',
+    'DIPIRONA': 'METAMIZOL',
+    'METAMIZOL': 'DIPIRONA',
+    'NIMESULIDA': 'NIMESULIDE',
+    'NIMESULIDE': 'NIMESULIDA',
+    'ESCITALOPRAM': 'ESCITALOPRAM',
+    'SERTRALINA': 'SERTRALINE',
+    'SERTRALINE': 'SERTRALINA',
+    'LOSARTAN': 'LOSARTANA',
+    'LOSARTANA': 'LOSARTAN',
+    'TRAMADOL': 'TRAMADOL',
+    'SINVASTATINA': 'SINVASTATIN',
+    'SINVASTATIN': 'SINVASTATINA'
+  };
+
+  let ativoUpper = (ativo || '').toUpperCase();
+  // Normalize for synonym lookup (remove accents)
+  const ativoNormalized = ativoUpper.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const synonym = ACTIVE_SYNONYMS[ativoNormalized];
+  const searchTerms = synonym ? [ativoNormalized, synonym] : [ativoNormalized];
   let formaSelecionada = forma || null;
   let fluxoForma = {};
   let celula = 'DESCONHECIDA';
@@ -100,10 +124,14 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
   }
 
   if (codigoPa || ativo) {
-    const found = data.demanda.find(p =>
-      (codigoPa && String(p.codigo_pa) === String(codigoPa)) ||
-      (ativo && String(p.ativo || '').toUpperCase() === ativoUpper)
-    );
+    let found = null;
+    for (const term of searchTerms) {
+      found = data.demanda.find(p =>
+        (codigoPa && String(p.codigo_pa) === String(codigoPa)) ||
+        (String(p.ativo || '').toUpperCase().includes(term))
+      );
+      if (found) break;
+    }
     if (found) {
       celula = found.celula || celula;
       if (!formaSelecionada) formaSelecionada = inferFormFromDescription(found.descricao);
@@ -118,15 +146,25 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
 
   // Step 2: Infer form from description if still unknown
   if (!formaSelecionada && ativo) {
-    const found = data.demanda.find(p => String(p.ativo || '').toUpperCase() === ativoUpper);
+    let found = null;
+    for (const term of searchTerms) {
+      found = data.demanda.find(p => String(p.ativo || '').toUpperCase().includes(term));
+      if (found) break;
+    }
     if (found) formaSelecionada = inferFormFromDescription(found.descricao);
   }
 
-  // Step 3: Look up QC flow — try by ativo first, then by form
-  let fluxoAtivo = data.basefluxo[ativoUpper];
+  // Step 3: Look up QC flow — try by ativo (with synonyms), then by form
+  let fluxoAtivo = null;
+  for (const term of searchTerms) {
+    fluxoAtivo = data.basefluxo[term];
+    if (fluxoAtivo) break;
+  }
   if (!fluxoAtivo) {
-    const similar = Object.keys(data.basefluxo).find(k => k.includes(ativoUpper) || ativoUpper.includes(k));
-    if (similar) fluxoAtivo = data.basefluxo[similar];
+    for (const term of searchTerms) {
+      const similar = Object.keys(data.basefluxo).find(k => k.includes(term) || term.includes(k));
+      if (similar) { fluxoAtivo = data.basefluxo[similar]; break; }
+    }
   }
 
   if (fluxoAtivo) {
@@ -307,55 +345,108 @@ export function getTemplate() {
 export function matchTestToBasfluxo(geminiName) {
   const g = (geminiName || '').toUpperCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove accents
+  const raw = (geminiName || '').toUpperCase(); // Keep accents for specificity
 
-  // Teor / Doseamento / Assay → TEOR HPLC
-  if (g.includes('TEOR') || g.includes('DOSEAMENTO') || g.includes('ASSAY') || g.includes('DOSAGE') || g.includes('DOSAGEM')
-    || g.includes('VALOR') || g.includes('VALORACION') || g.includes('VALORIZACION') || g.includes('TITULACION'))
-    return 'TEOR HPLC 1';
+  // ===== MULTILINGUAL TEOR / ASSAY / VALORACION =====
+  const isTeor = g.includes('TEOR') || g.includes('DOSEAMENTO') || g.includes('ASSAY') || g.includes('DOSAGE')
+    || g.includes('DOSAGEM') || g.includes('VALOR') || g.includes('TITUL');
+  // Exclude impurity/degredation valorations
+  const isImpurityVal = isTeor && (
+    g.includes('IMPUR') || g.includes('DEGRAD') || g.includes('RELACIONADA')
+    || g.includes('AMINOFENOL') || g.includes('4-AMINO') || g.includes('SUBSTANCIA')
+    || g.includes('ORGANICA') || g.includes('ORGANICO')
+  );
+  if (isTeor && !isImpurityVal) return 'TEOR HPLC 1';
 
-  // Degradação / Impurezas / Substâncias Relacionadas → DEGRADAÇÃO HPLC
-  if (g.includes('DEGRAD') || g.includes('SUBST') || g.includes('RELACIONADA') || g.includes('IMPUREZA') || g.includes('IMPURITY') || g.includes('RELATED') || g.includes('IMPURE'))
-    return 'DEGRADAÇÃO HPLC 1';
+  // ===== MULTILINGUAL DEGRADACAO / IMPURITIES =====
+  if (g.includes('DEGRAD') || g.includes('SUBST') || g.includes('RELACIONADA')
+    || g.includes('IMPUREZA') || g.includes('IMPURITY') || g.includes('RELATED')
+    || g.includes('IMPURE') || g.includes('IMPUR') || g.includes('ORGANICA')
+    || g.includes('ORGANICO') || g.includes('AMINOFENOL') || g.includes('4-AMINO'))
+    return 'DEGRADACAO HPLC 1';
 
-  // Dissolução → DISSOLUÇÃO
-  if (g.includes('DISSOLU') || g.includes('DISSOLUTION'))
-    return 'DISSOLUÇÃO HPLC 1';
+  // ===== MULTILINGUAL DISSOLUCAO =====
+  if (g.includes('DISSOLU') || g.includes('DISSOLUTION') || g.includes('DISOLUCION'))
+    return 'DISSOLUCAO HPLC 1';
 
-  // Desintegração → DESINTEGRAÇÃO
-  if (g.includes('DESINTEGR') || g.includes('DISINTEGR'))
-    return 'DESINTEGRAÇÃO';
+  // ===== MULTILINGUAL DESINTEGRACAO =====
+  if (g.includes('DESINTEGR') || g.includes('DISINTEGR') || g.includes('DESINTEGRACION'))
+    return 'DESINTEGRACAO';
 
-  // Dureza → DUREZA
-  if (g.includes('DUREZA') || g.includes('HARDNESS'))
+  // ===== MULTILINGUAL DUREZA / HARDNESS =====
+  if (g.includes('DUREZA') || g.includes('HARDNESS') || g.includes('RESISTENCIA'))
     return 'DUREZA';
 
-  // Peso Médio → PESO MÉDIO
-  if ((g.includes('PESO') && g.includes('MEDIO')) || (g.includes('WEIGHT') && g.includes('AVERAGE')))
-    return 'PESO MÉDIO 1';
+  // ===== MULTILINGUAL PESO MEDIO / WEIGHT =====
+  if ((g.includes('PESO') && (g.includes('MEDIO') || g.includes('PROMEDIO')))
+    || (g.includes('WEIGHT') && g.includes('AVERAGE'))
+    || (g.includes('PESO') && g.includes('PROMEDIO')))
+    return 'PESO MEDIO 1';
 
-  // Umidade → UMIDADE
-  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER') || g.includes('AGUA') || g.includes('HUMEDAD'))
+  // ===== MULTILINGUAL UMIDADE / MOISTURE / WATER =====
+  if (g.includes('UMIDADE') || g.includes('MOISTURE') || g.includes('WATER')
+    || g.includes('AGUA') || g.includes('HUMEDAD') || g.includes('KARL'))
     return 'UMIDADE IV';
 
-  // Uniformidade → UNIFORMIDADE POR VARIAÇÃO DE PESO
-  if (g.includes('UNIFORMIDADE') || g.includes('UNIFORMITY') || g.includes('VARIACAO') || g.includes('VARIATION'))
-    return 'UNIFORMIDADE POR VARIAÇÃO DE PESO 1';
+  // ===== MULTILINGUAL UNIFORMIDADE =====
+  if (g.includes('UNIFORMIDADE') || g.includes('UNIFORMITY') || g.includes('VARIACAO')
+    || g.includes('VARIATION') || g.includes('UNIFORMIDAD') || g.includes('VARIACION')
+    || g.includes('DOSIFICACION') || g.includes('DOSAGE'))
+    return 'UNIFORMIDADE POR VARIACAO DE PESO 1';
 
-  // Fracionamento → FRACIONAMENTO
+  // ===== MULTILINGUAL DESCRICAO / APPEARANCE =====
+  if (g.includes('DESCRI') || g.includes('DESCRIPTION') || g.includes('APARENCIA')
+    || g.includes('APPEARANCE') || g.includes('ASPECTO') || g.includes('COLOR'))
+    return 'DESCRICAO';
+
+  // ===== MULTILINGUAL SOLUBILIDADE =====
+  if (g.includes('SOLUBILIDADE') || g.includes('SOLUBILITY') || g.includes('SOLUBILIDAD'))
+    return 'SOLUBILIDADE';
+
+  // ===== MULTILINGUAL IDENTIFICACAO =====
+  if ((g.includes('IDENTIFIC') && !g.includes('HPLC'))
+    || (raw.includes('IDENTIFICACI') && !raw.includes('HPLC')))
+    return 'IDENTIFICACAO A - Por MIR';
+
+  if ((g.includes('IDENTIFIC') || raw.includes('IDENTIFICACI')) && g.includes('HPLC'))
+    return 'TEOR HPLC 1';
+
+  // ===== MULTILINGUAL pH =====
+  if (g === 'PH' || g.startsWith('PH ') || g.includes(' PH ') || g.endsWith(' PH')) return 'pH';
+
+  // ===== MULTILINGUAL MICROBIOLOGIA =====
+  if (g.includes('MICROBIOL') || g.includes('MICROBIOLOGY') || g.includes('RECUENTO')
+    || g.includes('CONTAGEM') || g.includes('BACTERIA') || g.includes('FUNGO')
+    || g.includes('HONGOS') || g.includes('LEVEDURA') || g.includes('MOHO')
+    || g.includes('EFECTIVIDAD') || g.includes('PRESERVANTE') || g.includes('EFFECTIVENESS')
+    || g.includes('ESTERILIDADE') || g.includes('ESTERILIDAD') || g.includes('STERILITY'))
+    return 'UMIDADE IV'; // Map to microbiology category placeholder
+
+  // ===== GRAVEDAD ESPECIFICA / DENSITY (before ROTACAO to avoid ESPECIFICA conflict) =====
+  if (g.includes('GRAVEDAD') || g.includes('GRAVITY') || g.includes('DENSIDADE')
+    || g.includes('DENSIDAD') || g.includes('DENSITY'))
+    return 'PESO MEDIO 1'; // Closest match — physical test
+
+  // ===== ROTACAO ESPECIFICA / OPTICAL ROTATION =====
+  if (g.includes('ROTACAO') || g.includes('ROTACION') || g.includes('ROTATION')
+    || g.includes('POLARIMETRIA') || g.includes('POLARIMETRY'))
+    return 'ROTACAO ESPECIFICA';
+
+  // ===== FRACIONAMENTO / FRACTION =====
   if (g.includes('FRACIONAMENTO') || g.includes('FRACTION'))
     return 'FRACIONAMENTO DE AMOSTRA';
 
-  // Separação → SEPARAÇÃO
+  // ===== SEPARACAO =====
   if (g.includes('SEPARA') || g.includes('SEPARAT'))
-    return 'SEPARAÇÃO_AMOSTRAS';
+    return 'SEPARACAO_AMOSTRAS';
 
-  // Movimentador → MOVIMENTADOR
+  // ===== MOVIMENTADOR / HANDLING =====
   if (g.includes('MOVIMENTADOR') || g.includes('HANDLING'))
     return 'ATIVIDADE MOVIMENTADOR';
 
-  // Identificação via HPLC → TEOR
-  if (g.includes('IDENTIFICACAO') && g.includes('HPLC'))
-    return 'TEOR HPLC 1';
+  // ===== LIMITE DE N,N-DIMETILANILINA =====
+  if (g.includes('DIMETILANILINA') || g.includes('DIMETHYLANILINE'))
+    return 'LIMITE DE N,N-DIMETILANILINA';
 
   return null;
 }
@@ -410,8 +501,11 @@ function buildConfiguredRotas(testName, scale) {
 export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
   const full = analyzeProduct({ ativo, forma, lotes });
   let aliasesAdded = 0;
+  const hasBasfluxo = full && full.analises_cq?.length > 0;
 
-  if (!full || !full.analises_cq?.length) return null;
+  if (!hasBasfluxo) {
+    console.log(`[MFVCQ] No BASEFLUXO flow for "${ativo}" — using keyword-only matching`);
+  }
 
   const vault = loadVault();
   const geminiTests = (geminiRows || []).map(r => ({
@@ -431,9 +525,29 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
           console.log(`[MFVCQ] Alias expansion: ${expansion.action} — "${match.teste}" ← "${g.name}"`);
         }
 
-        const t = full.analises_cq.find(a => a.teste === match.teste);
+        const t = hasBasfluxo ? full.analises_cq.find(a => a.teste === match.teste) : null;
         if (!t) {
-          return { geminiMatch: g.name, score: match.score, source: 'vault', stub: true };
+          // No BASEFLUXO entry for this test — use config-based rotas
+          const configRotas = buildConfiguredRotas(match.teste, 1);
+          const hasConfigRotas = configRotas && configRotas.rotas?.length > 0;
+          return {
+            geminiMatch: g.name,
+            score: match.score,
+            source: 'vault',
+            stub: !hasConfigRotas && full && !hasBasfluxo ? false : !t,
+            // No BASEFLUXO = no time data, use Gemini's own estimate
+            teste: match.teste,
+            rota: configRotas?.rotas?.[0]?.nome || 'N/A',
+            geminiTotalMin: g.totalMin,
+            basfluxoTotalMin: 0,
+            scale: 1,
+            fixo: { total_min: 0, mo_min: 0, maq_min: 0 },
+            variavel: { total_min: 0, mo_min: 0, maq_min: 0 },
+            total_compartilhado_min: g.totalMin,
+            mo_pct: 0,
+            configRotas: hasConfigRotas ? configRotas.rotas : null,
+            atividades: hasConfigRotas ? configRotas.atividades : []
+          };
         }
         // Scale BASEFLUXO times to match Gemini total
         const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
@@ -467,8 +581,30 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
       // Fallback: keyword-based matcher
       const kwMatch = matchTestToBasfluxo(g.name);
       if (kwMatch) {
-        const t = full.analises_cq.find(a => a.teste === kwMatch);
-        if (!t) return null;
+        const t = hasBasfluxo ? full.analises_cq.find(a => a.teste === kwMatch) : null;
+        if (!t) {
+          if (!hasBasfluxo) {
+            // Keyword match without BASEFLUXO — return with config rotas
+            const configRotas = buildConfiguredRotas(kwMatch, 1);
+            return {
+              teste: kwMatch,
+              geminiMatch: g.name,
+              score: 60,
+              source: 'keyword',
+              rota: configRotas?.rotas?.[0]?.nome || 'N/A',
+              geminiTotalMin: g.totalMin,
+              basfluxoTotalMin: 0,
+              scale: 1,
+              fixo: { total_min: 0, mo_min: 0, maq_min: 0 },
+              variavel: { total_min: 0, mo_min: 0, maq_min: 0 },
+              total_compartilhado_min: g.totalMin,
+              mo_pct: 0,
+              configRotas: null,
+              atividades: []
+            };
+          }
+          return null;
+        }
         const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
         const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
         const configRotas = buildConfiguredRotas(kwMatch, scale);
@@ -506,8 +642,9 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
   const withRotas = matchedBasfluxo.filter(t => !t.stub);
 
   return {
-    celula: full.celula,
-    quantidade_lotes: full.quantidade_lotes,
+    celula: full?.celula || 'N/A',
+    quantidade_lotes: full?.quantidade_lotes || 1,
+    noBasfluxo: !hasBasfluxo,
     stats: {
       totalGeminiTests: geminiTests.length,
       matched: withRotas.length,
