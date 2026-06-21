@@ -32,10 +32,18 @@ const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "0.0.0.0";
 app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "50mb"}));
 app.use(cors());
 
-// Serve frontend static files
+// Serve frontend static files (with cache busting)
 const frontendDistPath = path.join(ROOT_DIR, 'frontend', 'dist');
 if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
+  app.use(express.static(frontendDistPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.js') || filePath.endsWith('.mjs') || filePath.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      } else if (filePath.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    }
+  }));
 }
 
 // Serve local data files
@@ -819,10 +827,15 @@ app.use('/api/knowledge/vault', (req, res) => {
   }
 });
 
-// Fallback to index.html for SPA routing
+// Fallback to index.html for SPA routing (only for non-asset paths)
 if (fs.existsSync(frontendDistPath)) {
   app.use((req, res, next) => {
     if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      // Don't SPA-fallback for asset requests — let them 404 properly
+      const ext = req.path.split('.').pop()?.toLowerCase();
+      if (ext && ['js', 'mjs', 'css', 'png', 'jpg', 'svg', 'ico', 'woff', 'woff2', 'ttf', 'map'].includes(ext)) {
+        return res.status(404).end();
+      }
       res.sendFile(path.join(frontendDistPath, 'index.html'));
     } else {
       next();
