@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { AnalysisResult, Language, GlobalSettings } from '../../types';
-import { Search, Beaker, FileText, ChevronDown, ChevronUp, Download, Save, Pill, ScrollText, Tag, FlaskConical, Bug, Trash2, Edit2, Check, X, BarChart3 } from 'lucide-react';
-import { generateCSV, isMicrobiology, calculateParallelLeadTime, recalculateRow } from '../../utils/calculations';
+import { Search, Beaker, FileText, ChevronDown, ChevronUp, Download, Save, Pill, ScrollText, Tag, FlaskConical, Bug, Trash2, Edit2, Check, X, BarChart3, ListChecks } from 'lucide-react';
+import { generateCSV, isMicrobiology, recalculateRow } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
 import { TestWizard } from '../wizard/TestWizard';
 import { MfvcqBadge } from '../mfvcq/MfvcqBadge';
+import { AtividadesTable } from '../AtividadesTable';
 
 interface ResultsViewProps {
   results: AnalysisResult[];
@@ -20,8 +21,14 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<AnalysisResult | null>(null);
   const [wizardTest, setWizardTest] = useState<{name:string, technique:string} | null>(null);
-  
+  const [expandedActivities, setExpandedActivities] = useState<Record<string, boolean>>({});
+  const [transcribing, setTranscribing] = useState<Record<string, boolean>>({});
+   
   const t = translations[language].results;
+
+  const toggleActivities = (key: string) => {
+    setExpandedActivities(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
@@ -35,6 +42,29 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditForm(null);
+  };
+
+  const handleTranscribe = async (fileId: string) => {
+    setTranscribing(prev => ({ ...prev, [fileId]: true }));
+    try {
+      const res = await fetch(`/api/results/${fileId}/transcribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (data.success && data.rows) {
+        const idx = results.findIndex(r => r.fileId === fileId);
+        if (idx !== -1) {
+          const updated = { ...results[idx], rows: data.rows };
+          onUpdateResult(updated);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao gerar transcrição:', err);
+    } finally {
+      setTranscribing(prev => ({ ...prev, [fileId]: false }));
+    }
   };
 
   const handleSaveEdit = () => {
@@ -149,16 +179,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
       {/* Product Cards */}
       <div className="grid grid-cols-1 gap-6">
         {filteredResults.map((res) => {
+          const getUnifiedTimeHours = (row: any): number => {
+            const bfMatch = res.basfluxo?.testes?.find((t: any) => t.geminiMatch === row.testName && !t.stub);
+            if (bfMatch) return (bfMatch.total_compartilhado_min || 0) / 60;
+            return row.totalTimeHours || 0;
+          };
+
           const physChemRows = res.rows.filter(row => !isMicrobiology(row));
           const microRows = res.rows.filter(row => isMicrobiology(row));
 
-          const physChemSum = physChemRows.reduce((acc, r) => acc + r.totalTimeHours, 0);
-          const physChemMax = physChemRows.length > 0 ? Math.max(...physChemRows.map(r => r.totalTimeHours)) : 0;
+          const physChemSum = physChemRows.reduce((acc, r) => acc + getUnifiedTimeHours(r), 0);
+          const physChemMax = physChemRows.length > 0 ? Math.max(...physChemRows.map(r => getUnifiedTimeHours(r))) : 0;
 
-          const microSum = microRows.reduce((acc, r) => acc + r.totalTimeHours, 0);
-          const microMax = microRows.length > 0 ? Math.max(...microRows.map(r => r.totalTimeHours)) : 0;
+          const microSum = microRows.reduce((acc, r) => acc + getUnifiedTimeHours(r), 0);
+          const microMax = microRows.length > 0 ? Math.max(...microRows.map(r => getUnifiedTimeHours(r))) : 0;
 
-          const leadTime = calculateParallelLeadTime(res.rows);
+          const leadTime = Math.max(physChemMax, microMax);
           const totalWorkload = physChemSum + microSum;
 
           const physChemSumHH = physChemRows.reduce((acc, r) => acc + (r.manHours || 0), 0);
@@ -327,6 +363,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                       </button>
                     </>
                   ) : (
+                    <>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleStartEdit(res); }}
                       className="p-2 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 shadow-xs flex items-center gap-1 text-xs font-bold transition-all"
@@ -334,6 +371,22 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                       <Edit2 className="w-4 h-4" />
                       <span>Editar</span>
                     </button>
+                    {res.fullText && res.rows?.some(r => {
+                      const ts = r.transcriptSummary;
+                      if (!ts) return true;
+                      if (typeof ts === 'string') return !ts;
+                      return !ts.pt && !ts.es && !ts.en;
+                    }) && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleTranscribe(res.fileId); }}
+                        disabled={transcribing[res.fileId]}
+                        className="p-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-50 flex items-center gap-1 text-xs font-bold transition-all"
+                      >
+                        <ScrollText className="w-4 h-4" />
+                        <span>{transcribing[res.fileId] ? '...' : 'Transcrever'}</span>
+                      </button>
+                    )}
+                    </>
                   )}
                   <div className="ml-2 flex items-center">
                     {expandedRows[res.fileId] ? <ChevronUp className="text-slate-400 w-5 h-5" /> : <ChevronDown className="text-slate-400 w-5 h-5" />}
@@ -402,8 +455,78 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
 
                   const findRotas = (testName: string) => res.basfluxo?.testes?.find((t: any) => t.geminiMatch === testName && !t.stub);
 
-                  const renderTable = (rows: any[], title: string, icon: React.ReactNode, type: 'phys' | 'micro') => {
-                    const findRotas = (tn: string) => res.basfluxo?.testes?.find((t: any) => t.geminiMatch === tn && !t.stub);
+                  const handleBasfluxoActivityChange = (result: AnalysisResult, testIdx: number, newAtividades: any[]) => {
+    if (!result.basfluxo?.testes) return;
+    const updatedTestes = [...result.basfluxo.testes];
+    const testEntry = { ...updatedTestes[testIdx] };
+    
+    // Recalculate fixo/variavel from updated activities
+    const fixas = newAtividades.filter((a: any) => a.padrao_amostra === 'Padrão');
+    const variaveis = newAtividades.filter((a: any) => a.padrao_amostra === 'Amostra');
+    const sumMO = (list: any[]) => list.filter((a: any) => a.execucao === 'MO').reduce((s: number, a: any) => s + (a.tempo_min || 0), 0);
+    const sumMAQ = (list: any[]) => list.filter((a: any) => a.execucao === 'MAQ').reduce((s: number, a: any) => s + (a.tempo_min || 0), 0);
+    
+    testEntry.atividades = newAtividades;
+    testEntry.fixo = {
+      ...testEntry.fixo,
+      total_min: Math.round((sumMO(fixas) + sumMAQ(fixas)) * 100) / 100,
+      mo_min: Math.round(sumMO(fixas) * 100) / 100,
+      maq_min: Math.round(sumMAQ(fixas) * 100) / 100,
+      atividades: fixas.length
+    };
+    testEntry.variavel = {
+      ...testEntry.variavel,
+      total_min: Math.round((sumMO(variaveis) + sumMAQ(variaveis)) * 100) / 100,
+      mo_min: Math.round(sumMO(variaveis) * 100) / 100,
+      maq_min: Math.round(sumMAQ(variaveis) * 100) / 100,
+      atividades: variaveis.length
+    };
+    testEntry.total_compartilhado_min = Math.round((testEntry.fixo.total_min + testEntry.variavel.total_min * (result.basfluxo?.quantidade_lotes || 1)) * 100) / 100;
+    
+    updatedTestes[testIdx] = testEntry;
+
+    const nLotes = result.basfluxo?.quantidade_lotes || 1;
+    const totalFixoMO = updatedTestes.reduce((s: number, t: any) => s + (t.fixo?.mo_min || 0), 0);
+    const totalFixoMAQ = updatedTestes.reduce((s: number, t: any) => s + (t.fixo?.maq_min || 0), 0);
+    const totalVarMO = updatedTestes.reduce((s: number, t: any) => s + (t.variavel?.mo_min || 0), 0);
+    const totalVarMAQ = updatedTestes.reduce((s: number, t: any) => s + (t.variavel?.maq_min || 0), 0);
+    const fixoTotal = totalFixoMO + totalFixoMAQ;
+    const varTotalPorLote = totalVarMO + totalVarMAQ;
+    const compartilhado = fixoTotal + varTotalPorLote * nLotes;
+    const homemTotal = totalFixoMO + totalVarMO * nLotes;
+    const maqTotal = totalFixoMAQ + totalVarMAQ * nLotes;
+    const totalGeral = homemTotal + maqTotal;
+
+    const newResumoTempos = {
+      ...result.basfluxo.resumo_tempos,
+      tempo_unitario_minutos: fixoTotal + varTotalPorLote,
+      tempo_unitario_horas: Math.round((fixoTotal + varTotalPorLote) / 60 * 100) / 100,
+      fixo_minutos: fixoTotal,
+      fixo_horas: Math.round(fixoTotal / 60 * 100) / 100,
+      variavel_por_lote_minutos: varTotalPorLote,
+      variavel_por_lote_horas: Math.round(varTotalPorLote / 60 * 100) / 100,
+      tempo_compartilhado_minutos: compartilhado,
+      tempo_compartilhado_horas: Math.round(compartilhado / 60 * 100) / 100,
+      carga_homem_minutos: homemTotal,
+      carga_homem_horas: Math.round(homemTotal / 60 * 100) / 100,
+      carga_maquina_minutos: maqTotal,
+      carga_maquina_horas: Math.round(maqTotal / 60 * 100) / 100,
+      carga_homem_pct: totalGeral > 0 ? Math.round(homemTotal / totalGeral * 100 * 10) / 10 : 0,
+      media_por_lote_horas: Math.round(compartilhado / nLotes / 60 * 100) / 100,
+      economia_pct: result.basfluxo.resumo_tempos?.economia_pct || 0,
+      carga_homem_mensal_h: result.basfluxo.resumo_tempos?.carga_homem_mensal_h || 0,
+      carga_maquina_mensal_h: result.basfluxo.resumo_tempos?.carga_maquina_mensal_h || 0,
+      tempo_total_mensal_h: result.basfluxo.resumo_tempos?.tempo_total_mensal_h || 0,
+    };
+
+    const updated: AnalysisResult = {
+      ...result,
+      basfluxo: { ...result.basfluxo, testes: updatedTestes, resumo_tempos: newResumoTempos }
+    };
+    onUpdateResult(updated);
+  };
+
+  const renderTable = (rows: any[], title: string, icon: React.ReactNode, type: 'phys' | 'micro', result: AnalysisResult) => {
                     return (
                     <div className="mt-4">
                       <div className={`px-6 py-2 flex items-center gap-2 ${type === 'phys' ? 'bg-teal-50 text-teal-800' : 'bg-pink-50 text-pink-800'} border-y border-slate-100`}>
@@ -417,129 +540,195 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                         <table className="w-full text-left text-sm">
                           <thead className="bg-slate-50/50 text-slate-500 font-bold text-[10px] uppercase tracking-wider border-b border-slate-100">
                             <tr>
-                              <th className="px-6 py-3">{t.table.test}</th>
-                              <th className="px-6 py-3">{t.table.technique}</th>
-                              <th className="px-6 py-3 text-right">{t.table.prep}</th>
-                              <th className="px-6 py-3 text-right">{t.table.run}</th>
-                              <th className="px-6 py-3 text-right">{t.table.calc}</th>
-                              <th className="px-6 py-3 text-right">{t.table.incub}</th>
-                              <th className="px-6 py-3 text-right">{t.table.total}</th>
-                              <th className="px-6 py-3 text-right">HH</th>
-                              <th className="px-6 py-3 w-1/4">{t.table.rationale}</th>
+                              <th className="px-4 py-3">{t.table.test}</th>
+                              <th className="px-4 py-3">{t.table.technique}</th>
+                              <th className="px-4 py-3 text-right">{t.table.total}</th>
+                              <th className="px-4 py-3 text-right">HH</th>
+                              <th className="px-4 py-3 text-center w-10"></th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {rows.map((row, idx) => {
-                              // Find original index in sourceRows for handleRowChange
                               const originalIdx = sourceRows.findIndex(r => r === row);
                               const isEditingItem = editingId === res.fileId;
+                              const m = findRotas(row.testName);
+                              const hasActivities = !!(m && m.atividades?.length);
+                              const activitiesKey = `${res.fileId}-${row.testName}`;
+                              const showDetail = !!(expandedActivities[activitiesKey]);
+                              const testIdx = hasActivities ? (result.basfluxo?.testes?.findIndex((t: any) => t.teste === m.teste) ?? -1) : -1;
 
                               return (
-                                <tr key={idx} className={`hover:bg-slate-50 transition-colors ${type === 'micro' ? 'bg-pink-50/10' : ''}`}>
-                                  <td className="px-6 py-4 font-bold text-slate-800">
+                                <React.Fragment key={idx}>
+                                <tr className={`hover:bg-slate-50 transition-colors ${type === 'micro' ? 'bg-pink-50/10' : ''}`}>
+                                  <td className="px-4 py-3 font-bold text-slate-800">
                                     {isEditingItem ? (
-                                      <input
-                                        type="text"
-                                        value={row.testName}
+                                      <input type="text" value={row.testName}
                                         onChange={(e) => handleRowChange(originalIdx, 'testName', e.target.value)}
                                         className="w-full bg-white border border-slate-300 px-2 py-1 rounded text-sm outline-none font-bold"
                                       />
                                     ) : row.testName}
-                                {(() => { const m = findRotas(row.testName); if (!m) return null; const rs: Record<string,any[]>={}; (m.atividades||[]).forEach((a:any)=>{if(!rs[a.rota])rs[a.rota]=[];rs[a.rota].push(a)}); return <details className="block text-[8px] text-indigo-600 mt-0.5"><summary className="cursor-pointer">⚙ {m.teste} · Fixo {(m.fixo?.total_min/60).toFixed(1)}h · Var {(m.variavel?.total_min/60).toFixed(1)}h/lote</summary><div className="pl-2 mt-0.5 space-y-0.5 max-h-32 overflow-y-auto">{Object.entries(rs).sort(([,a],[,b])=>((b as any[]).reduce((s:number,x:any)=>s+(x.tempo_min||0),0))-((a as any[]).reduce((s:number,x:any)=>s+(x.tempo_min||0),0))).slice(0,6).map(([rota,ativs])=><div key={rota} className="flex items-center gap-1"><span className="text-slate-400">{(ativs as any[]).filter((x:any)=>x.execucao==='MO').length>(ativs as any[]).filter((x:any)=>x.execucao==='MAQ').length?'👤':'🤖'}</span><span className="text-slate-500 font-mono truncate">{rota}</span><span className="text-slate-400 ml-auto shrink-0">{ativs.length} ativ · {(ativs as any[]).reduce((s:number,x:any)=>s+(x.tempo_min||0),0).toFixed(0)}min</span></div>)}</div></details>; })()}
                                   </td>
-                                  <td className="px-6 py-4">
+                                  <td className="px-4 py-3">
                                     {isEditingItem ? (
-                                      <input
-                                        type="text"
-                                        value={row.technique}
+                                      <input type="text" value={row.technique}
                                         onChange={(e) => handleRowChange(originalIdx, 'technique', e.target.value)}
                                         className="w-full bg-white border border-slate-300 px-2 py-1 rounded text-[10px] uppercase font-bold outline-none"
                                       />
                                     ) : (
                                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${
                                         type === 'micro' ? 'bg-pink-100 text-pink-700 border-pink-200' : 'bg-teal-50 text-teal-700 border-teal-100'
-                                      }`}>
-                                        {row.technique}
-                                      </span>
+                                      }`}>{row.technique}</span>
                                     )}
                                   </td>
-                                  <td className="px-6 py-4 text-right text-slate-600 font-mono text-xs">
+                                  <td className={`px-4 py-3 text-right font-black tabular-nums ${type === 'micro' ? 'text-pink-700' : 'text-slate-900'}`}>
                                     {isEditingItem ? (
-                                      <input
-                                        type="number"
-                                        step="0.1"
-                                        value={row.t_prep}
-                                        onChange={(e) => handleRowChange(originalIdx, 't_prep', parseFloat(e.target.value) || 0)}
-                                        className="w-16 text-right bg-white border border-slate-300 px-1 py-1 rounded text-xs outline-none font-mono"
-                                      />
-                                    ) : row.t_prep}
-                                  </td>
-                                  <td className="px-6 py-4 text-right text-slate-600 font-mono text-xs">
-                                    {isEditingItem ? (
-                                      <input
-                                        type="number"
-                                        step="0.1"
-                                        value={row.t_run}
-                                        onChange={(e) => handleRowChange(originalIdx, 't_run', parseFloat(e.target.value) || 0)}
-                                        className="w-16 text-right bg-white border border-slate-300 px-1 py-1 rounded text-xs outline-none font-mono"
-                                      />
-                                    ) : row.t_run}
-                                  </td>
-                                  <td className="px-6 py-4 text-right text-slate-600 font-mono text-xs">
-                                    {isEditingItem ? (
-                                      <input
-                                        type="number"
-                                        step="0.1"
-                                        value={row.t_calc}
-                                        onChange={(e) => handleRowChange(originalIdx, 't_calc', parseFloat(e.target.value) || 0)}
-                                        className="w-16 text-right bg-white border border-slate-300 px-1 py-1 rounded text-xs outline-none font-mono"
-                                      />
-                                    ) : row.t_calc}
-                                  </td>
-                                  <td className={`px-6 py-4 text-right font-mono text-xs ${type === 'micro' ? 'text-pink-600 font-bold' : 'text-slate-300'}`}>
-                                    {isEditingItem ? (
-                                      type === 'micro' ? (
-                                        <input
-                                          type="number"
-                                          step="0.1"
-                                          value={row.t_incubation || 0}
-                                          onChange={(e) => handleRowChange(originalIdx, 't_incubation', parseFloat(e.target.value) || 0)}
-                                          className="w-16 text-right bg-white border border-slate-300 px-1 py-1 rounded text-xs outline-none font-mono font-bold text-pink-600"
-                                        />
-                                      ) : '-'
-                                    ) : (type === 'micro' ? row.t_incubation : '-')}
-                                  </td>
-                                  <td className={`px-6 py-4 text-right font-black ${type === 'micro' ? 'text-pink-700' : 'text-slate-900'}`}>
-                                    {isEditingItem ? (
-                                      <input
-                                        type="number"
-                                        step="0.01"
-                                        value={row.totalTimeHours}
+                                      <input type="number" step="0.01" value={row.totalTimeHours}
                                         onChange={(e) => handleRowChange(originalIdx, 'totalTimeHours', parseFloat(e.target.value) || 0)}
                                         className="w-20 text-right bg-teal-50 border border-teal-200 px-1 py-1 rounded text-xs outline-none font-black"
                                       />
-                                    ) : row.totalTimeHours.toFixed(2)}
+                                    ) : <>{(() => {
+                                      const bfMatch = result.basfluxo?.testes?.find((t: any) => t.geminiMatch === row.testName && !t.stub);
+                                      const unifiedH = bfMatch ? (bfMatch.total_compartilhado_min || 0) / 60 : row.totalTimeHours;
+                                      return <>{unifiedH.toFixed(2)}<span className="text-[10px] font-medium ml-0.5 text-slate-400">h</span></>;
+                                    })()}</>}
                                   </td>
-                                  <td className="px-6 py-4 text-right">
+                                  <td className="px-4 py-3 text-right">
                                     <div className="flex flex-col items-end">
-                                      <span className="text-indigo-600 font-black text-xs font-mono">
-                                        {(row.manHours || 0).toFixed(2)}h
-                                      </span>
+                                      <span className="text-indigo-600 font-black text-xs font-mono tabular-nums">{(row.manHours || 0).toFixed(2)}h</span>
                                       <span className="text-[9px] font-bold text-slate-400">
                                         {row.totalTimeHours > 0 ? ((row.manHours / row.totalTimeHours) * 100).toFixed(0) : 0}%
                                       </span>
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 text-xs text-slate-500 italic leading-snug">
-                                    {isEditingItem ? (
-                                      <textarea
-                                        value={row.rationale}
-                                        onChange={(e) => handleRowChange(originalIdx, 'rationale', e.target.value)}
-                                        className="w-full bg-white border border-slate-300 px-2 py-1 rounded text-[10px] outline-none h-10 resize-none"
-                                      />
-                                    ) : row.rationale}
+                                  <td className="px-2 py-3 text-center">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); toggleActivities(activitiesKey); }}
+                                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold transition-colors border"
+                                      style={{ minWidth: 44, justifyContent: 'center' }}
+                                      title="Expandir detalhes do teste"
+                                    >
+                                      {hasActivities && (
+                                        <span className="flex items-center gap-0.5 mr-1">
+                                          <ListChecks className="w-3 h-3" />
+                                          <span className="tabular-nums">{m.atividades.length}</span>
+                                        </span>
+                                      )}
+                                      {showDetail ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                    </button>
                                   </td>
                                 </tr>
+                                {showDetail && (
+                                  <tr key={`${idx}-detail`}>
+                                    <td colSpan={5} className="px-4 pb-4 pt-0">
+                                      <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                                        {/* ── Unified BASEFLUXO + Gemini Table ── */}
+                                        {hasActivities ? (
+                                          <div>
+                                            <div className="px-5 py-2.5 bg-slate-50/70 flex items-center gap-2 border-b border-slate-100">
+                                              <ListChecks className="w-4 h-4 text-indigo-500" />
+                                              <span className="text-xs font-bold uppercase tracking-wider text-indigo-700">
+                                                Fluxo Unificado — BASEFLUXO + Gemini
+                                              </span>
+                                              <span className={`ml-auto text-[10px] font-bold tabular-nums px-2 py-0.5 rounded ${(() => {
+                                                const bfTotal = m.total_compartilhado_min || 0;
+                                                const gemTotal = (row.t_prep||0) + (row.t_run||0) + (row.t_calc||0) + (row.t_incubation||0) + (row.t_locomotion||0) + (row.t_setup||0) + (row.t_register||0);
+                                                if (bfTotal === 0) return 'text-slate-400';
+                                                const pct = ((gemTotal - bfTotal) / bfTotal * 100);
+                                                if (Math.abs(pct) <= 10) return 'bg-emerald-50 text-emerald-700';
+                                                if (Math.abs(pct) <= 30) return 'bg-amber-50 text-amber-700';
+                                                return 'bg-red-50 text-red-600';
+                                              })()}`}>
+                                                {(() => {
+                                                  const bfTotal = m.total_compartilhado_min || 0;
+                                                  const gemTotal = (row.t_prep||0) + (row.t_run||0) + (row.t_calc||0) + (row.t_incubation||0) + (row.t_locomotion||0) + (row.t_setup||0) + (row.t_register||0);
+                                                  if (bfTotal === 0) return '';
+                                                  const pct = ((gemTotal - bfTotal) / bfTotal * 100);
+                                                  return `Δ ${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%`;
+                                                })()}
+                                              </span>
+                                            </div>
+                                            <AtividadesTable
+                                              atividades={m.atividades}
+                                              testName=""
+                                              fixo={m.fixo}
+                                              variavel={m.variavel}
+                                              geminiTimes={{
+                                                prep: row.t_prep || 0,
+                                                run: row.t_run || 0,
+                                                calc: row.t_calc || 0,
+                                                incubation: row.t_incubation || 0,
+                                                locomotion: row.t_locomotion || 0,
+                                                setup: row.t_setup || 0,
+                                                register: row.t_register || 0,
+                                              }}
+                                              onChange={(newAtividades) => handleBasfluxoActivityChange(result, testIdx, newAtividades)}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <div>
+                                            <div className="px-5 py-2.5 bg-slate-50/70 flex items-center gap-2 border-b border-slate-100">
+                                              <Beaker className="w-4 h-4 text-teal-500" />
+                                              <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
+                                                Extração Gemini
+                                              </span>
+                                              <span className="ml-auto text-[10px] font-mono text-slate-400">
+                                                Total {row.totalTimeHours.toFixed(2)}h · HH {(row.manHours || 0).toFixed(2)}h
+                                              </span>
+                                            </div>
+                                            <div className="p-4">
+                                              <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 mb-3">
+                                                {[
+                                                  { label: 'Prep', value: row.t_prep, color: 'text-slate-700' },
+                                                  { label: 'Run', value: row.t_run, color: 'text-slate-700' },
+                                                  { label: 'Calc', value: row.t_calc, color: 'text-slate-700' },
+                                                  { label: 'Incub', value: row.t_incubation, color: type === 'micro' ? 'text-pink-600 font-bold' : 'text-slate-300' },
+                                                  { label: 'Locom.', value: row.t_locomotion, color: 'text-slate-400' },
+                                                  { label: 'Setup', value: row.t_setup, color: 'text-slate-400' },
+                                                  { label: 'Reg.', value: row.t_register, color: 'text-slate-400' },
+                                                ].map(({ label, value, color }) => (
+                                                  <div key={label} className="bg-slate-50 rounded-lg p-2 text-center">
+                                                    <div className="text-[9px] font-bold uppercase text-slate-400 mb-0.5">{label}</div>
+                                                    <div className={`font-mono text-xs font-bold tabular-nums ${color}`}>
+                                                      {value != null && value !== 0 ? value.toFixed(1) : '—'}
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+                                        {/* Racional */}
+                                        {row.rationale && (
+                                          <div className="px-5 pb-3 pt-2 bg-slate-50/30 text-[11px] text-slate-500 italic leading-relaxed border-t border-slate-100">
+                                            {row.rationale}
+                                          </div>
+                                        )}
+                                        {/* Transcrição Resumida */}
+                                        {row.transcriptSummary && (() => {
+                                          const ts = row.transcriptSummary;
+                                          const hasMultiLang = typeof ts === 'object' && (ts.pt || ts.es || ts.en);
+                                          const summaryText = hasMultiLang
+                                            ? (ts[language] || ts.pt || ts.es || ts.en || '')
+                                            : ts;
+                                          if (!summaryText) return null;
+                                          return (
+                                            <div className="bg-amber-50/60 rounded-lg p-3 border border-amber-200/60 m-4">
+                                              <div className="flex items-center gap-2 mb-1.5">
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600">
+                                                  Transcrição Resumida
+                                                </span>
+                                              </div>
+                                              <p className="text-[11px] text-slate-600 leading-relaxed">
+                                                {summaryText}
+                                              </p>
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                                </React.Fragment>
                               );
                             })}
                           </tbody>
@@ -551,8 +740,8 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
 
                   return (
                     <div className="pb-4">
-                      {physChemRows.length > 0 && renderTable(physChemRows, t.physChem, <FlaskConical className="w-4 h-4" />, 'phys')}
-                      {microRows.length > 0 && renderTable(microRows, t.micro, <Bug className="w-4 h-4" />, 'micro')}
+                      {physChemRows.length > 0 && renderTable(physChemRows, t.physChem, <FlaskConical className="w-4 h-4" />, 'phys', res)}
+                      {microRows.length > 0 && renderTable(microRows, t.micro, <Bug className="w-4 h-4" />, 'micro', res)}
 
                       {/* Images Gallery */}
                       {res.images && res.images.length > 0 && (
