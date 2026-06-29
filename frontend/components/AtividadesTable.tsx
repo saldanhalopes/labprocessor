@@ -138,8 +138,22 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
 
   const updateField = (idx: number, field: string, value: any) => {
     const base = draft || atividades;
-    const updated = base.map((a, i) => i === idx ? { ...a, [field]: value } : a);
+    const sortedBase = [...base].sort((a, b) => (a.ordem ?? 9999) - (b.ordem ?? 9999));
+    if (idx < 0 || idx >= sortedBase.length) return;
+    const target = sortedBase[idx];
+    const updated = base.map(a => a === target ? { ...a, [field]: value } : a);
     setDraft(updated);
+  };
+
+  const addAtividade = () => {
+    const base = atividades;
+    const newOrder = (base.length > 0 ? Math.max(...base.map(a => a.ordem ?? 0)) : 0) + 1;
+    const updated = [...base, { descricao: '', rota: '', execucao: 'MAQ', padrao_amostra: 'Padrão', tempo_min: 0, ordem: newOrder }];
+    if (draft) {
+      setDraft([...draft, { descricao: '', rota: '', execucao: 'MAQ', padrao_amostra: 'Padrão', tempo_min: 0, ordem: newOrder }]);
+    } else {
+      onChange(updated);
+    }
   };
 
   const moveRow = (globalIdx: number, direction: 'up' | 'down') => {
@@ -152,13 +166,6 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
     onChange(result);
     setDraft(null);
     setEditing(null);
-  };
-
-  const addAtividade = () => {
-    const base = draft || atividades;
-    const newOrder = (base.length > 0 ? Math.max(...base.map(a => a.ordem ?? 0)) : 0) + 1;
-    const updated = [...base, { descricao: '', rota: '', execucao: 'MAQ', padrao_amostra: 'Padrão', tempo_min: 0, ordem: newOrder }];
-    setDraft(updated);
   };
 
   const removeAtividade = (globalIdx: number) => {
@@ -190,7 +197,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
     }
     return (
       <td className={`${cellClass} cursor-pointer hover:bg-indigo-50/30 transition-colors min-h-[32px]`}
-        onClick={() => { if (!draft) setEditing({ rowIdx: idx, field }); }}
+        onClick={() => setEditing({ rowIdx: idx, field })}
         title="Clique para editar"
       >
         {display}
