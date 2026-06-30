@@ -11,23 +11,12 @@ interface Atividade {
   ordem?: number;
 }
 
-interface GeminiTimes {
-  prep: number;
-  run: number;
-  calc: number;
-  incubation: number;
-  locomotion: number;
-  setup: number;
-  register: number;
-}
-
 interface AtividadesTableProps {
   atividades: Atividade[];
   testName: string;
   fixo: { total_min: number; mo_min: number; maq_min: number };
   variavel: { total_min: number; mo_min: number; maq_min: number };
   onChange: (atividades: Atividade[]) => void;
-  geminiTimes?: GeminiTimes;
 }
 
 type Categoria = 'corrida' | 'maquina' | 'mo';
@@ -46,12 +35,11 @@ const catConfig: Record<Categoria, { label: string; row: string; text: string; i
 
 type EditingField = { rowIdx: number; field: string } | null;
 
-export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, testName, fixo, variavel, onChange, geminiTimes }) => {
+export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, testName, fixo, variavel, onChange }) => {
   const hasHeader = !!testName;
   const [expanded, setExpanded] = useState(!hasHeader);
   const [editing, setEditing] = useState<EditingField>(null);
   const [draft, setDraft] = useState<Atividade[] | null>(null);
-  const showGemini = !!geminiTimes;
 
   const working = draft || atividades;
 
@@ -88,53 +76,6 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
   }, [working]);
 
   const grandTempo = totals.corrida.tempo + totals.maquina.tempo + totals.mo.tempo;
-
-  const geminiMapping = useMemo(() => {
-    if (!geminiTimes) return null;
-    const moAtividades = working.filter(a => a.execucao === 'MO');
-    const maqAtividades = working.filter(a => a.execucao === 'MAQ');
-    const totalMO = moAtividades.reduce((s, a) => s + (a.tempo_min || 0), 0);
-    const totalMAQ = maqAtividades.reduce((s, a) => s + (a.tempo_min || 0), 0);
-
-    const perActivity: Record<number, number> = {};
-    for (const a of working) {
-      const idx = working.indexOf(a);
-      if (a.execucao === 'MO' && totalMO > 0) {
-        perActivity[idx] = Math.round(((a.tempo_min || 0) / totalMO) * geminiTimes.prep * 10) / 10;
-      } else if (a.execucao === 'MAQ' && totalMAQ > 0) {
-        perActivity[idx] = Math.round(((a.tempo_min || 0) / totalMAQ) * geminiTimes.run * 10) / 10;
-      }
-    }
-
-    const geminiOnlyComponents: { label: string; value: number }[] = [];
-    if (geminiTimes.calc > 0) geminiOnlyComponents.push({ label: 'Cálculo', value: geminiTimes.calc });
-    if (geminiTimes.incubation > 0) geminiOnlyComponents.push({ label: 'Incubação', value: geminiTimes.incubation });
-    if (geminiTimes.locomotion > 0) geminiOnlyComponents.push({ label: 'Locomoção', value: geminiTimes.locomotion });
-    if (geminiTimes.setup > 0) geminiOnlyComponents.push({ label: 'Setup', value: geminiTimes.setup });
-    if (geminiTimes.register > 0) geminiOnlyComponents.push({ label: 'Registro', value: geminiTimes.register });
-
-    const totalGemini = geminiTimes.prep + geminiTimes.run + geminiTimes.calc + geminiTimes.incubation + geminiTimes.locomotion + geminiTimes.setup + geminiTimes.register;
-
-    return { perActivity, geminiOnlyComponents, totalGemini };
-  }, [working, geminiTimes]);
-
-  const getGeminiTime = (idx: number): number => {
-    if (!geminiMapping) return 0;
-    return geminiMapping.perActivity[idx] || 0;
-  };
-
-  const deltaColor = (bf: number, gemini: number): string => {
-    if (bf === 0) return 'text-slate-300';
-    const pct = Math.abs(((gemini - bf) / bf) * 100);
-    if (pct <= 10) return 'bg-emerald-50 text-emerald-700';
-    if (pct <= 30) return 'bg-amber-50 text-amber-700';
-    return 'bg-red-50 text-red-600';
-  };
-
-  const deltaPct = (bf: number, gemini: number): string => {
-    if (bf === 0) return '—';
-    return ((gemini - bf) / bf * 100).toFixed(0) + '%';
-  };
 
   const updateField = (idx: number, field: string, value: any) => {
     const base = draft || atividades;
@@ -211,8 +152,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
       const cfg = catConfig[cat];
       const isFirst = i === 0;
       const isLast = i === sorted.length - 1;
-      const geminiVal = getGeminiTime(i);
-      const delta = geminiVal > 0 ? deltaPct(a.tempo_min, geminiVal) : '—';
+      const pct = grandTempo > 0 ? `${((a.tempo_min / grandTempo) * 100).toFixed(0)}%` : '—';
       return (
         <tr key={i} className={`border-b border-slate-100 text-sm ${cfg.row} hover:bg-slate-100/50 transition-colors`}>
           {renderCell(
@@ -225,7 +165,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               type="text" autoFocus
               value={a.descricao}
               onChange={e => updateField(i, 'descricao', e.target.value)}
-               onKeyDown={handleKeyDown}
+              onKeyDown={handleKeyDown}
               className="w-full max-w-[280px] bg-white border border-indigo-300 px-2 py-1.5 rounded text-xs outline-none font-medium focus:ring-1 focus:ring-indigo-400"
             />,
             'px-4 py-2.5'
@@ -237,7 +177,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               type="text" autoFocus
               value={a.rota}
               onChange={e => updateField(i, 'rota', e.target.value)}
-               onKeyDown={handleKeyDown}
+              onKeyDown={handleKeyDown}
               className="w-full max-w-[150px] bg-white border border-indigo-300 px-2 py-1.5 rounded text-xs outline-none font-mono focus:ring-1 focus:ring-indigo-400"
             />,
             'px-4 py-2.5'
@@ -251,7 +191,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               autoFocus
               value={a.execucao}
               onChange={e => updateField(i, 'execucao', e.target.value)}
-               onKeyDown={handleKeyDown}
+              onKeyDown={handleKeyDown}
               className="bg-white border border-indigo-300 rounded px-1 py-1.5 text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-indigo-400"
             >
               <option value="MO">MO</option>
@@ -268,7 +208,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               autoFocus
               value={a.padrao_amostra}
               onChange={e => updateField(i, 'padrao_amostra', e.target.value)}
-               onKeyDown={handleKeyDown}
+              onKeyDown={handleKeyDown}
               className="bg-white border border-indigo-300 rounded px-1 py-1.5 text-[10px] font-bold uppercase outline-none focus:ring-1 focus:ring-indigo-400"
             >
               <option value="Padrão">Padrão</option>
@@ -285,7 +225,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               type="number" step="1" min="0" autoFocus
               value={a.injecoes || ''}
               onChange={e => updateField(i, 'injecoes', parseInt(e.target.value) || 0)}
-               onKeyDown={handleKeyDown}
+              onKeyDown={handleKeyDown}
               className="w-16 text-center bg-white border border-indigo-300 px-2 py-1.5 rounded text-xs outline-none font-mono focus:ring-1 focus:ring-indigo-400"
             />,
             'px-4 py-2.5 text-center'
@@ -299,29 +239,14 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               type="number" step="0.1" autoFocus
               value={a.tempo_min}
               onChange={e => updateField(i, 'tempo_min', parseFloat(e.target.value) || 0)}
-               onKeyDown={handleKeyDown}
+              onKeyDown={handleKeyDown}
               className="w-20 text-right bg-white border border-indigo-300 px-2 py-1.5 rounded text-xs outline-none font-mono focus:ring-1 focus:ring-indigo-400"
             />,
             'px-4 py-2.5 text-right'
           )}
-          {showGemini && (
-            <>
-            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
-              {grandTempo > 0 ? `${((a.tempo_min / grandTempo) * 100).toFixed(0)}%` : '—'}
-            </td>
-            <td className="px-4 py-2.5 text-right font-mono text-xs tabular-nums text-teal-600">
-              {geminiVal > 0 ? geminiVal.toFixed(1) : '—'}
-            </td>
-            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
-              {geminiMapping?.totalGemini ? `${((geminiVal / geminiMapping.totalGemini) * 100).toFixed(0)}%` : '—'}
-            </td>
-            <td className="px-4 py-2.5 text-center">
-              <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tabular-nums ${deltaColor(a.tempo_min, geminiVal)}`}>
-                {delta}
-              </span>
-            </td>
-            </>
-          )}
+          <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
+            {pct}
+          </td>
           <td className="px-1 py-2.5 text-center">
             <div className="flex flex-col items-center gap-0.5">
               {editing && draft ? (
@@ -376,14 +301,14 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
 
   const renderFooter = () => {
     const cats: Categoria[] = ['corrida', 'maquina', 'mo'];
-    const labelColSpan = showGemini ? 9 : 5;
     return (
       <>
         {cats.filter(c => totals[c].count > 0).map(c => {
           const cfg = catConfig[c];
+          const catPct = grandTempo > 0 ? `${((totals[c].tempo / grandTempo) * 100).toFixed(0)}%` : '—';
           return (
             <tr key={c} className={`${cfg.row} text-sm font-bold`}>
-              <td colSpan={labelColSpan} className="px-4 py-2">
+              <td colSpan={7} className="px-4 py-2">
                 <span className={`${cfg.text}`}>{cfg.icon} {totals[c].count} {cfg.label}</span>
               </td>
               <td className="px-4 py-2 text-center font-mono text-xs tabular-nums text-slate-500">
@@ -392,47 +317,23 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               <td className="px-4 py-2 text-right font-mono text-sm tabular-nums text-slate-800">
                 {totals[c].tempo.toFixed(1)} min
               </td>
-              {showGemini && <><td className="px-4 py-2"></td><td className="px-4 py-2"></td><td className="px-4 py-2"></td><td className="px-4 py-2"></td></>}
+              <td className="px-2 py-2 text-right font-mono text-[9px] tabular-nums text-slate-400">
+                {catPct}
+              </td>
             </tr>
           );
         })}
-        {showGemini && geminiMapping?.geminiOnlyComponents.map((gc, gi) => (
-          <tr key={`gem-${gi}`} className="bg-slate-50 text-sm border-b border-slate-100">
-            <td colSpan={labelColSpan} className="px-4 py-2">
-              <span className="text-teal-600">🧪 {gc.label}</span>
-            </td>
-            <td className="px-4 py-2 text-center font-mono text-xs tabular-nums text-slate-400">—</td>
-            <td className="px-4 py-2 text-right font-mono text-xs tabular-nums text-slate-400">—</td>
-            <td className="px-2 py-2 text-right font-mono text-[9px] tabular-nums text-slate-300">—</td>
-            <td className="px-4 py-2 text-right font-mono text-xs tabular-nums text-teal-600">{gc.value.toFixed(1)}</td>
-            <td className="px-2 py-2 text-right font-mono text-[9px] tabular-nums text-slate-300">—</td>
-            <td className="px-4 py-2 text-center font-mono text-xs tabular-nums text-slate-300">—</td>
-          </tr>
-        ))}
         <tr className="bg-indigo-50/30 font-bold text-sm">
-          <td colSpan={labelColSpan} className="px-4 py-2.5 text-indigo-700">TOTAL (BASEFLUXO)</td>
+          <td colSpan={7} className="px-4 py-2.5 text-indigo-700">TOTAL</td>
           <td className="px-4 py-2.5 text-center font-mono text-xs tabular-nums text-indigo-500">
             {totals.corrida.inj || '—'}
           </td>
           <td className="px-4 py-2.5 text-right font-mono text-sm tabular-nums text-indigo-700">
             {grandTempo.toFixed(1)} min
           </td>
-          {showGemini && (
-            <>
-            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">100%</td>
-            <td className="px-4 py-2.5 text-right font-mono text-sm tabular-nums text-teal-700">
-              {geminiMapping ? geminiMapping.totalGemini.toFixed(1) : '—'}
-            </td>
-            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
-              {geminiMapping?.totalGemini ? '100%' : '—'}
-            </td>
-            <td className="px-4 py-2.5 text-center">
-              <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tabular-nums ${deltaColor(grandTempo, geminiMapping?.totalGemini || 0)}`}>
-                {deltaPct(grandTempo, geminiMapping?.totalGemini || 0)}
-              </span>
-            </td>
-            </>
-          )}
+          <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
+            100%
+          </td>
         </tr>
       </>
     );
@@ -443,7 +344,6 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
 
   return (
     <div>
-      {/* Toggle bar — always visible */}
       <div className="flex items-center gap-2">
         {hasHeader ? (
           <button
@@ -488,16 +388,10 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
           <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse flex-shrink-0" />
           <span className="text-[11px] font-bold text-amber-700">Alterações não salvas</span>
           <div className="ml-auto flex gap-2">
-            <button
-              onClick={commitDraft}
-              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-[10px] font-bold transition-colors shadow-sm"
-            >
+            <button onClick={commitDraft} className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-[10px] font-bold transition-colors shadow-sm">
               <Save className="w-3 h-3" /> Salvar
             </button>
-            <button
-              onClick={cancelDraft}
-              className="flex items-center gap-1 px-3 py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 text-[10px] font-bold transition-colors"
-            >
+            <button onClick={cancelDraft} className="flex items-center gap-1 px-3 py-1.5 bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 text-[10px] font-bold transition-colors">
               <X className="w-3 h-3" /> Cancelar
             </button>
           </div>
@@ -516,14 +410,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
                   <th className="px-4 py-3 text-center">P/A</th>
                   <th className="px-4 py-3 text-center">Inj</th>
                   <th className="px-4 py-3 text-right">Tempo (min)</th>
-                  {showGemini && (
-                    <>
-                    <th className="px-2 py-3 text-right">% BF</th>
-                    <th className="px-4 py-3 text-right">Gemini</th>
-                    <th className="px-2 py-3 text-right">% Gem</th>
-                    <th className="px-4 py-3 text-center">Δ</th>
-                    </>
-                  )}
+                  <th className="px-2 py-3 text-right">%</th>
                   <th className="px-2 py-3 text-center w-8">#</th>
                 </tr>
               </thead>
@@ -531,7 +418,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
                 {renderRows()}
               </tbody>
               <tfoot>
-                <tr><td colSpan={showGemini ? 11 : 7} className="p-0"></td></tr>
+                <tr><td colSpan={8} className="p-0"></td></tr>
                 {renderFooter()}
               </tfoot>
             </table>

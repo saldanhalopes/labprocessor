@@ -621,30 +621,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                                   <tr key={`${idx}-detail`}>
                                     <td colSpan={5} className="px-4 pb-4 pt-0">
                                       <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                                        {/* ── Unified BASEFLUXO + Gemini Table ── */}
+                                        {/* ── BASEFLUXO Table ── */}
                                         {hasActivities ? (
                                           <div>
                                             <div className="px-5 py-2.5 bg-slate-50/70 flex items-center gap-2 border-b border-slate-100">
                                               <ListChecks className="w-4 h-4 text-indigo-500" />
                                               <span className="text-xs font-bold uppercase tracking-wider text-indigo-700">
-                                                Fluxo Unificado — BASEFLUXO + Gemini
+                                                BASEFLUXO — Fluxo de CQ
                                               </span>
-                                              <span className={`ml-auto text-[10px] font-bold tabular-nums px-2 py-0.5 rounded ${(() => {
-                                                const bfTotal = m.total_compartilhado_min || 0;
-                                                const gemTotal = (row.t_prep||0) + (row.t_run||0) + (row.t_calc||0) + (row.t_incubation||0) + (row.t_locomotion||0) + (row.t_setup||0) + (row.t_register||0);
-                                                if (bfTotal === 0) return 'text-slate-400';
-                                                const pct = ((gemTotal - bfTotal) / bfTotal * 100);
-                                                if (Math.abs(pct) <= 10) return 'bg-emerald-50 text-emerald-700';
-                                                if (Math.abs(pct) <= 30) return 'bg-amber-50 text-amber-700';
-                                                return 'bg-red-50 text-red-600';
-                                              })()}`}>
-                                                {(() => {
-                                                  const bfTotal = m.total_compartilhado_min || 0;
-                                                  const gemTotal = (row.t_prep||0) + (row.t_run||0) + (row.t_calc||0) + (row.t_incubation||0) + (row.t_locomotion||0) + (row.t_setup||0) + (row.t_register||0);
-                                                  if (bfTotal === 0) return '';
-                                                  const pct = ((gemTotal - bfTotal) / bfTotal * 100);
-                                                  return `Δ ${pct >= 0 ? '+' : ''}${pct.toFixed(0)}%`;
-                                                })()}
+                                              <span className="ml-auto text-[10px] font-mono text-slate-400">
+                                                Fixo {m.fixo.total_min.toFixed(0)}m · Var {m.variavel.total_min.toFixed(0)}m/amostra
                                               </span>
                                             </div>
                                             <AtividadesTable
@@ -652,15 +638,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, settings, lan
                                               testName=""
                                               fixo={m.fixo}
                                               variavel={m.variavel}
-                                              geminiTimes={{
-                                                prep: row.t_prep || 0,
-                                                run: row.t_run || 0,
-                                                calc: row.t_calc || 0,
-                                                incubation: row.t_incubation || 0,
-                                                locomotion: row.t_locomotion || 0,
-                                                setup: row.t_setup || 0,
-                                                register: row.t_register || 0,
-                                              }}
                                               onChange={(newAtividades) => handleBasfluxoActivityChange(result, testIdx, newAtividades)}
                                             />
                                           </div>
