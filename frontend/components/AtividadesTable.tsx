@@ -306,8 +306,14 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
           )}
           {showGemini && (
             <>
+            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
+              {grandTempo > 0 ? `${((a.tempo_min / grandTempo) * 100).toFixed(0)}%` : '—'}
+            </td>
             <td className="px-4 py-2.5 text-right font-mono text-xs tabular-nums text-teal-600">
               {geminiVal > 0 ? geminiVal.toFixed(1) : '—'}
+            </td>
+            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
+              {geminiMapping?.totalGemini ? `${((geminiVal / geminiMapping.totalGemini) * 100).toFixed(0)}%` : '—'}
             </td>
             <td className="px-4 py-2.5 text-center">
               <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tabular-nums ${deltaColor(a.tempo_min, geminiVal)}`}>
@@ -370,7 +376,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
 
   const renderFooter = () => {
     const cats: Categoria[] = ['corrida', 'maquina', 'mo'];
-    const labelColSpan = showGemini ? 7 : 5;
+    const labelColSpan = showGemini ? 9 : 5;
     return (
       <>
         {cats.filter(c => totals[c].count > 0).map(c => {
@@ -386,7 +392,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
               <td className="px-4 py-2 text-right font-mono text-sm tabular-nums text-slate-800">
                 {totals[c].tempo.toFixed(1)} min
               </td>
-              {showGemini && <><td className="px-4 py-2"></td><td className="px-4 py-2"></td></>}
+              {showGemini && <><td className="px-4 py-2"></td><td className="px-4 py-2"></td><td className="px-4 py-2"></td><td className="px-4 py-2"></td></>}
             </tr>
           );
         })}
@@ -397,7 +403,9 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
             </td>
             <td className="px-4 py-2 text-center font-mono text-xs tabular-nums text-slate-400">—</td>
             <td className="px-4 py-2 text-right font-mono text-xs tabular-nums text-slate-400">—</td>
+            <td className="px-2 py-2 text-right font-mono text-[9px] tabular-nums text-slate-300">—</td>
             <td className="px-4 py-2 text-right font-mono text-xs tabular-nums text-teal-600">{gc.value.toFixed(1)}</td>
+            <td className="px-2 py-2 text-right font-mono text-[9px] tabular-nums text-slate-300">—</td>
             <td className="px-4 py-2 text-center font-mono text-xs tabular-nums text-slate-300">—</td>
           </tr>
         ))}
@@ -411,8 +419,12 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
           </td>
           {showGemini && (
             <>
+            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">100%</td>
             <td className="px-4 py-2.5 text-right font-mono text-sm tabular-nums text-teal-700">
               {geminiMapping ? geminiMapping.totalGemini.toFixed(1) : '—'}
+            </td>
+            <td className="px-2 py-2.5 text-right font-mono text-[9px] tabular-nums text-slate-400">
+              {geminiMapping?.totalGemini ? '100%' : '—'}
             </td>
             <td className="px-4 py-2.5 text-center">
               <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tabular-nums ${deltaColor(grandTempo, geminiMapping?.totalGemini || 0)}`}>
@@ -506,7 +518,9 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
                   <th className="px-4 py-3 text-right">Tempo (min)</th>
                   {showGemini && (
                     <>
+                    <th className="px-2 py-3 text-right">% BF</th>
                     <th className="px-4 py-3 text-right">Gemini</th>
+                    <th className="px-2 py-3 text-right">% Gem</th>
                     <th className="px-4 py-3 text-center">Δ</th>
                     </>
                   )}
@@ -517,7 +531,7 @@ export const AtividadesTable: React.FC<AtividadesTableProps> = ({ atividades, te
                 {renderRows()}
               </tbody>
               <tfoot>
-                <tr><td colSpan={showGemini ? 9 : 7} className="p-0"></td></tr>
+                <tr><td colSpan={showGemini ? 11 : 7} className="p-0"></td></tr>
                 {renderFooter()}
               </tfoot>
             </table>
