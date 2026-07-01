@@ -42,7 +42,8 @@ export interface AnimationState {
   tarefasTotais: number;
 }
 
-export function buildAgents(sim: SimulationResult): AgentState[] {
+export function buildAgents(sim: SimulationResult | null): AgentState[] {
+  if (!sim || !sim.tasks || sim.tasks.length === 0) return [];
   const porTeste = new Map<string, ScheduledTask[]>();
   for (const t of sim.tasks) {
     const k = `${t.produtoId}|${t.testeName}|${t.lote}`;
