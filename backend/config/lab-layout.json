@@ -1,0 +1,35 @@
+{
+  "canvas": { "width": 1080, "height": 620 },
+  "stationWidth": 140,
+  "stationHeight": 80,
+  "zones": [
+    { "nome": "HPLC", "x": 20, "y": 20, "width": 1040, "height": 130, "color": "#1e40af" },
+    { "nome": "Bancada/Preparo", "x": 20, "y": 170, "width": 1040, "height": 130, "color": "#059669" },
+    { "nome": "Dissolução/Ultrassom", "x": 20, "y": 320, "width": 1040, "height": 130, "color": "#7c3aed" },
+    { "nome": "Físicos/Logística", "x": 20, "y": 470, "width": 1040, "height": 130, "color": "#b45309" }
+  ],
+  "rotas": [
+    { "rota": "HPLC DAD", "tipo": "Máquina", "execucao": "MAQ", "zona": "HPLC", "x": 60, "y": 50 },
+    { "rota": "HPLC UV", "tipo": "Máquina", "execucao": "MAQ", "zona": "HPLC", "x": 260, "y": 50 },
+    { "rota": "ANALISTA EQUIP - HPLC", "tipo": "Analista", "execucao": "MO", "zona": "HPLC", "x": 460, "y": 50 },
+    { "rota": "CONJ FILTRO", "tipo": "Máquina", "execucao": "MAQ", "zona": "HPLC", "x": 660, "y": 50 },
+    { "rota": "BOMBA DE LAVAGEM", "tipo": "Máquina", "execucao": "MAQ", "zona": "HPLC", "x": 860, "y": 50 },
+
+    { "rota": "ANALISTA BANCADA (PREP HPLC)", "tipo": "Analista", "execucao": "MO", "zona": "Bancada/Preparo", "x": 60, "y": 200 },
+    { "rota": "BALANÇA", "tipo": "Máquina", "execucao": "MAQ", "zona": "Bancada/Preparo", "x": 260, "y": 200 },
+    { "rota": "BALANÇA IV", "tipo": "Máquina", "execucao": "MAQ", "zona": "Bancada/Preparo", "x": 460, "y": 200 },
+    { "rota": "MILLIQ", "tipo": "Máquina", "execucao": "MAQ", "zona": "Bancada/Preparo", "x": 660, "y": 200 },
+    { "rota": "pHMETRO", "tipo": "Máquina", "execucao": "MAQ", "zona": "Bancada/Preparo", "x": 860, "y": 200 },
+
+    { "rota": "DISSOLUTOR", "tipo": "Máquina", "execucao": "MAQ", "zona": "Dissolução/Ultrassom", "x": 60, "y": 350 },
+    { "rota": "AUXILIAR COLUNAS", "tipo": "Analista", "execucao": "MO", "zona": "Dissolução/Ultrassom", "x": 260, "y": 350 },
+    { "rota": "AGITADOR", "tipo": "Máquina", "execucao": "MAQ", "zona": "Dissolução/Ultrassom", "x": 460, "y": 350 },
+    { "rota": "ULTRASSOM", "tipo": "Máquina", "execucao": "MAQ", "zona": "Dissolução/Ultrassom", "x": 660, "y": 350 },
+    { "rota": "DESINTEGRADOR", "tipo": "Máquina", "execucao": "MAQ", "zona": "Dissolução/Ultrassom", "x": 860, "y": 350 },
+
+    { "rota": "DURÔMETRO", "tipo": "Máquina", "execucao": "MAQ", "zona": "Físicos/Logística", "x": 60, "y": 500 },
+    { "rota": "AUXILIAR MOVIMENTADOR", "tipo": "Analista", "execucao": "MO", "zona": "Físicos/Logística", "x": 260, "y": 500 },
+    { "rota": "AUXILIAR FRACIONADOR", "tipo": "Analista", "execucao": "MO", "zona": "Físicos/Logística", "x": 460, "y": 500 },
+    { "rota": "ANALISTA TF", "tipo": "Analista", "execucao": "MO", "zona": "Físicos/Logística", "x": 660, "y": 500 }
+  ]
+}
