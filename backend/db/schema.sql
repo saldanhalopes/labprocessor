@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS results (
     timestamp BIGINT DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    user_id INTEGER REFERENCES users(id)
+    user_id INTEGER REFERENCES users(id),
+    basfluxo JSONB,
+    mfvcq JSONB
 );
 
 CREATE TABLE IF NOT EXISTS analysis_rows (
@@ -55,7 +57,8 @@ CREATE TABLE IF NOT EXISTS analysis_rows (
     t_register FLOAT DEFAULT 0,
     total_time_hours FLOAT DEFAULT 0,
     man_hours FLOAT DEFAULT 0,
-    rationale TEXT
+    rationale TEXT,
+    transcript_summary TEXT
 );
 
 CREATE TABLE IF NOT EXISTS reagents (
@@ -103,7 +106,18 @@ CREATE INDEX IF NOT EXISTS idx_reagents_result_id ON reagents(result_id);
 CREATE INDEX IF NOT EXISTS idx_standards_result_id ON standards(result_id);
 CREATE INDEX IF NOT EXISTS idx_equipments_result_id ON equipments(result_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_result_id ON embeddings(result_id);
--- ivfflat index requires max 2000 dimensions; Gemini Embedding 001 uses 3072.
--- For production with large datasets, consider dimensionality reduction or
--- partitioning. For small-scale local use, exact search via <=> is sufficient.
--- CREATE INDEX IF NOT EXISTS idx_embeddings_vector ON embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+ALTER TABLE analysis_rows ADD COLUMN IF NOT EXISTS transcript_summary TEXT;
+
+CREATE TABLE IF NOT EXISTS vault_embeddings (
+    id SERIAL PRIMARY KEY,
+    source_type VARCHAR(20) NOT NULL,
+    source_name VARCHAR(500) NOT NULL,
+    chunk_text TEXT NOT NULL,
+    embedding VECTOR(3072),
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(source_type, source_name)
+);
+
+DROP INDEX IF EXISTS idx_embeddings_hnsw;
+DROP INDEX IF EXISTS idx_vault_embeddings_hnsw;
