@@ -15,6 +15,7 @@ export interface SimTask {
   tempo_min: number;
   dependeDe: string[];
   ordemLote: number;
+  locomoacao_entrada_min: number;
 }
 
 export interface ScheduledTask extends SimTask {
@@ -99,7 +100,7 @@ function distancia(a: RotaCoord | null, b: RotaCoord | null): number {
 function tempoLocomocao(distPx: number, settings: GlobalSettings): number {
   if (distPx === 0) return 0;
   const distM = distPx / 100;
-  return (distM / settings.velocity) * 60 * settings.alpha;
+  return (distM / settings.velocity) * settings.alpha;
 }
 
 interface ExpandedAtividade {
@@ -226,9 +227,10 @@ export function simulateFIFO(input: SchedulerInput): SimulationResult {
             rota: a.rota,
             execucao: (a.execucao === 'MO' ? 'MO' : 'MAQ') as 'MAQ' | 'MO',
             padrao_amostra: a.padrao_amostra,
-            tempo_min: a.tempo_min + locMin,
+            tempo_min: a.tempo_min,
             dependeDe: prevId ? [prevId] : [],
             ordemLote: atvIdx,
+            locomoacao_entrada_min: locMin,
           });
           prevId = id;
           prevRotaNome = a.rota;
@@ -265,16 +267,15 @@ export function simulateFIFO(input: SchedulerInput): SimulationResult {
       const depEnds = deps.map((d: string) => scheduledMap[d].end_min);
       const depEnd = depEnds.length ? Math.max(...depEnds) : 0;
       const earliestResource = recursoBusy_until[t.rota];
-      const start = Math.max(depEnd, earliestResource);
+      const start = Math.max(depEnd + t.locomoacao_entrada_min, earliestResource);
       const end = start + t.tempo_min;
 
-      scheduledMap[t.taskId] = {
+scheduledMap[t.taskId] = {
         ...t,
         start_min: start,
         end_min: end,
-        waited_dep_min: start - depEnd > 0 ? 0 : 0, // dep arrived simultaneously: 0 wait
-        waited_resource_min: Math.max(0, earliestResource - depEnd),
-        locomoacao_entrada_min: 0,
+        waited_dep_min: deps.length && depEnd > earliestResource ? 0 : earliestResource > depEnd ? earliestResource - depEnd - t.locomoacao_entrada_min : 0,
+        waited_resource_min: Math.max(0, earliestResource - (depEnd + t.locomoacao_entrada_min)),
       };
       recursoBusy_until[t.rota] = end;
       recursoCount[t.rota]++;
