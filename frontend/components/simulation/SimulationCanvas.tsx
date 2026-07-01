@@ -1,0 +1,437 @@
+import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
+import type { SimulationResult, ScheduledTask } from '../../services/scheduler';
+import type { LabLayout, LabRota, LabZone } from '../../services/layoutTypes';
+import { buildAgents, rotaCoord, corDeProduto, type AgentState } from './agents';
+
+export interface SimulationCanvasHandle {
+  play: () => void;
+  pause: () => void;
+  reset: () => void;
+  seek: (min: number) => void;
+  setSpeed: (s: number) => void;
+}
+
+interface Props {
+  sim: SimulationResult;
+  layout: LabLayout;
+  tiempo_min: number;
+  onTiempoChange: (m: number) => void;
+  playing: boolean;
+  onPlayingChange: (p: boolean) => void;
+  speed: number;
+  onSpeedChange: (s: number) => void;
+  onAgentSelect?: (a: AgentState | null) => void;
+}
+
+const SPEED_OPTIONS = [
+  { label: '1s = 1min', value: 1 },
+  { label: '1s = 10min', value: 10 },
+  { label: '1s = 60min', value: 60 },
+  { label: '1s = 300min', value: 300 },
+];
+
+function hexWithAlpha(hex: string, alpha: number): string {
+  const m = hex.replace('#', '');
+  const r = parseInt(m.substring(0, 2), 16);
+  const g = parseInt(m.substring(2, 4), 16);
+  const b = parseInt(m.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function drawScene(
+  ctx: CanvasRenderingContext2D,
+  layout: LabLayout,
+  sim: SimulationResult,
+  agents: AgentState[],
+  tiempo_min: number,
+  scale: number,
+  selectedAgentId: string | null,
+  selectedRota: string | null
+) {
+  const W = layout.canvas.width;
+  const H = layout.canvas.height;
+  ctx.clearRect(0, 0, W * scale, H * scale);
+  ctx.save();
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(0, 0, W, H);
+
+  for (const zone of layout.zones) {
+    ctx.fillStyle = hexWithAlpha(zone.color, 0.07);
+    ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
+    ctx.strokeStyle = hexWithAlpha(zone.color, 0.35);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+    ctx.fillStyle = zone.color;
+    ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+    ctx.fillText(zone.nome.toUpperCase(), zone.x + 10, zone.y + 18);
+  }
+
+  for (const r of layout.rotas) {
+    const isBusy = agents.some((a) => a.rotaAtual === r.rota && a.state.startsWith('working'));
+    const isSelected = selectedRota === r.rota;
+    const baseColor = r.execucao === 'MAQ' ? '#1e3a8a' : '#065f46';
+
+    if (isBusy) {
+      const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 250);
+      ctx.shadowColor = r.execucao === 'MAQ' ? '#fbbf24' : '#34d399';
+      ctx.shadowBlur = 15 + pulse * 10;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = isSelected ? '#fbbf24' : isBusy ? '#facc15' : '#cbd5e1';
+    ctx.lineWidth = isSelected || isBusy ? 2.5 : 1.2;
+    ctx.strokeRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px Inter, system-ui, sans-serif';
+    wrapText(ctx, r.rota, r.x + 6, r.y + 18, layout.stationWidth - 12, 14);
+    ctx.font = '10px Inter, system-ui, sans-serif';
+    ctx.fillStyle = isBusy ? '#fde68a' : '#94a3b8';
+    ctx.fillText(isBusy ? 'EM USO' : `${r.execucao}`, r.x + 6, r.y + layout.stationHeight - 8);
+  }
+
+  for (const a of agents) {
+    const isSel = selectedAgentId === a.id;
+    const radius = isSel ? 10 : 7;
+
+    if (a.state === 'traveling') {
+      ctx.strokeStyle = hexWithAlpha(a.cor, 0.6);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(a.targetX, a.targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    if (a.state.startsWith('working')) {
+      const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 350);
+      ctx.fillStyle = hexWithAlpha(a.cor, 0.25 + pulse * 0.25);
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, radius + 5 + pulse * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = a.cor;
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    if (isSel) {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, radius + 3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+  const words = text.split(' ');
+  let line = '';
+  let curY = y;
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, curY);
+      line = w;
+      curY += lineHeight;
+      if (curY > y + lineHeight * 2) break;
+    } else {
+      line = test;
+    }
+  }
+  if (line) ctx.fillText(line, x, curY);
+}
+
+function formatMin(total: number): string {
+  const d = Math.floor(total / (60 * 24));
+  const h = Math.floor((total % (60 * 24)) / 60);
+  const m = Math.floor(total % 60);
+  if (d > 0) return `${d}d ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+}
+
+export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(function SimulationCanvas(
+  { sim, layout, tiempo_min, onTiempoChange, playing, onPlayingChange, speed, onSpeedChange, onAgentSelect },
+  ref
+) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastFrameRef = useRef<number>(0);
+  const tiempoRef = useRef<number>(tiempo_min);
+  const playingRef = useRef<boolean>(playing);
+  const speedRef = useRef<number>(speed);
+  const selectedAgentId = useRef<string | null>(null);
+  const selectedRota = useRef<string | null>(null);
+
+  const agentsRef = useRef<AgentState[]>(buildAgents(sim));
+
+  useEffect(() => { tiempoRef.current = tiempo_min; }, [tiempo_min]);
+  useEffect(() => { playingRef.current = playing; }, [playing]);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
+  useEffect(() => { agentsRef.current = buildAgents(sim); }, [sim]);
+
+  const computeScale = useCallback(() => {
+    const c = containerRef.current;
+    if (!c) return 1;
+    return Math.min(1, (c.clientWidth - 32) / layout.canvas.width);
+  }, [layout.canvas.width]);
+
+  const loop = useCallback(() => {
+    const now = performance.now();
+    const dt = (now - lastFrameRef.current) / 1000;
+    lastFrameRef.current = now;
+    if (playingRef.current) {
+      const next = tiempoRef.current + dt * speedRef.current;
+      const clamped = Math.min(next, sim.makespan_min);
+      tiempoRef.current = clamped;
+      onTiempoChange(clamped);
+      if (clamped >= sim.makespan_min) {
+        playingRef.current = false;
+        onPlayingChange(false);
+      }
+    }
+    const agents = agentsRef.current.map((a) =>
+      atualizarAgent(a, tiempoRef.current, sim.tasks, layout)
+    );
+    agentsRef.current = agents;
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const scale = computeScale();
+        canvas.width = layout.canvas.width * scale;
+        canvas.height = layout.canvas.height * scale;
+        drawScene(ctx, layout, sim, agents, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
+      }
+    }
+    rafRef.current = requestAnimationFrame(loop);
+  }, [sim, layout, computeScale, onTiempoChange, onPlayingChange]);
+
+  useEffect(() => {
+    lastFrameRef.current = performance.now();
+    rafRef.current = requestAnimationFrame(loop);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [loop]);
+
+  useEffect(() => {
+    const onResize = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const scale = computeScale();
+      canvas.width = layout.canvas.width * scale;
+      canvas.height = layout.canvas.height * scale;
+      drawScene(ctx, layout, sim, agentsRef.current, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [layout, sim, computeScale]);
+
+  const hitTestAgent = (clientX: number, clientY: number): AgentState | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const scale = computeScale();
+    const mx = (clientX - rect.left) / scale;
+    const my = (clientY - rect.top) / scale;
+    for (const a of agentsRef.current) {
+      const dx = mx - a.x;
+      const dy = my - a.y;
+      if (dx * dx + dy * dy < 144) return a;
+    }
+    return null;
+  };
+
+  const hitTestRota = (clientX: number, clientY: number): string | null => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const scale = computeScale();
+    const mx = (clientX - rect.left) / scale;
+    const my = (clientY - rect.top) / scale;
+    for (const r of layout.rotas) {
+      if (mx >= r.x && mx <= r.x + layout.stationWidth && my >= r.y && my <= r.y + layout.stationHeight) {
+        return r.rota;
+      }
+    }
+    return null;
+  };
+
+  const onCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const ag = hitTestAgent(e.clientX, e.clientY);
+    if (ag) {
+      selectedAgentId.current = ag.id;
+      selectedRota.current = null;
+      onAgentSelect?.(ag);
+      return;
+    }
+    const rt = hitTestRota(e.clientX, e.clientY);
+    selectedAgentId.current = null;
+    selectedRota.current = rt;
+    if (rt) {
+      const ag2 = agentsRef.current.find((x) => x.rotaAtual === rt) || null;
+      onAgentSelect?.(ag2);
+    } else {
+      onAgentSelect?.(null);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    play: () => {
+      if (tiempoRef.current >= sim.makespan_min) tiempoRef.current = 0;
+      playingRef.current = true;
+      onPlayingChange(true);
+    },
+    pause: () => { playingRef.current = false; onPlayingChange(false); },
+    reset: () => {
+      tiempoRef.current = 0;
+      playingRef.current = false;
+      onPlayingChange(false);
+      onTiempoChange(0);
+    },
+    seek: (m: number) => { tiempoRef.current = Math.max(0, Math.min(m, sim.makespan_min)); onTiempoChange(tiempoRef.current); },
+    setSpeed: (s: number) => { speedRef.current = s; onSpeedChange(s); },
+  }), [sim.makespan_min, onPlayingChange, onTiempoChange, onSpeedChange]);
+
+  const progress = sim.makespan_min > 0 ? (tiempo_min / sim.makespan_min) * 100 : 0;
+  const tarefasConcluidas = sim.tasks.filter((t) => t.end_min <= tiempo_min).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div ref={containerRef} style={{ width: '100%', overflow: 'auto', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, background: '#ffffff' }}>
+        <canvas
+          ref={canvasRef}
+          onClick={onCanvasClick}
+          style={{ display: 'block', cursor: 'pointer', background: '#f8fafc', borderRadius: 6 }}
+        />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', background: '#1e293b', borderRadius: 8, color: 'white' }}>
+        <span style={{ fontFamily: 'monospace', fontSize: 18, fontWeight: 700, minWidth: 88 }}>
+          {formatMin(tiempo_min)}
+        </span>
+        <span style={{ fontSize: 11, color: '#94a3b8' }}>
+          / {formatMin(sim.makespan_min)} · {tarefasConcluidas}/{sim.totalTasks} tarefas · {sim.lotesSimulados} lotes
+        </span>
+        <span style={{ flex: 1 }} />
+        <label style={{ fontSize: 11, color: '#cbd5e1' }}>Velocidade:</label>
+        <select
+          value={speed}
+          onChange={(e) => onSpeedChange(Number(e.target.value))}
+          style={{ background: '#0f172a', color: 'white', border: '1px solid #334155', borderRadius: 4, padding: '4px 8px', fontSize: 12 }}
+        >
+          {SPEED_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
+
+      <div style={{ position: 'relative', height: 8, background: '#e2e8f0', borderRadius: 4, cursor: 'pointer' }}
+        onClick={(e) => {
+          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+          const pct = (e.clientX - rect.left) / rect.width;
+          const m = pct * sim.makespan_min;
+          tiempoRef.current = m;
+          onTiempoChange(m);
+        }}
+      >
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${progress}%`, background: 'linear-gradient(to right, #1e40af, #3b82f6)', borderRadius: 4 }} />
+      </div>
+
+      <div style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 12 }}>
+        <span>● Azul = Máquina (MAQ)</span>
+        <span>● Verde = Analista (MO)</span>
+        <span>● <span style={{ color: '#dc2626' }}>●</span> Vermelho = amostra selecionável</span>
+        <span>● Glow amarelo = equipamento ocupado</span>
+      </div>
+    </div>
+  );
+});
+
+function atualizarAgent(a: AgentState, tiempo_min: number, tasks: ScheduledTask[], layout: LabLayout): AgentState {
+  const myTasks = tasks
+    .filter((t) => t.produtoId === a.produtoId && t.testeName === a.testeName && t.lote === a.lote)
+    .sort((x, y) => x.start_min - y.start_min);
+  if (myTasks.length === 0) return { ...a, state: 'idle' };
+
+  let active: ScheduledTask | null = null;
+  for (const t of myTasks) {
+    if (tiempo_min >= t.start_min && tiempo_min < t.end_min) { active = t; break; }
+  }
+  if (active) {
+    const coord = rotaCoord(layout, active.rota);
+    if (coord) {
+      const tStart = active.start_min;
+      const tEnd = active.end_min;
+      const tDur = Math.max(1e-6, tEnd - tStart);
+      const fromCoord =
+        myTasks.findIndex((t) => t.taskId === active!.taskId) > 0
+          ? rotaCoord(layout, myTasks[myTasks.findIndex((t) => t.taskId === active!.taskId) - 1].rota)
+          : null;
+      const progress = Math.min(1, (tiempo_min - tStart) / tDur);
+      const interpX = fromCoord ? fromCoord.x + (coord.x - fromCoord.x) * Math.min(progress * 4, 1) : coord.x;
+      const interpY = fromCoord ? fromCoord.y + (coord.y - fromCoord.y) * Math.min(progress * 4, 1) : coord.y;
+      const arrivedX = progress > 0.05 ? coord.x : interpX;
+      const arrivedY = progress > 0.05 ? coord.y : interpY;
+      return {
+        ...a,
+        currentTaskId: active.taskId,
+        state: progress > 0.05 ? (active.execucao === 'MAQ' ? 'working_maq' : 'working_mo') : 'traveling',
+        x: arrivedX,
+        y: arrivedY,
+        targetX: coord.x,
+        targetY: coord.y,
+        taskStart: active.start_min,
+        taskEnd: active.end_min,
+        rotaAtual: active.rota,
+        descricaoAtual: active.descricao,
+        execucaoAtual: active.execucao,
+      };
+    }
+  }
+
+  const last = myTasks[myTasks.length - 1];
+  if (tiempo_min >= last.end_min) {
+    const coord = rotaCoord(layout, last.rota) || { x: 20, y: 20 };
+    return { ...a, state: 'done', x: coord.x, y: coord.y, currentTaskId: null, rotaAtual: null, descricaoAtual: null, execucaoAtual: null };
+  }
+
+  const nextIdx = myTasks.findIndex((t) => t.start_min > tiempo_min);
+  if (nextIdx > 0) {
+    const prev = myTasks[nextIdx - 1];
+    const next = myTasks[nextIdx];
+    const prevCoord = rotaCoord(layout, prev.rota) || { x: 20, y: 20 };
+    const nextCoord = rotaCoord(layout, next.rota) || { x: 20, y: 20 };
+    const span = Math.max(1e-6, next.start_min - prev.end_min);
+    const p = Math.min(1, Math.max(0, (tiempo_min - prev.end_min) / span));
+    return {
+      ...a,
+      currentTaskId: null,
+      state: 'traveling',
+      x: prevCoord.x + (nextCoord.x - prevCoord.x) * p,
+      y: prevCoord.y + (nextCoord.y - prevCoord.y) * p,
+      targetX: nextCoord.x,
+      targetY: nextCoord.y,
+      rotaAtual: null,
+      descricaoAtual: null,
+      execucaoAtual: null,
+    };
+  }
+  return { ...a, state: 'idle' };
+}
