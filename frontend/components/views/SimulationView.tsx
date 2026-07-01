@@ -132,7 +132,7 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
 
   const [layout, setLayout] = useState<LabLayout | null>(null);
   const [layoutError, setLayoutError] = useState<string | null>(null);
-  const [layoutRetries, setLayoutRetries] = useState(0);
+  const retryCountRef = useRef(0);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [lotesMap, setLotesMap] = useState<Record<string, number>>({});
   const [sim, setSim] = useState<SimulationResult | null>(null);
@@ -143,7 +143,8 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
   const canvasHandle = useRef<SimulationCanvasHandle | null>(null);
 
   const fetchLayout = useCallback(() => {
-    setLayoutRetries((r) => r + 1);
+    const n = retryCountRef.current + 1;
+    retryCountRef.current = n;
     fetch('/api/config/layout')
       .then((r) => {
         if (r.ok) return r.json();
@@ -152,14 +153,10 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
       .then((data) => { setLayout(data); setLayoutError(null); })
       .catch((e) => {
         setLayoutError(e.message);
-        if (layoutRetries < 3) {
-          showToast('Falha ao carregar layout. Tentando novamente...', 'warning');
-        } else {
-          showToast(`Erro ao carregar layout (${layoutRetries}t): ${e.message}`, 'error');
-        }
+        if (n < 3) showToast('Falha ao carregar layout. Tentando novamente...', 'warning');
+        else showToast(`Erro ao carregar layout (após ${n} tentativas): ${e.message}`, 'error');
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layoutRetries, showToast]);
+  }, [showToast]);
 
   useEffect(() => { fetchLayout(); }, []);
 
@@ -213,7 +210,7 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginTop: 60, textAlign: 'center' }}>
           <AlertTriangle size={40} style={{ color: '#f59e0b' }} />
           <p style={{ color: '#64748b', fontSize: 14 }}>{layoutError ? `Erro: ${layoutError}` : 'Carregando layout do laboratório...'}</p>
-          {layoutError && layoutRetries >= 3 && (
+          {layoutError && retryCountRef.current >= 3 && (
             <button
               onClick={fetchLayout}
               style={{ padding: '8px 16px', background: '#1e40af', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
