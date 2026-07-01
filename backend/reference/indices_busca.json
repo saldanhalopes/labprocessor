@@ -5,7 +5,10 @@
   ],
   "formas_farmaceuticas": [
     "FORMA FARMACÊUTICA",
-    "Sólidos"
+    "Sólidos",
+    "Injetáveis",
+    "Suspensões/Líquidos",
+    "Cremes/Pomadas"
   ],
   "testes": [
     "TESTE",

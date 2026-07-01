@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as learning from './learning.js';
+import { findSimilar } from './knowledge.js';
+import { getBasfluxoForTests, analyzeProduct, searchProducts } from './mfvcq.js';
 const __filedir = path.dirname(fileURLToPath(import.meta.url));
 
 let enrichmentCache = null;
@@ -38,6 +40,43 @@ function loadTestConfig() {
   try {
     const fp = path.join(__filedir, 'config', 'tests.json');
     if (fs.existsSync(fp)) return JSON.parse(fs.readFileSync(fp, 'utf-8'));
+  } catch(e) {}
+  return {};
+}
+
+function loadBasfluxoRotas() {
+  try {
+    const fp = path.join(__filedir, 'reference', 'basefluxo_estruturado.json');
+    if (!fs.existsSync(fp)) return {};
+    const bf = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const rotasPorTeste = {};
+    for (const forma of Object.values(bf)) {
+      for (const [teste, data] of Object.entries(forma)) {
+        if (teste === '_meta') continue;
+        const atividades = Array.isArray(data) ? data : (data?.etapas ? data.etapas.flatMap(e => e.atividades || []) : []);
+        if (atividades.length === 0) continue;
+        rotasPorTeste[teste] = [...new Set(atividades.map(a => a.rota).filter(Boolean))];
+      }
+    }
+    return rotasPorTeste;
+  } catch(e) {}
+  return {};
+}
+
+function loadBasfluxoAliases() {
+  try {
+    const fp = path.join(__filedir, 'reference', 'basefluxo_estruturado.json');
+    if (!fs.existsSync(fp)) return {};
+    const bf = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const aliasesPorTeste = {};
+    for (const forma of Object.values(bf)) {
+      const meta = forma._meta;
+      if (!meta) continue;
+      for (const [teste, m] of Object.entries(meta)) {
+        if (m.aliases?.length > 0) aliasesPorTeste[teste] = m.aliases;
+      }
+    }
+    return aliasesPorTeste;
   } catch(e) {}
   return {};
 }
@@ -77,13 +116,20 @@ function buildDynamicExtractionGuide(lang) {
   // Load enrichment data (cached, from learning journal)
   const enrichment = getEnrichment();
 
+  // Load BASEFLUXO rotas (single source of truth)
+  const basfluxoRotas = loadBasfluxoRotas();
+
+  // Load BASEFLUXO aliases (from _meta)
+  const basfluxoAliases = loadBasfluxoAliases();
+
   let guide = `\n${l.heading}\n\n`;
   guide += 'Use esta tabela para identificar e classificar os testes encontrados no PDF:\n\n';
 
   for (const [name, t] of Object.entries(config)) {
     if (t.status === 'stub') continue;
-    const aliases = (t.aliases || []).join(', ');
-    const rotas = (t.rotas || []).map(r => r.nome || r).filter(Boolean);
+    const aliases = basfluxoAliases[name] || (t.aliases || []);
+    const aliasesStr = aliases.join(', ');
+    const rotas = basfluxoRotas[name] || [];
     const dirs = (t.diretrizes || []);
     const totalFixo = dirs.reduce((s, d) => s + (Number(d.fixo_min) || 0), 0);
     const totalVar = dirs.reduce((s, d) => s + (Number(d.var_min) || 0), 0);
@@ -91,10 +137,13 @@ function buildDynamicExtractionGuide(lang) {
     // Enrichment data from journal
     const p = (enrichment.patterns || {})[name];
     const freqStr = p ? ` [${l.freq}: ${p.count}x, Gemini: ${p.geminiTimeRange}]` : '';
+    const learnedStr = t.learned_scale
+      ? ` [Calibrado: scale=${t.learned_scale} (${t.learned_samples}x)]`
+      : '';
 
-    guide += `### ${name}${freqStr}\n`;
+    guide += `### ${name}${freqStr}${learnedStr}\n`;
     guide += `- ${l.tecnica}: ${t.tecnica || '?'}\n`;
-    if (aliases) guide += `- ${l.aliases}: ${aliases}\n`;
+    if (aliasesStr) guide += `- ${l.aliases}: ${aliasesStr}\n`;
     if (rotas.length) guide += `- ${l.rotas}: ${rotas.join(', ')}\n`;
     if (totalFixo + totalVar > 0) {
       guide += `- ${l.fixo}: ${totalFixo} | ${l.var}: ${totalVar}\n`;
@@ -313,7 +362,7 @@ Liste os reagentes, solventes, fases móveis e meios de cultura mencionados.
 # 6. Extração de Equipamentos e Colunas Cromatográficas
 - **name**: Nome/Tipo do equipamento ou descrição da coluna.
 - **model**: Modelo ou dimensões citadas (ex: "C18 250x4.6mm 5µm").
-- **category**: "Cromatógrafo", "Coluna Cromatográfica", "Balança", "Dissolutor", "Espectrofotômetro", "Microscópio", "PH-metro", "Outros".
+- **category**: "Cromatógrafo", "Balança", "Dissolutor", "Espectrofotômetro", "Microscópio", "PH-metro", "Outros".
 - **testName**: Teste onde é utilizado.
 
 # 7. Conteúdo Integral
@@ -551,5 +600,467 @@ ${JSON.stringify(context, null, 2)}`;
   } catch (error) {
     console.error('[OpenRouter Chat] Error:', error);
     throw error;
+  }
+}
+
+// ================================================================
+// AGENTIC EXTRACTION TOOLS
+// ================================================================
+
+export const EXTRACTION_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'lookup_test',
+      description: 'Busca um nome de teste no knowledge vault. Retorna o teste padronizado correspondente com aliases, tecnica, rotas e learned_scale. Retorna null se o teste for desconhecido (vira STUB).',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Nome do teste como aparece no PDF (ex: "Doseamento HPLC", "Peso Medio")' }
+        },
+        required: ['name']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_basfluxo_times',
+      description: 'Obtem os tempos calibrados do BASEFLUXO para um teste especifico: fixo (padrao/calibracao, executa 1x) e variavel (amostras, executa por lote). Retorna learned_scale quando disponivel.',
+      parameters: {
+        type: 'object',
+        properties: {
+          test: { type: 'string', description: 'Nome padronizado do teste (ex: "TEOR HPLC 1")' },
+          lotes: { type: 'number', description: 'Numero de lotes (opcional, default=1). Se omitido, usa demanda do MFVCQ.' }
+        },
+        required: ['test']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_test_history',
+      description: 'Retorna o historico de extracoes de um teste: quantas vezes apareceu, faixa de tempos do Gemini, vies medio, e learned_scale atual.',
+      parameters: {
+        type: 'object',
+        properties: {
+          test: { type: 'string', description: 'Nome padronizado do teste (ex: "TEOR HPLC 1")' }
+        },
+        required: ['test']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'classify_technique',
+      description: 'Classifica a tecnica analitica e categoria de um teste baseado em palavras-chave na descricao.',
+      parameters: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'Descricao ou nome do teste para classificar' }
+        },
+        required: ['description']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_product_context',
+      description: 'Obtem o contexto MFVCQ de um produto: celula de producao, demanda mensal, demanda em lotes.',
+      parameters: {
+        type: 'object',
+        properties: {
+          ativo: { type: 'string', description: 'Nome do principio ativo (ex: "HEMOLENTA", "CLOZAPINA")' }
+        },
+        required: ['ativo']
+      }
+    }
+  }
+];
+
+function classifyTechnique(description) {
+  const d = (description || '').toUpperCase();
+  if (d.includes('HPLC') || d.includes('CROMATOGRA') || d.includes('DOSEAMENTO') || d.includes('TEOR')) return { technique: 'HPLC', category: 'Fisico-Quimico' };
+  if (d.includes('DISSOL') || d.includes('DISOLUC')) return { technique: 'Dissolucao', category: 'Fisico-Quimico' };
+  if (d.includes('DESINTEGR')) return { technique: 'Fisica', category: 'Fisico-Quimico' };
+  if (d.includes('DUREZA')) return { technique: 'Fisica', category: 'Fisico-Quimico' };
+  if (d.includes('FRIABIL')) return { technique: 'Fisica', category: 'Fisico-Quimico' };
+  if (d.includes('PESO MEDIO') || d.includes('PESO MÉDIO')) return { technique: 'Gravimetria', category: 'Fisico-Quimico' };
+  if (d.includes('UMIDADE') || d.includes('KARL')) return { technique: 'Karl Fischer', category: 'Fisico-Quimico' };
+  if (d.includes('PH')) return { technique: 'Potenciometria', category: 'Fisico-Quimico' };
+  if (d.includes('MICROBIOL') || d.includes('ESTERILID')) return { technique: 'Microbiologia', category: 'Microbiologia' };
+  if (d.includes('ENDOTOXINA') || d.includes('LAL')) return { technique: 'LAL', category: 'Microbiologia' };
+  if (d.includes('ESPECTRO') || d.includes('UV') || d.includes('VIS')) return { technique: 'Espectrofotometria', category: 'Fisico-Quimico' };
+  if (d.includes('PARTICULA') || d.includes('TAMANHO') || d.includes('DIFRACAO') || d.includes('MALVERN')) return { technique: 'Difracao Laser', category: 'Fisico-Quimico' };
+  if (d.includes('VISUAL') || d.includes('APARENCIA') || d.includes('DESCRICAO') || d.includes('DESCRIÇÃO')) return { technique: 'Visual', category: 'Fisico-Quimico' };
+  return { technique: 'Outros', category: 'Fisico-Quimico' };
+}
+
+export async function executeExtractionTools(toolCalls) {
+  const results = await Promise.all(toolCalls.map(async (tc) => {
+    const { name, arguments: args } = tc.function;
+    let parsed = {};
+    try { parsed = JSON.parse(args); } catch (e) { parsed = {}; }
+
+    try {
+      switch (name) {
+        case 'lookup_test': {
+          const match = findSimilar(parsed.name);
+          return {
+            tool_call_id: tc.id,
+            name,
+            input: parsed.name,
+            output: match ? { test: match.teste, score: match.score, source: match.source } : null,
+            meta: match ? { technique: null } : { isStub: true }
+          };
+        }
+
+        case 'get_basfluxo_times': {
+          const bf = getBasfluxoForTests({
+            ativo: parsed.test,
+            forma: 'Sólidos',
+            geminiRows: [{ testName: parsed.test, t_prep: 0, t_analysis: 0, t_run: 0, t_calc: 0, t_incubation: 0 }],
+            lotes: parsed.lotes || 1
+          });
+          const t = bf?.testes?.[0];
+          const learnedScale = t?.learned_scale || null;
+          return {
+            tool_call_id: tc.id,
+            name,
+            input: parsed.test,
+            output: t ? {
+              test: t.teste,
+              fixo_total_min: t.fixo?.total_min,
+              var_total_min: t.variavel?.total_min,
+              total_calibrado_min: t.total_compartilhado_min,
+              basfluxo_raw_min: t.basfluxoTotalMin,
+              learned_scale: learnedScale,
+              lotes: bf.quantidade_lotes
+            } : null
+          };
+        }
+
+        case 'get_test_history': {
+          const patterns = learning.extractTimingPatterns();
+          const p = patterns[parsed.test];
+          return {
+            tool_call_id: tc.id,
+            name,
+            input: parsed.test,
+            output: p ? {
+              count: p.count,
+              geminiTimeRange: p.geminiTimeRange,
+              avgBiasPct: p.avgBiasPct || 0,
+              learnedScale: p.learnedScale || null
+            } : { count: 0, geminiTimeRange: 'N/A', avgBiasPct: 0, learnedScale: null }
+          };
+        }
+
+        case 'classify_technique': {
+          const result = classifyTechnique(parsed.description);
+          return {
+            tool_call_id: tc.id,
+            name,
+            input: parsed.description,
+            output: result
+          };
+        }
+
+        case 'get_product_context': {
+          const ctx = analyzeProduct({ ativo: parsed.ativo });
+          return {
+            tool_call_id: tc.id,
+            name,
+            input: parsed.ativo,
+            output: ctx ? {
+              celula: ctx.celula,
+              demanda_media: ctx.demanda?.media_12_meses,
+              demanda_lotes: ctx.demanda?.demanda_em_lotes,
+              forma: ctx.forma_farmaceutica
+            } : null
+          };
+        }
+
+        default:
+          return { tool_call_id: tc.id, name, error: 'Unknown tool' };
+      }
+    } catch (err) {
+      return { tool_call_id: tc.id, name, error: err.message };
+    }
+  }));
+
+  return results;
+}
+
+export async function callOpenRouterAgent({ messages, tools, responseFormat, maxRounds = 5 }) {
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OPENROUTER_API_KEY not configured in backend environment');
+  }
+
+  const trace = [];
+  let currentMessages = [...messages];
+  let finalContent = null;
+
+  for (let round = 1; round <= maxRounds; round++) {
+    const body = {
+      model: MODEL,
+      messages: currentMessages,
+      tools,
+      tool_choice: round < maxRounds ? 'auto' : 'none'
+    };
+
+    if (responseFormat === 'json' && round >= maxRounds) {
+      body.response_format = { type: 'json_object' };
+    }
+
+    const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`OpenRouter error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+    const msg = data.choices[0].message;
+
+    if (msg.tool_calls && msg.tool_calls.length > 0) {
+      console.log(`[Agent] Round ${round}: ${msg.tool_calls.length} tool calls`);
+
+      currentMessages.push(msg);
+      const toolResults = await executeExtractionTools(msg.tool_calls);
+
+      toolResults.forEach(tr => {
+        trace.push({ round, ...tr });
+        currentMessages.push({
+          role: 'tool',
+          tool_call_id: tr.tool_call_id,
+          content: JSON.stringify(tr.output || { error: tr.error })
+        });
+      });
+
+      // After last tool round, instruct model to produce final JSON
+      if (round >= maxRounds - 1) {
+        currentMessages.push({
+          role: 'user',
+          content: 'Agora gere o JSON final com TODOS os dados extraidos: product, rows (com matchedBasfluxo e stub), reagents, standards, equipments, fullText, visualContent. Use os resultados das ferramentas para preencher matchedBasfluxo=true/false e stub=true/false em cada row. Retorne APENAS o JSON, sem texto adicional.'
+        });
+      }
+    } else {
+      finalContent = msg.content;
+      console.log(`[Agent] Round ${round}: final response`);
+      break;
+    }
+  }
+
+  if (!finalContent) {
+    throw new Error('Agent did not produce a final response within max rounds');
+  }
+
+  return { content: finalContent, trace, rounds: trace.length > 0 ? Math.max(...trace.map(t => t.round)) : 1 };
+}
+
+export function getExtractionSystemPrompt(language = 'pt') {
+  const prompts = loadPrompts();
+  const langInstruction = language === 'es' ? 'ESPAÑOL' : language === 'en' ? 'ENGLISH' : 'PORTUGUÊS';
+
+  const base = `# Role
+Você é um Especialista Sênior em Planejamento de Controle de Qualidade Farmacêutico.
+
+# Objetivo
+Analisar o PDF de Método Analítico e extrair dados estruturados. Use as FERRAMENTAS disponíveis para consultar o conhecimento acumulado - NÃO tente adivinhar nomes de testes.
+
+# IDIOMA DE SAÍDA: ${langInstruction}
+
+# Processo Obrigatório
+1. Extraia os dados do PRODUTO (nome, codigo, forma farmaceutica, ativos)
+2. Liste TODOS os testes do PDF. Para CADA teste, chame a ferramenta \`lookup_test\` com o nome do teste como aparece no documento
+3. Para cada teste que teve match no vault, chame \`get_basfluxo_times\` para obter tempos calibrados e \`get_test_history\` para ver o historico
+4. Use \`classify_technique\` quando o PDF nao deixar clara a tecnica
+5. Para testes SEM match (\`lookup_test\` retornou null), marque como stub e estime os tempos mesmo assim
+
+# Formato de Saída (JSON final)
+APOS receber os resultados das ferramentas, gere APENAS o JSON abaixo.
+NAO inclua texto, explicacoes ou marcadores markdown. APENAS JSON puro.
+O campo "matchedBasfluxo" deve ser true se lookup_test encontrou match, false se for stub.
+O campo "stub" deve ser true se lookup_test retornou null (teste desconhecido).
+O campo "transcriptSummary" deve ser um objeto com resumos de 2-4 frases nos 3 idiomas (pt, es, en). Extraia do PDF o que o documento descreve sobre cada metodo (principio, condicoes, reagentes, equipamentos).
+{
+  "product": {
+    "productName": "string",
+    "code": "string",
+    "pharmaceuticalForm": "string",
+    "activePrinciples": "string",
+    "composition": "string",
+    "batchSize": "string"
+  },
+  "rows": [{
+    "id": 1,
+    "testName": "string",
+    "technique": "string",
+    "category": "string",
+    "details": "string",
+    "t_prep": 0, "t_analysis": 0, "t_run": 0, "t_calc": 0, "t_incubation": 0,
+    "rationale": "string",
+    "transcriptSummary": { "pt": "string", "es": "string", "en": "string" },
+    "matchedBasfluxo": true,
+    "stub": false
+  }],
+  "reagents": [{ "name": "string", "quantity": "string", "concentration": "string", "category": "string", "testName": "string" }],
+  "standards": [{ "name": "string", "amountmg": "string", "concentration": "string", "testName": "string" }],
+  "equipments": [{ "name": "string", "model": "string", "category": "string", "testName": "string" }],
+  "fullText": "string",
+  "visualContent": "string"
+}`;
+
+  if (prompts && prompts[language]) {
+    return prompts[language] + '\n\n# FERRAMENTAS DISPONIVEIS\nUse as funcoes listadas para consultar o vault, BASEFLUXO, e historico de aprendizado.';
+  }
+
+  return base;
+}
+
+export async function analyzeDocumentAgent(base64Data, mimeType, fileName, language = 'pt') {
+  try {
+    const systemPrompt = getExtractionSystemPrompt(language);
+
+    console.log(`[Agent] Analyzing document: ${fileName}`);
+
+    const { content, trace } = await callOpenRouterAgent({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Analise este documento PDF. Siga o processo obrigatorio: extraia o produto, liste os testes, chame lookup_test para cada um, depois get_basfluxo_times e get_test_history para os que tiveram match.' },
+            { type: 'image_url', image_url: { url: `data:${mimeType || 'application/pdf'};base64,${base64Data}` } }
+          ]
+        }
+      ],
+      tools: EXTRACTION_TOOLS,
+      responseFormat: 'json'
+    });
+
+    if (!content) throw new Error("No response from agent");
+
+    let cleanedText = content.trim();
+    const jsonBlockMatch = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonBlockMatch) {
+      cleanedText = jsonBlockMatch[1];
+    } else {
+      const start = cleanedText.indexOf('{');
+      const end = cleanedText.lastIndexOf('}');
+      if (start !== -1 && end !== -1 && end > start) {
+        cleanedText = cleanedText.substring(start, end + 1);
+      }
+    }
+
+    let result;
+    try {
+      result = JSON.parse(cleanedText);
+    } catch (e) {
+      console.error(`[Agent] JSON Parse Error: ${e.message.slice(0, 120)}`);
+      const debugDir = path.join(__filedir, 'data', 'debug');
+      if (!fs.existsSync(debugDir)) fs.mkdirSync(debugDir, { recursive: true });
+      const sanitized = fileName.replace(/[<>:"/\\|?*]/g, '_');
+      fs.writeFileSync(path.join(debugDir, `${sanitized}_agent_raw.txt`), content, 'utf-8');
+
+      const repaired = repairJSON(cleanedText, e.message);
+      if (repaired) result = repaired;
+      else throw new Error(`Agent returned malformed JSON: ${e.message}`);
+    }
+
+    result._trace = trace;
+    result._rounds = trace.length > 0 ? Math.max(...trace.map(t => t.round)) : 1;
+    result._toolsCalled = trace.length;
+    result._agentic = true;
+
+    console.log(`[Agent] Extraction complete: ${result.rows?.length || 0} rows, ${trace.length} tool calls, ${result._rounds} rounds`);
+    return result;
+  } catch (error) {
+    console.error(`[Agent] Error analyzing ${fileName}:`, error.message);
+    console.log(`[Agent] Falling back to monolithic extraction for ${fileName}`);
+    return analyzeDocumentServer(base64Data, mimeType, fileName, language);
+  }
+}
+
+export async function generateTranscriptSummaries(fullText, rows, language = 'pt') {
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OPENROUTER_API_KEY not configured');
+  }
+  if (!fullText || !rows?.length) return rows;
+
+  const testNames = rows.map(r => r.testName).filter(Boolean).join('", "');
+
+  const prompt = `Voce e um especialista em metodos analiticos farmaceuticos.
+Abaixo esta a transcricao completa de um documento de metodo analitico.
+
+# Documento transcrito:
+${fullText.slice(0, 15000)}
+
+# Testes identificados no documento:
+"${testNames}"
+
+# Tarefa:
+Para CADA teste listado acima, encontre no documento transcrito o trecho que descreve o metodo daquele teste e produza um resumo de 2-4 frases em TODOS os 3 idiomas: Portugues (pt), Espanhol (es) e Ingles (en).
+Cada resumo deve incluir: principio do metodo, condicoes principais, reagentes/equipamentos chave.
+
+Retorne APENAS um objeto JSON neste formato, sem texto adicional:
+{
+  "summaries": {
+    "Nome do Teste 1": { "pt": "Resumo em portugues...", "es": "Resumen en espanol...", "en": "Summary in english..." },
+    "Nome do Teste 2": { "pt": "Resumo em portugues...", "es": "Resumen en espanol...", "en": "Summary in english..." }
+  }
+}
+
+IMPORTANTE: Cada teste DEVE ter os 3 idiomas preenchidos. Nao deixe nenhum vazio.`;
+
+  try {
+    const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: 'Voce retorna APENAS JSON. Sem texto adicional.' },
+          { role: 'user', content: prompt }
+        ],
+        response_format: { type: 'json_object' },
+        max_tokens: 8192
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`OpenRouter error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+    let content = data.choices[0].message.content;
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) content = jsonMatch[0];
+
+    const parsed = JSON.parse(content);
+    const summaries = parsed.summaries || {};
+
+    return rows.map(row => ({
+      ...row,
+      transcriptSummary: summaries[row.testName] || row.transcriptSummary || { pt: '', es: '', en: '' }
+    }));
+  } catch (error) {
+    console.error('[TranscriptSummary] Error:', error.message);
+    return rows;
   }
 }

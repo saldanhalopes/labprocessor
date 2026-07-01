@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
           //Target your Node.js backend
           '/api-proxy': 'http://localhost:5000',
           '/api': 'http://localhost:5000',
+          '/data': 'http://localhost:5000',
         },
       },
       plugins: react(),

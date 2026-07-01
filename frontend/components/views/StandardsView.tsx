@@ -83,7 +83,7 @@ const StandardsView: React.FC<StandardsViewProps> = ({ results }) => {
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Produto</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Quantidade (mg)</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Conc. Solução</th>
-                  <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Utilizado em</th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Teste Associado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

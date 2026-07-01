@@ -1,39 +1,18 @@
 ---
-teste: UMIDADE IV
-tecnica: Físico
-categoria: Físico-Químico
-forma: Sólidos
-aliases:
-  - UMIDADE IV
-  - Umidade
-  - Karl Fischer
-  - Água
-  - Water Content
-  - Moisture
-rotas:
-  - ANALISTA TF
-  - BALANÇA IV
-atividades: 2
-fixo_min: 0
-var_min: 17.35
-total_min: 17.35
+teste: "UMIDADE IV"
+tecnica: "Karl Fischer / Gravimetria"
+categoria: "Físico-Químico"
+aliases: ["Umidade", "Humedad", "Moisture", "Water Content", "Água", "Agua", "Karl Fischer"]
+rotas: []
 mo_pct: 42
-tags:
-  - umidade-iv
-  - umidade
-  - karl-fischer
-  - agua
-  - water-content
-  - moisture
-status: completo
+fixo_min: 0
+var_min: 17
+status: "completo"
 ---
+
 # UMIDADE IV
 
-**Técnica:** Físico
-**Rotas:** [[ANALISTA TF]], [[BALANÇA IV]]
+Determinação do teor de água/umidade. Pode usar Karl Fischer ou balança de umidade (IV).
 
-**Tempo total:** 0.3h por lote
-**Fixo (calibração):** 0.0h | **Variável (amostra):** 0.3h
-**MO (analista):** 42% | **MAQ (máquina):** 58%
-
-**Aliases:** UMIDADE IV, Umidade, Karl Fischer, Água, Water Content, Moisture
+**Técnica:** Karl Fischer / Gravimetria
+**Como quantificar:** Teste simples. 100% amostra. BASEFLUXO: 2 atividades.

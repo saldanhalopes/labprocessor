@@ -45,6 +45,9 @@ export const ReagentsView: React.FC<ReagentsViewProps> = ({ results, forceMode }
     } else {
       const equipments = res.equipments || [];
       const filtered = equipments.filter(e => {
+        const isColumn = e.category?.toLowerCase().includes('coluna');
+        const isFilter = e.name?.toLowerCase().includes('filtro');
+        if (isColumn || isFilter) return false;
         const matchesSearch = 
           e.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           res.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||

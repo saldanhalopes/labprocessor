@@ -1,44 +1,18 @@
 ---
-teste: TEOR HPLC 1
-tecnica: HPLC
-categoria: Físico-Químico
-forma: Sólidos
-aliases:
-  - TEOR HPLC 1
-  - Doseamento HPLC
-  - Assay HPLC
-  - Teor HPLC
-  - Dosagem HPLC
-rotas:
-  - HPLC DAD
-  - ANALISTA EQUIP - HPLC
-  - BOMBA DE LAVAGEM
-  - AGITADOR
-  - CONJ FILTRO
-  - ULTRASSOM
-  - ANALISTA BANCADA (PREP HPLC)
-  - BALANÇA
-  - AUXILIAR COLUNAS
-atividades: 69
-fixo_min: 1243.08
-var_min: 341.25
-total_min: 1584.33
+teste: "TEOR HPLC 1"
+tecnica: "HPLC"
+categoria: "Físico-Químico"
+aliases: ["Doseamento HPLC", "Assay", "Teor", "Dosagem", "VALORACION", "VALORIZACION", "VALORACIÓN", "VALORIZACIÓN", "Dosage", "Titulacion", "Teor HPLC"]
+rotas: []
 mo_pct: 13
-tags:
-  - teor-hplc-1
-  - doseamento-hplc
-  - assay-hplc
-  - teor-hplc
-  - dosagem-hplc
-status: completo
+fixo_min: 1243
+var_min: 341
+status: "completo"
 ---
+
 # TEOR HPLC 1
 
+Determinação quantitativa do princípio ativo por cromatografia líquida de alta eficiência (HPLC). É o teste mais comum e demorado do CQ.
+
 **Técnica:** HPLC
-**Rotas:** [[HPLC DAD]], [[ANALISTA EQUIP - HPLC]], [[BOMBA DE LAVAGEM]], [[AGITADOR]], [[CONJ FILTRO]], [[ULTRASSOM]], [[ANALISTA BANCADA (PREP HPLC)]], [[BALANÇA]], [[AUXILIAR COLUNAS]]
-
-**Tempo total:** 26.4h por lote
-**Fixo (calibração):** 20.7h | **Variável (amostra):** 5.7h
-**MO (analista):** 13% | **MAQ (máquina):** 87%
-
-**Aliases:** TEOR HPLC 1, Doseamento HPLC, Assay HPLC, Teor HPLC, Dosagem HPLC
+**Como quantificar:** Somar todos os tempos de preparo, análise, corrida e cálculo. O BASEFLUXO fornece 69 atividades detalhadas como referência. Para tempos específicos do método, usar os valores extraídos pelo Gemini e escalar proporcionalmente.

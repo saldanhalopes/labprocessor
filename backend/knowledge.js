@@ -1,11 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import pg from 'pg';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const VAULT_DIR = path.join(__dirname, 'knowledge');
 const TESTS_CONFIG_PATH = path.join(__dirname, 'config', 'tests.json');
+
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://labprocessor:labprocessor@localhost:5432/labprocessor'
+});
 
 let vaultCache = null;
 
@@ -46,6 +51,9 @@ function parseFrontmatter(content) {
       let val = kvMatch[2].trim();
       if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
       if (val === '') { data[currentKey] = []; currentArray = currentKey; }
+      else if (val.startsWith('[') && val.endsWith(']')) {
+        try { data[currentKey] = JSON.parse(val); } catch(_) { data[currentKey] = val; }
+      }
       else if (val === 'true') data[currentKey] = true;
       else if (val === 'false') data[currentKey] = false;
       else if (!isNaN(Number(val)) && val !== '') data[currentKey] = Number(val);
@@ -109,6 +117,26 @@ function loadConfigTests() {
   return {};
 }
 
+function loadBasfluxoMeta() {
+  try {
+    const fp = path.join(__dirname, 'reference', 'basefluxo_estruturado.json');
+    if (!fs.existsSync(fp)) return [];
+    const bf = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    const entries = [];
+    for (const forma of Object.values(bf)) {
+      const meta = forma._meta;
+      if (!meta) continue;
+      for (const [teste, m] of Object.entries(meta)) {
+        if (m.aliases?.length > 0) {
+          entries.push({ teste, aliases: m.aliases, source: 'basfluxo' });
+        }
+      }
+    }
+    return entries;
+  } catch(e) {}
+  return [];
+}
+
 export function findSimilar(geminiTestName) {
   const vault = loadVault();
   const q = normalize(geminiTestName);
@@ -119,9 +147,10 @@ export function findSimilar(geminiTestName) {
   let best = null;
   let bestScore = 0;
 
-  // Also search tests.json config (primary source, always synced with UI)
   const configTests = loadConfigTests();
+  const basfluxoMeta = loadBasfluxoMeta();
   const allTests = [
+    ...basfluxoMeta,
     ...vault.tests.filter(t => t.status !== 'stub'),
     ...Object.entries(configTests)
       .filter(([name, t]) => t.status !== 'stub' && (t.aliases || []).length > 0)
@@ -154,9 +183,8 @@ export function findSimilar(geminiTestName) {
         const aWords = tokenize(alias);
         const matches = aWords.filter(aw => qWords.some(qw => {
           if (qw === aw) return true;
-          // Prevent "SOLUCAO" matching "DISSOLUCAO" — require 70% overlap
-          if (qw.includes(aw) && aw.length >= qw.length * 0.7) return true;
-          if (aw.includes(qw) && qw.length >= aw.length * 0.7) return true;
+          if (qw.includes(aw) && aw.length >= qw.length * 0.8) return true;
+          if (aw.includes(qw) && qw.length >= aw.length * 0.8) return true;
           return false;
         }));
         aliasHits = Math.max(aliasHits, matches.length / Math.max(1, aWords.length));
@@ -181,6 +209,62 @@ export function findSimilar(geminiTestName) {
   }
 
   return bestScore >= 40 ? { ...best, score: bestScore } : null;
+}
+
+export async function searchVault(query, sourceType = null, topK = 10) {
+  const { generateEmbedding } = await import('./pgvector.js');
+  try {
+    const queryValues = await generateEmbedding(query);
+    await pool.query('SET LOCAL hnsw.ef_search = 100');
+
+    let sql = `
+      SELECT source_type, source_name, chunk_text, metadata,
+        1 - (embedding <=> $1::vector) AS similarity
+      FROM vault_embeddings
+      WHERE 1=1
+    `;
+    const params = [`[${queryValues.join(',')}]`];
+    let paramIdx = 2;
+
+    if (sourceType) {
+      sql += ` AND source_type = $${paramIdx++}`;
+      params.push(sourceType);
+    }
+
+    sql += ` ORDER BY embedding <=> $1::vector LIMIT $${paramIdx}`;
+    params.push(topK);
+
+    const result = await pool.query(sql, params);
+    return result.rows.map(row => ({
+      sourceType: row.source_type,
+      sourceName: row.source_name,
+      score: row.similarity,
+      snippet: (row.chunk_text || '').slice(0, 300),
+      metadata: row.metadata || {},
+      markdownPath: `${row.source_type}/${row.source_name}.md`
+    }));
+  } catch (error) {
+    console.error('[Knowledge] searchVault error:', error.message);
+    return [];
+  }
+}
+
+export async function findSimilarHybrid(geminiTestName) {
+  const textMatch = findSimilar(geminiTestName);
+  if (textMatch && textMatch.score >= 60) return textMatch;
+
+  const semanticResults = await searchVault(geminiTestName, 'teste', 5);
+  if (!semanticResults.length) return textMatch;
+
+  const bestSemantic = semanticResults[0];
+  const semanticScore = (bestSemantic.score || 0) * 100;
+
+  if (!textMatch) {
+    return semanticScore >= 50 ? { teste: bestSemantic.sourceName, score: Math.round(semanticScore), source: 'semantic' } : null;
+  }
+
+  const combinedScore = Math.max(textMatch.score, semanticScore * 0.9);
+  return { ...textMatch, score: Math.round(combinedScore), semanticFallback: semanticScore > textMatch.score };
 }
 
 export function getTestByName(teste) {

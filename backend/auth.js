@@ -14,7 +14,7 @@ export async function comparePassword(password, hash) {
 
 export function generateToken(user) {
   return jwt.sign(
-    { username: user.username, isAdmin: user.isAdmin || false },
+    { username: user.username, isAdmin: user.is_admin || user.username === 'admin' || false },
     JWT_SECRET,
     { expiresIn: '24h' }
   );

@@ -448,11 +448,108 @@ export function detectPatterns() {
   return patterns;
 }
 
+// ===== STUB → BASEFLUXO AUTO-ENTRY =====
+
+const TECHNIQUE_FLOW_DEFAULTS = {
+  'HPLC': [
+    { rota: 'HPLC DAD', atividade: 'Tempo de corrida (padrão/calibração)', padrao_amostra: 'Padrão', execucao: 'MAQ', tempo_corrida_minutos: 20 },
+    { rota: 'HPLC DAD', atividade: 'Tempo de corrida (amostras)', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 20 },
+    { rota: 'ANALISTA TF', atividade: 'Processar resultado das amostras', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 10 }
+  ],
+  'Dissolução': [
+    { rota: 'DISSOLUTOR', atividade: 'Tempo de dissolução', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 45 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo e coleta', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 15 }
+  ],
+  'Dissolucao': [
+    { rota: 'DISSOLUTOR', atividade: 'Tempo de dissolução', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 45 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo e coleta', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 15 }
+  ],
+  'Fisica': [
+    { rota: 'DURÔMETRO', atividade: 'Execução do teste', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 10 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo e registro', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 7 }
+  ],
+  'Visual': [
+    { rota: 'ANALISTA TF', atividade: 'Inspeção visual da amostra', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 3 }
+  ],
+  'Gravimetria': [
+    { rota: 'BALANÇA', atividade: 'Pesagem (padrão)', padrao_amostra: 'Padrão', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'BALANÇA', atividade: 'Pesagem (amostra)', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'ANALISTA TF', atividade: 'Registro de peso', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 5 }
+  ],
+  'Espectrofotometria': [
+    { rota: 'ESPECTROFOTÔMETRO UV-Vis', atividade: 'Leitura (padrão)', padrao_amostra: 'Padrão', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'ESPECTROFOTÔMETRO UV-Vis', atividade: 'Leitura (amostra)', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo e análise', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 10 }
+  ],
+  'Karl Fischer': [
+    { rota: 'KARL FISCHER', atividade: 'Titulação Karl Fischer', padrao_amostra: 'Padrão', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'KARL FISCHER', atividade: 'Titulação Karl Fischer', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo da amostra', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 5 }
+  ],
+  'Microbiologia': [
+    { rota: 'INCUBADORA', atividade: 'Incubação (7 dias)', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 10080 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo e plaqueamento', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 15 }
+  ],
+  'Difração Laser': [
+    { rota: 'ANALISTA TF', atividade: 'Preparo e análise de partícula', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 10 }
+  ],
+  'Difracao Laser': [
+    { rota: 'ANALISTA TF', atividade: 'Preparo e análise de partícula', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 10 }
+  ],
+  'Potenciometria': [
+    { rota: 'PH-METRO', atividade: 'Leitura de pH', padrao_amostra: 'Amostra', execucao: 'MAQ', tempo_corrida_minutos: 5 },
+    { rota: 'ANALISTA TF', atividade: 'Preparo da amostra', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 5 }
+  ]
+};
+
+const FLOW_DEFAULTS_FALLBACK = [
+  { rota: 'ANALISTA TF', atividade: 'Execução do teste', padrao_amostra: 'Amostra', execucao: 'MO', tempo_corrida_minutos: 10 }
+];
+
+export function addStubToBasfluxo(stubName, technique) {
+  try {
+    const BASEFLUXO_PATH = path.join(__dirname, 'reference', 'basefluxo_estruturado.json');
+    if (!fs.existsSync(BASEFLUXO_PATH)) return false;
+
+    const bf = JSON.parse(fs.readFileSync(BASEFLUXO_PATH, 'utf-8'));
+    const solidos = bf['Sólidos'] || {};
+
+    // Skip if already exists
+    if (solidos[stubName]) {
+      console.log(`[Basfluxo] "${stubName}" already exists in BASEFLUXO`);
+      return false;
+    }
+
+    // Get default activities for this technique
+    const activities = TECHNIQUE_FLOW_DEFAULTS[technique] || FLOW_DEFAULTS_FALLBACK;
+
+    solidos[stubName] = { etapas: [{ nome: 'Geral', modo: 'sequencial', ordem: 1, atividades: activities }] };
+    bf['Sólidos'] = solidos;
+
+    // Add aliases to _meta
+    const meta = bf['Sólidos']['_meta'] || {};
+    if (!meta[stubName]) {
+      meta[stubName] = {
+        nome: stubName,
+        aliases: [stubName]
+      };
+      bf['Sólidos']['_meta'] = meta;
+    }
+
+    fs.writeFileSync(BASEFLUXO_PATH, JSON.stringify(bf, null, 2), 'utf-8');
+    console.log(`[Basfluxo] Auto-added "${stubName}" (${technique}) with ${activities.length} activities`);
+    return true;
+  } catch (e) {
+    console.error(`[Basfluxo] Error adding "${stubName}":`, e.message);
+    return false;
+  }
+}
+
 // ===== STUB CONSOLIDATION =====
 
 export function consolidateStubs(matchTestToBasfluxoFn) {
   const entries = loadJournal();
-  if (entries.length < 3) return { promoted: [], summary: 'Need >= 3 extractions' };
+  if (entries.length < 1) return { promoted: [], summary: 'Need >= 1 extractions' };
 
   const stubCounts = {};
   const stubTechniques = {};
@@ -468,7 +565,7 @@ export function consolidateStubs(matchTestToBasfluxoFn) {
   });
 
   const candidates = Object.entries(stubCounts)
-    .filter(([, count]) => count >= 3)
+    .filter(([, count]) => count >= 1)
     .map(([name, count]) => ({ name, count }));
 
   if (!candidates.length) return { promoted: [], summary: 'No stubs with >= 3 appearances' };
@@ -519,14 +616,328 @@ export function consolidateStubs(matchTestToBasfluxoFn) {
         const { syncVaultFromConfig } = require('./knowledge.js');
         syncVaultFromConfig();
       } catch (e) {}
+      // Auto-add promoted stubs to BASEFLUXO
+      for (const p of promoted) {
+        if (!p.basfluxoMatch) {
+          addStubToBasfluxo(p.name, p.technique);
+        }
+      }
     } catch (e) { console.error('[Consolidate] Save error:', e.message); }
   }
+
+  // Sync learned scales after consolidation
+  const scaleResult = syncLearnedScales();
 
   return {
     promoted,
     summary: promoted.length
-      ? `Promoted ${promoted.length} stubs`
+      ? `Promoted ${promoted.length} stubs` + (scaleResult.updated ? `, calibrated ${scaleResult.updated} scales` : '')
       : `No stubs qualified (${candidates.length} candidates)`,
-    candidatesChecked: candidates.length
+    candidatesChecked: candidates.length,
+    scalesUpdated: scaleResult.updated || 0
   };
+}
+
+// ===== LEARNED SCALE (BASEFLUXO calibration from Learning) =====
+
+export function calculateLearnedScales() {
+  const entries = loadJournal();
+  const scales = {};
+
+  entries.forEach(e => {
+    (e.biases || []).forEach(b => {
+      if (!b.testName || b.geminiTotalMin <= 0 || b.basfluxoTotalMin <= 0) return;
+      if (!scales[b.testName]) scales[b.testName] = [];
+      const ratio = b.geminiTotalMin / b.basfluxoTotalMin;
+      scales[b.testName].push(ratio);
+    });
+  });
+
+  const result = {};
+  for (const [testName, values] of Object.entries(scales)) {
+    if (values.length < 3) continue;
+    values.sort((a, b) => a - b);
+    const median = values[Math.floor(values.length / 2)];
+    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    result[testName] = {
+      scale: Math.round(median * 10000) / 10000,
+      avg_scale: Math.round(avg * 10000) / 10000,
+      samples: values.length,
+      min: Math.round(values[0] * 10000) / 10000,
+      max: Math.round(values[values.length - 1] * 10000) / 10000
+    };
+  }
+
+  return result;
+}
+
+export function syncLearnedScales() {
+  const scales = calculateLearnedScales();
+  if (!Object.keys(scales).length) return { updated: 0 };
+
+  const TESTS_PATH = path.join(__dirname, 'config', 'tests.json');
+  let config = {};
+  try { if (fs.existsSync(TESTS_PATH)) config = JSON.parse(fs.readFileSync(TESTS_PATH, 'utf-8')); } catch (e) {}
+
+  let updated = 0;
+  for (const [testName, data] of Object.entries(scales)) {
+    if (!config[testName]) continue;
+    config[testName].learned_scale = data.scale;
+    config[testName].learned_samples = data.samples;
+    config[testName].learned_scale_avg = data.avg_scale;
+    config[testName].learned_scale_range = [data.min, data.max];
+    updated++;
+    console.log(`[Learning] Calibrated "${testName}": scale=${data.scale} (${data.samples}x, range ${data.min}-${data.max})`);
+  }
+
+  if (updated > 0) {
+    try {
+      fs.writeFileSync(TESTS_PATH, JSON.stringify(config, null, 2), 'utf-8');
+      console.log(`[Learning] Synced learned scales for ${updated} tests`);
+    } catch (e) { console.error('[Learning] Scale sync error:', e.message); }
+  }
+
+  return { updated, scales };
+}
+
+// ===== LEARN FROM AGENT TRACE =====
+
+export function learnFromTrace(fileName, result, trace, extractionDurationMs = 0) {
+  if (!trace || !Array.isArray(trace) || trace.length === 0) {
+    return recordExtraction({
+      fileName,
+      productName: result?.product?.productName || '',
+      pharmaceuticalForm: result?.product?.pharmaceuticalForm || '',
+      extractedTests: result?.rows?.length || 0,
+      matchedTests: 0,
+      stubsCreated: 0,
+      aliasesAdded: 0,
+      extractionDurationMs,
+      topMatches: [],
+      stubNames: [],
+      biases: []
+    });
+  }
+
+  const biases = [];
+  let aliasesAdded = 0;
+  let stubsCreated = 0;
+  const topMatches = [];
+  const stubNames = [];
+
+  // Lazy import to avoid circular dependency
+  let expandAliasFn, createStubFn;
+  try {
+    const knowledge = require('./knowledge.js');
+    expandAliasFn = knowledge.expandAlias;
+    createStubFn = knowledge.createStub;
+  } catch (e) {
+    expandAliasFn = null;
+    createStubFn = null;
+  }
+
+  trace.forEach(event => {
+    switch (event.name) {
+      case 'lookup_test': {
+        if (event.output) {
+          const score = event.output.score || 0;
+          const testName = event.output.test;
+          if (expandAliasFn && testName && score >= 60) {
+            const r = expandAliasFn(testName, event.input, score);
+            if (r.action === 'auto_added') aliasesAdded++;
+          }
+          const row = result?.rows?.find(r => (r.testName || '') === event.input);
+          topMatches.push({
+            geminiName: event.input,
+            basfluxoMatch: testName,
+            score,
+            technique: row?.technique || event.meta?.technique || event.output.source || ''
+          });
+        } else {
+          if (createStubFn) {
+            const row = result?.rows?.find(r => (r.testName || '') === event.input);
+            createStubFn({
+              testName: event.input,
+              technique: row?.technique || event.meta?.technique || '',
+              productName: result?.product?.productName || fileName
+            });
+          }
+          stubsCreated++;
+          stubNames.push({
+            geminiName: event.input,
+            technique: result?.rows?.find(r => (r.testName || '') === event.input)?.technique || ''
+          });
+        }
+        break;
+      }
+
+      case 'get_basfluxo_times': {
+        if (event.output) {
+          const row = result?.rows?.find(r => (r.testName || '') === event.input);
+          const geminiTotal = row
+            ? (row.t_prep || 0) + (row.t_analysis || 0) + (row.t_run || 0) + (row.t_calc || 0) + (row.t_incubation || 0)
+            : 0;
+          const basfluxoTotal = event.output.basfluxo_raw_min || event.output.total_calibrado_min || 0;
+          if (geminiTotal > 0 && basfluxoTotal > 0) {
+            const bias = recordBias(event.output.test || event.input, geminiTotal, basfluxoTotal);
+            if (bias) biases.push(bias);
+          }
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+  });
+
+  const entry = recordExtraction({
+    fileName,
+    productName: result?.product?.productName || '',
+    pharmaceuticalForm: result?.product?.pharmaceuticalForm || '',
+    extractedTests: result?.rows?.length || 0,
+    matchedTests: topMatches.length,
+    stubsCreated,
+    aliasesAdded,
+    extractionDurationMs,
+    toolCalls: trace.length,
+    rounds: result?._rounds || 1,
+    topMatches,
+    stubNames,
+    biases
+  });
+
+  console.log(`[Learning] Trace processed: ${topMatches.length} matches, ${stubsCreated} stubs, ${aliasesAdded} aliases from ${trace.length} tool calls`);
+
+  return entry;
+}
+
+// ===== LEARNING SCORE & TIMELINE =====
+
+export function getLearningScore() {
+  const entries = loadJournal();
+  if (entries.length < 2) return { overall: 0, label: 'Dados insuficientes', ready: false };
+
+  const total = entries.length;
+  const half = Math.ceil(total / 2);
+  const recent = entries.slice(0, half);
+  const older = entries.slice(half);
+
+  const avg = (arr, fn) => arr.length ? arr.reduce((s, e) => s + (fn(e) || 0), 0) / arr.length : 0;
+
+  // Match rate trend
+  const recentMatchRate = recent.length ? Math.round(avg(recent, e => e.extractedTests > 0 ? (e.matchedTests / e.extractedTests) * 100 : 0)) : 0;
+  const olderMatchRate = older.length ? Math.round(avg(older, e => e.extractedTests > 0 ? (e.matchedTests / e.extractedTests) * 100 : 0)) : 0;
+
+  // Stub rate (stubs per extraction)
+  const recentStubRate = Math.round(avg(recent, e => e.stubsCreated || 0) * 10) / 10;
+  const olderStubRate = Math.round(avg(older, e => e.stubsCreated || 0) * 10) / 10;
+
+  // Alias velocity
+  const recentAliases = recent.reduce((s, e) => s + (e.aliasesAdded || 0), 0);
+  const olderAliases = older.reduce((s, e) => s + (e.aliasesAdded || 0), 0);
+
+  // Bias convergence
+  const recentBiases = recent.flatMap(e => (e.biases || []).map(b => b.biasPct));
+  const olderBiases = older.flatMap(e => (e.biases || []).map(b => b.biasPct));
+  const recentBiasAvg = recentBiases.length ? Math.round(recentBiases.reduce((a, b) => a + b, 0) / recentBiases.length) : 0;
+  const olderBiasAvg = olderBiases.length ? Math.round(olderBiases.reduce((a, b) => a + b, 0) / olderBiases.length) : 0;
+
+  // Calculate overall score (0-100)
+  let score = 50;
+  if (recentMatchRate > olderMatchRate) score += Math.min(20, recentMatchRate - olderMatchRate);
+  if (recentStubRate < olderStubRate) score += Math.min(15, Math.round((olderStubRate - recentStubRate) * 5));
+  if (recentAliases > olderAliases) score += Math.min(10, recentAliases);
+  if (Math.abs(recentBiasAvg) < Math.abs(olderBiasAvg)) score += Math.min(5, Math.abs(olderBiasAvg - recentBiasAvg));
+  score = Math.min(100, Math.max(0, score));
+
+  const label = score >= 80 ? 'Otimizado 🟢' : score >= 60 ? 'Em aprendizado ativo 🟡' : score >= 40 ? 'Iniciando 🔵' : 'Precisa de dados 🔴';
+
+  return {
+    overall: score,
+    label,
+    ready: true,
+    matchRate: { current: recentMatchRate, previous: olderMatchRate, delta: recentMatchRate - olderMatchRate },
+    stubRate: { current: recentStubRate, previous: olderStubRate, delta: olderStubRate - recentStubRate },
+    aliasVelocity: { recent: recentAliases, older: olderAliases },
+    biasConvergence: { current: recentBiasAvg, previous: olderBiasAvg, improving: Math.abs(recentBiasAvg) < Math.abs(olderBiasAvg) },
+    sampleSize: { recent: recent.length, older: older.length }
+  };
+}
+
+export function getLearningTimeline(limit = 5) {
+  const entries = loadJournal();
+  if (!entries.length) return [];
+
+  const timeline = [];
+
+  entries.slice(0, Math.min(limit * 2, entries.length)).forEach(e => {
+    const date = e.timestamp ? e.timestamp.slice(0, 16).replace('T', ' ') : '';
+
+    // Alias learned
+    if (e.aliasesAdded > 0 && (e.topMatches || []).length > 0) {
+      e.topMatches.slice(0, 3).forEach(m => {
+        timeline.push({
+          date,
+          type: 'alias',
+          icon: 'alias',
+          detail: `${m.basfluxoMatch} agora reconhece '${m.geminiName}'`,
+          product: e.productName
+        });
+      });
+    }
+
+    // New stubs
+    (e.stubNames || []).slice(0, 3).forEach(s => {
+      timeline.push({
+        date,
+        type: 'stub_new',
+        icon: 'stub_new',
+        detail: `Novo stub: '${s.geminiName}' (${s.technique || '?'})`,
+        product: e.productName
+      });
+    });
+
+    // Scale calibration events are tracked in tests.json, not journal
+    // We add them when consolidateStubs runs
+  });
+
+  // Add consolidation events from the last known scales
+  try {
+    const configPath = path.join(__dirname, 'config', 'tests.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      for (const [name, t] of Object.entries(config)) {
+        if (t.learned_scale && t.learned_samples >= 3) {
+          timeline.push({
+            date: t.promotedAt || '',
+            type: 'scale',
+            icon: 'scale',
+            detail: `${name} calibrado: scale=${t.learned_scale} (${t.learned_samples}x)`,
+            product: null
+          });
+        }
+        if (t.promoted && t.appearanceCount >= 1) {
+          timeline.push({
+            date: t.promotedAt || '',
+            type: 'stub_promoted',
+            icon: 'stub_promoted',
+            detail: `'${name}' promovido a teste completo (${t.appearanceCount}x, ${t.tecnica})`,
+            product: null
+          });
+        }
+      }
+    }
+  } catch (e) { /* skip */ }
+
+  // Sort by date descending, deduplicate, limit
+  const seen = new Set();
+  const unique = timeline.filter(t => {
+    const key = `${t.type}:${t.detail}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  unique.sort((a, b) => b.date.localeCompare(a.date));
+  return unique.slice(0, limit);
 }

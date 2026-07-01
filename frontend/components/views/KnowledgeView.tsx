@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { BookOpen, FileText, FolderOpen, Save, RefreshCw, ExternalLink, Search, ChevronRight, ChevronDown, Loader2, Edit3, Copy, Check } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BookOpen, FileText, FolderOpen, Save, RefreshCw, ExternalLink, Search, ChevronRight, ChevronDown, Loader2, Edit3, Copy, Check, Zap, Brain, Database } from 'lucide-react';
 
 interface VaultNode {
   name: string;
@@ -8,6 +8,17 @@ interface VaultNode {
   size?: number;
   modified?: string;
   children?: VaultNode[];
+}
+
+interface UnifiedResult {
+  sourceType?: string;
+  sourceName?: string;
+  score?: number;
+  snippet?: string;
+  metadata?: Record<string, any>;
+  id?: string;
+  memory?: string;
+  created_at?: string;
 }
 
 const KnowledgeView: React.FC = () => {
@@ -25,6 +36,12 @@ const KnowledgeView: React.FC = () => {
   const [vaultName, setVaultName] = useState(() => localStorage.getItem('obsidian_vault_name') || '');
   const [pathCopied, setPathCopied] = useState(false);
 
+  const [unifiedQuery, setUnifiedQuery] = useState('');
+  const [unifiedResults, setUnifiedResults] = useState<{ mem0: UnifiedResult[]; vault: UnifiedResult[]; documents: UnifiedResult[] } | null>(null);
+  const [searchingUnified, setSearchingUnified] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<Set<string>>(new Set(['vault', 'documents', 'mem0']));
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const vaultPath = 'backend/knowledge';
 
   const loadTree = useCallback(async () => {
@@ -38,6 +55,27 @@ const KnowledgeView: React.FC = () => {
   }, []);
 
   useEffect(() => { loadTree(); }, [loadTree]);
+
+  const doUnifiedSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setUnifiedResults(null); return; }
+    setSearchingUnified(true);
+    try {
+      const res = await fetch('/api/search/unified', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q })
+      });
+      const data = await res.json();
+      setUnifiedResults(data);
+    } catch (e) { console.error('Unified search error:', e); }
+    finally { setSearchingUnified(false); }
+  }, []);
+
+  const handleUnifiedInput = (val: string) => {
+    setUnifiedQuery(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doUnifiedSearch(val), 300);
+  };
 
   const loadFile = async (nodePath: string) => {
     setSelected(nodePath);
@@ -111,6 +149,87 @@ const KnowledgeView: React.FC = () => {
         <p className="text-slate-500 mt-2">
           Navegue e edite as notas do conhecimento do laboratório
         </p>
+      </div>
+
+      {/* Unified Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            value={unifiedQuery}
+            onChange={e => handleUnifiedInput(e.target.value)}
+            placeholder="Buscar em tudo: vault, documentos, memórias..."
+            className="w-full pl-12 pr-4 py-3 text-sm border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 bg-white shadow-sm transition-all"
+          />
+          {searchingUnified && <Loader2 className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-violet-500" />}
+        </div>
+
+        {unifiedResults && (
+          <div className="mt-4 space-y-3">
+            {[
+              { key: 'vault', label: 'Notas do Vault', icon: BookOpen, color: 'violet', results: unifiedResults.vault || [] },
+              { key: 'documents', label: 'Documentos Analisados', icon: Database, color: 'teal', results: unifiedResults.documents || [] },
+              { key: 'mem0', label: 'Memórias (mem0)', icon: Brain, color: 'amber', results: unifiedResults.mem0 || [] },
+            ].map(section => {
+              const isOpen = expandedSection.has(section.key);
+              const Icon = section.icon;
+              return (
+                <div key={section.key} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <button
+                    onClick={() => {
+                      const next = new Set(expandedSection);
+                      isOpen ? next.delete(section.key) : next.add(section.key);
+                      setExpandedSection(next);
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-50 transition-colors"
+                  >
+                    {isOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                    <Icon className={`w-4 h-4 text-${section.color}-500`} />
+                    <span className="text-sm font-semibold text-slate-700">{section.label}</span>
+                    <span className={`ml-auto text-xs font-bold bg-${section.color}-100 text-${section.color}-600 px-2 py-0.5 rounded-full`}>{section.results.length}</span>
+                  </button>
+                  {isOpen && (
+                    <div className="border-t border-slate-100">
+                      {section.results.length === 0 ? (
+                        <p className="px-4 py-3 text-xs text-slate-400">Nenhum resultado encontrado</p>
+                      ) : (
+                        <ul className="divide-y divide-slate-50">
+                          {section.results.slice(0, 5).map((r, i) => (
+                            <li key={i} className="px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer">
+                              {section.key === 'mem0' ? (
+                                <div>
+                                  <p className="text-sm text-slate-700">{r.memory || r.id}</p>
+                                  {r.created_at && <p className="text-[10px] text-slate-400 mt-0.5">{new Date(r.created_at).toLocaleDateString('pt-BR')}</p>}
+                                </div>
+                              ) : section.key === 'documents' ? (
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-slate-700">{r.metadata?.fileName || r.metadata?.productName || 'Documento'}</span>
+                                    {r.score && <ScoreBadge score={r.score} />}
+                                  </div>
+                                  <p className="text-xs text-slate-500 mt-0.5">{r.metadata?.testName ? `Teste: ${r.metadata.testName}` : ''}</p>
+                                </div>
+                              ) : (
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-slate-700">{r.sourceName}</span>
+                                    {r.score && <ScoreBadge score={r.score} />}
+                                  </div>
+                                  {r.snippet && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{r.snippet}</p>}
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Stats bar */}
@@ -325,7 +444,15 @@ const KnowledgeView: React.FC = () => {
       </div>
     </div>
   );
-};
+}
+
+export default KnowledgeView;
+
+function ScoreBadge({ score }: { score: number }) {
+  const pct = Math.round(score * 100);
+  const color = pct >= 80 ? 'bg-emerald-100 text-emerald-700' : pct >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500';
+  return <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${color}`}>{pct}%</span>;
+}
 
 function flattenTree(nodes: VaultNode[]): VaultNode[] {
   const result: VaultNode[] = [];
@@ -404,5 +531,3 @@ function TreeNodes({ nodes, expanded, onToggle, selected, onSelect }: {
     </ul>
   );
 }
-
-export default KnowledgeView;

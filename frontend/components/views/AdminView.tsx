@@ -132,16 +132,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ currentUser, language }) =
                         />
                       </td>
                       <td className="px-6 py-4">
-                        <select
+                        <input
+                          type="hidden"
                           name="plan"
-                          value={editForm.plan || 'free'}
-                          onChange={handleChange}
-                          className="w-full p-1 border rounded text-sm bg-white"
-                        >
-                          <option value="free">Free</option>
-                          <option value="basic">Basic</option>
-                          <option value="pro">Pro</option>
-                        </select>
+                          value="pro"
+                        />
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-teal-100 text-teal-700">Pro</span>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <input
@@ -170,13 +166,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ currentUser, language }) =
                       <td className="px-6 py-4 text-slate-600">{user.email || '-'}</td>
                       <td className="px-6 py-4 text-slate-600">{user.role || '-'}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase ${
-                          user.plan === 'pro' ? 'bg-teal-100 text-teal-700' : 
-                          user.plan === 'basic' ? 'bg-blue-100 text-blue-700' : 
-                          'bg-slate-100 text-slate-600'
-                        }`}>
-                          {user.plan || 'Free'}
-                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-teal-100 text-teal-700">Pro</span>
                       </td>
                       <td className="px-6 py-4 text-center">
                         {user.isAdmin && <Shield className="w-4 h-4 text-indigo-600 mx-auto" />}

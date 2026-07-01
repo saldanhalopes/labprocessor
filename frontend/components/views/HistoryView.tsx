@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { HistoryItem } from '../../types';
-import { Clock, FileText, Trash2, FlaskConical, Bug, Search } from 'lucide-react';
+import { Clock, FileText, Trash2, FlaskConical, Bug, Search, Download } from 'lucide-react';
 
 interface HistoryViewProps {
   history: HistoryItem[];
@@ -87,8 +87,21 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ history, onClear }) =>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <FileText className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="truncate max-w-[150px]" title={item.fileName}>{item.fileName}</span>
+                        <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        {item.pdfUrl ? (
+                          <a
+                            href={item.pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-bold truncate max-w-[150px] transition-colors group/link"
+                            title={`Baixar ${item.fileName}`}
+                          >
+                            <span className="truncate">{item.fileName}</span>
+                            <Download className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                          </a>
+                        ) : (
+                          <span className="truncate max-w-[150px]" title={item.fileName}>{item.fileName}</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">

@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { saveToPinecone } from './pgvector.js';
+import { saveToPgVector } from './pgvector.js';
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL || 'postgres://labprocessor:labprocessor@db:5432/labprocessor' });
 
@@ -24,7 +24,7 @@ async function syncAll() {
     };
 
     try {
-      const ok = await saveToPinecone(result);
+      const ok = await saveToPgVector(result);
       if (ok) { synced++; console.log('OK:', r.file_name.slice(0, 60)); }
       else { failed++; console.log('FAIL:', r.file_name.slice(0, 60)); }
     } catch(e) { failed++; console.log('ERR:', r.file_name.slice(0, 60), e.message); }

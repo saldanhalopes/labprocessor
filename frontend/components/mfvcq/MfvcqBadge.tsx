@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Clock, User, Cpu, Loader2, ChevronDown, ChevronUp, Layers, FlaskConical } from 'lucide-react';
 import { apiFetch } from '../../services/api';
+import { AtividadesTable } from '../AtividadesTable';
 
 function cellColor(celula: string) {
   if (!celula) return '';
@@ -20,6 +21,8 @@ export const MfvcqBadge: React.FC<MfvcqBadgeProps> = ({ mfvcq, productName }) =>
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [expandedTests, setExpandedTests] = useState<Record<number, boolean>>({});
+  const [editedAtividades, setEditedAtividades] = useState<Record<number, any[]>>({});
 
   if (!mfvcq?.matched) return null;
 
@@ -140,14 +143,48 @@ export const MfvcqBadge: React.FC<MfvcqBadgeProps> = ({ mfvcq, productName }) =>
                     </tr>
                   </thead>
                   <tbody>
-                    {analysis.analises_cq?.slice(0, 10).map((a: any, i: number) => (
-                      <tr key={i} className="border-b border-slate-50">
-                        <td className="py-1 text-slate-800 font-medium">{a.teste}</td>
-                        <td className="py-1 text-right text-blue-600">{a.fixo?.total_min || 0}</td>
-                        <td className="py-1 text-right text-indigo-600">{a.variavel?.total_min || 0}</td>
-                        <td className="py-1 text-right text-slate-800 font-bold">{a.total_compartilhado_min}</td>
-                      </tr>
-                    ))}
+                    {analysis.analises_cq?.slice(0, 10).map((a: any, i: number) => {
+                      const hasAtividades = (a.atividades || []).length > 0;
+                      const atvs = editedAtividades[i] || a.atividades || [];
+                      const getTotals = () => {
+                        if (atvs.length === 0) return { f: a.fixo?.total_min||0, v: a.variavel?.total_min||0, t: a.total_compartilhado_min||0 };
+                        const fix = atvs.filter((x:any) => x.padrao_amostra==='Padrão');
+                        const vr = atvs.filter((x:any) => x.padrao_amostra==='Amostra');
+                        const sum = (l:any[]) => l.reduce((s:number,x:any)=>s+(x.tempo_min||0),0);
+                        const f = sum(fix); const v = sum(vr);
+                        return { f, v, t: Math.round((f+v)*100)/100 };
+                      };
+                      const tot = getTotals();
+                      return (
+                        <React.Fragment key={i}>
+                          <tr
+                            className={`border-b border-slate-50 ${hasAtividades ? 'cursor-pointer hover:bg-indigo-50/30' : ''}`}
+                            onClick={() => hasAtividades && setExpandedTests(p => ({ ...p, [i]: !p[i] }))}
+                          >
+                            <td className="py-1 text-slate-800 font-medium">
+                              {a.teste}
+                              {hasAtividades && <span className="ml-1 text-[9px] text-indigo-400">({(a.atividades||[]).length})</span>}
+                            </td>
+                            <td className="py-1 text-right text-blue-600">{tot.f.toFixed(0)}</td>
+                            <td className="py-1 text-right text-indigo-600">{tot.v.toFixed(0)}</td>
+                            <td className="py-1 text-right text-slate-800 font-bold">{tot.t.toFixed(0)}</td>
+                          </tr>
+                          {expandedTests[i] && hasAtividades && (
+                            <tr key={`${i}-det`}>
+                              <td colSpan={4} className="pb-2">
+                                <AtividadesTable
+                                  atividades={atvs}
+                                  testName={a.teste}
+                                  fixo={a.fixo}
+                                  variavel={a.variavel}
+                                  onChange={(newAtvs) => setEditedAtividades(p => ({ ...p, [i]: newAtvs }))}
+                                />
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

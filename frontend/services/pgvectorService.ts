@@ -1,10 +1,10 @@
 import { AnalysisResult } from '../types';
 import { apiFetch } from './api';
 
-export async function saveToPinecone(result: AnalysisResult): Promise<boolean> {
+export async function saveToPgVector(result: AnalysisResult): Promise<boolean> {
   try {
-    console.log(`[Pinecone] Syncing ${result.fileName} via backend...`);
-    const response = await apiFetch('/pinecone/sync', {
+    console.log(`[PGVector] Syncing ${result.fileName} via backend...`);
+    const response = await apiFetch('/pgvector/sync', {
       method: 'POST',
       body: JSON.stringify(result),
     });
@@ -15,7 +15,7 @@ export async function saveToPinecone(result: AnalysisResult): Promise<boolean> {
     const data = await response.json();
     return data.success;
   } catch (error) {
-    console.error('[Pinecone] Sync failed:', error);
+    console.error('[PGVector] Sync failed:', error);
     return false;
   }
 }

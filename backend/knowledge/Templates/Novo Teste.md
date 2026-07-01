@@ -12,7 +12,7 @@ var_min: 0
 total_min: 0
 status: stub
 produto_origem: ""
-criado: 2026-06-20
+criado: 2026-06-21
 ---
 
 # Novo Teste

@@ -84,7 +84,6 @@ const ChromatographicColumnsView: React.FC<ChromatographicColumnsViewProps> = ({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Identificação da Coluna</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Modelo / Dimensões</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Produto Associado</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Teste Associado</th>
@@ -93,14 +92,6 @@ const ChromatographicColumnsView: React.FC<ChromatographicColumnsViewProps> = ({
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((col, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-teal-50 p-2 rounded-lg shrink-0">
-                          <Database className="w-4 h-4 text-teal-500" />
-                        </div>
-                        <span className="font-bold text-slate-800 leading-tight">{col.name}</span>
-                      </div>
-                    </td>
                     <td className="px-4 py-4 text-center">
                       <span className="text-xs font-mono font-bold bg-teal-50 text-teal-700 px-2 py-1 rounded border border-teal-100">
                         {col.model}

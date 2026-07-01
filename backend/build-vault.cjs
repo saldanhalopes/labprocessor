@@ -34,6 +34,10 @@ function fm(obj) {
   return yaml;
 }
 
+const argEmbed = process.argv.includes('--embeddings');
+const argEmbedOnly = process.argv.includes('--embeddings-only');
+
+if (!argEmbedOnly) {
 // ============================================================
 // 1. CELULAS
 // ============================================================
@@ -149,9 +153,8 @@ console.log(`  ${DEMANDA.length} produtos`);
 // ============================================================
 console.log('Generating Testes...');
 const tests = {};
-Object.values(BASEFLUXO).forEach(ativo => {
-  Object.values(ativo).forEach(forma => {
-    Object.entries(forma).forEach(([teste, atividades]) => {
+Object.entries(BASEFLUXO).forEach(([formaName, testes]) => {
+  Object.entries(testes).forEach(([teste, atividades]) => {
       if (teste === 'TESTE' || teste === 'FORMA FARMACÊUTICA') return;
       if (!tests[teste] && atividades.length > 0) {
         const rotas = [...new Set(atividades.map(a => a.rota))];
@@ -218,7 +221,6 @@ Object.values(BASEFLUXO).forEach(ativo => {
       }
     });
   });
-});
 console.log(`  ${Object.keys(tests).length} testes`);
 
 // ============================================================
@@ -226,9 +228,8 @@ console.log(`  ${Object.keys(tests).length} testes`);
 // ============================================================
 console.log('Generating Rotas...');
 const routes = new Set();
-Object.values(BASEFLUXO).forEach(ativo => {
-  Object.values(ativo).forEach(forma => {
-    Object.values(forma).forEach(atividades => {
+Object.values(BASEFLUXO).forEach(testes => {
+    Object.values(testes).forEach(atividades => {
       if (!Array.isArray(atividades)) return;
       atividades.forEach(a => {
         if (a.rota && a.rota !== 'ROTA' && !routes.has(a.rota)) {
@@ -256,7 +257,6 @@ Object.values(BASEFLUXO).forEach(ativo => {
       });
     });
   });
-});
 console.log(`  ${routes.size} rotas`);
 
 // ============================================================
@@ -363,14 +363,116 @@ Novas notas stub são criadas quando a IA encontra um teste desconhecido.
 `);
 console.log('  BEM_VINDO.md');
 
-// ============================================================
-// FINAL
-// ============================================================
-const totalFiles = Object.keys(celulaGroups).length + Object.keys(ativoGroups).length + DEMANDA.length + Object.keys(tests).length + routes.size + 4;
-console.log(`\nVault gerado: ${totalFiles} arquivos em backend/knowledge/`);
-console.log(`  Celulas: ${Object.keys(celulaGroups).length}`);
-console.log(`  Ativos: ${Object.keys(ativoGroups).length}`);
-console.log(`  Produtos: ${DEMANDA.length}`);
-console.log(`  Testes: ${Object.keys(tests).length}`);
-console.log(`  Rotas: ${routes.size}`);
-console.log(`  Templates: 2 | Matriz: 1 | BEM_VINDO: 1`);
+  const totalFiles = Object.keys(celulaGroups).length + Object.keys(ativoGroups).length + DEMANDA.length + Object.keys(tests).length + routes.size + 4;
+  console.log(`\nVault gerado: ${totalFiles} arquivos em backend/knowledge/`);
+  console.log(`  Celulas: ${Object.keys(celulaGroups).length}`);
+  console.log(`  Ativos: ${Object.keys(ativoGroups).length}`);
+  console.log(`  Produtos: ${DEMANDA.length}`);
+  console.log(`  Testes: ${Object.keys(tests).length}`);
+  console.log(`  Rotas: ${routes.size}`);
+  console.log(`  Templates: 2 | Matriz: 1 | BEM_VINDO: 1`);
+
+} // end if (!argEmbedOnly)
+
+async function buildEmbeddings() {
+  const { Pool } = require('pg');
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || 'postgres://labprocessor:labprocessor@localhost:5432/labprocessor'
+  });
+
+  const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
+  if (!OPENROUTER_KEY) {
+    console.log('[Embeddings] OPENROUTER_API_KEY not set — skipping');
+    await pool.end();
+    return;
+  }
+
+  async function embed(text) {
+    const res = await fetch('https://openrouter.ai/api/v1/embeddings', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'openai/text-embedding-3-large', input: text })
+    });
+    if (!res.ok) {
+      const err = await res.text().catch(() => '');
+      throw new Error(`OpenRouter ${res.status}: ${err}`);
+    }
+    const data = await res.json();
+    return data.data[0].embedding;
+  }
+
+  const files = [];
+  function collect(dir, sourceType) {
+    if (!fs.existsSync(dir)) return;
+    fs.readdirSync(dir).filter(f => f.endsWith('.md')).forEach(f => {
+      const content = fs.readFileSync(path.join(dir, f), 'utf-8');
+      const name = f.replace('.md', '');
+      files.push({ sourceType, sourceName: name, chunkText: content, filePath: path.join(dir, f) });
+    });
+  }
+
+  collect(path.join(KNOWLEDGE_DIR, 'Testes'), 'teste');
+  collect(path.join(KNOWLEDGE_DIR, 'Produtos'), 'produto');
+  collect(path.join(KNOWLEDGE_DIR, 'Ativos'), 'ativo');
+  collect(path.join(KNOWLEDGE_DIR, 'Celulas'), 'celula');
+  collect(path.join(KNOWLEDGE_DIR, 'Rotas'), 'rota');
+
+  console.log(`\n[Embeddings] Generating embeddings for ${files.length} notes via OpenRouter...`);
+
+  const BATCH_SIZE = 20;
+  let done = 0;
+  let failed = 0;
+
+  for (let i = 0; i < files.length; i += BATCH_SIZE) {
+    const batch = files.slice(i, i + BATCH_SIZE);
+    const tasks = batch.map(async (f) => {
+      try {
+        const values = await embed(f.chunkText.slice(0, 8000));
+        return {
+          sourceType: f.sourceType,
+          sourceName: f.sourceName,
+          chunkText: f.chunkText.slice(0, 8000),
+          embedding: values,
+          metadata: {}
+        };
+      } catch (e) {
+        console.warn(`[Embeddings] ${f.sourceName}: ${e.message}`);
+        failed++;
+        return null;
+      }
+    });
+
+    const results = (await Promise.all(tasks)).filter(Boolean);
+
+    if (results.length > 0) {
+      const sourceTypes = results.map(r => r.sourceType);
+      const sourceNames = results.map(r => r.sourceName);
+      const chunkTexts = results.map(r => r.chunkText);
+      const embeddingArr = results.map(r => `[${r.embedding.join(',')}]`);
+      const metadataArr = results.map(r => JSON.stringify(r.metadata));
+
+      await pool.query(`
+        INSERT INTO vault_embeddings (source_type, source_name, chunk_text, embedding, metadata)
+        SELECT * FROM unnest($1::text[], $2::text[], $3::text[], $4::vector[], $5::jsonb[])
+        ON CONFLICT (source_type, source_name) DO UPDATE SET
+          chunk_text = EXCLUDED.chunk_text,
+          embedding = EXCLUDED.embedding,
+          metadata = EXCLUDED.metadata
+      `, [sourceTypes, sourceNames, chunkTexts, embeddingArr, metadataArr]);
+
+      done += results.length;
+      process.stdout.write(`\r[Embeddings] ${done}/${files.length} embedded (${failed} failed)`);
+
+      if (i + BATCH_SIZE < files.length) {
+        await new Promise(r => setTimeout(r, 150));
+      }
+    }
+  }
+
+  console.log(`\n[Embeddings] Complete: ${done} stored, ${failed} failed`);
+  await pool.end();
+}
+
+if (argEmbed || argEmbedOnly) {
+  buildEmbeddings().catch(e => { console.error('[Embeddings] Fatal:', e.message); process.exit(1); });
+}

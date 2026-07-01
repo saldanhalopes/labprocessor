@@ -3,71 +3,6 @@
     "tecnica": "HPLC",
     "categoria": "Físico-Químico",
     "descricao": "Determinação quantitativa do princípio ativo por cromatografia líquida de alta eficiência (HPLC). É o teste mais comum e demorado do CQ.",
-    "rotas": [
-      {
-        "nome": "HPLC DAD",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "BALANÇA",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA BANCADA (PREP HPLC)",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA EQUIP - HPLC",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ULTRASSOM",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "BOMBA DE LAVAGEM",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "CONJ FILTRO",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "AGITADOR",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "AUXILIAR COLUNAS",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -112,79 +47,22 @@
       "VALORACIÓN",
       "VALORIZACIÓN",
       "Dosage",
-      "Titulacion"
+      "Titulacion",
+      "Teor HPLC"
     ],
-    "status": "completo"
+    "status": "completo",
+    "learned_scale": 0.0473,
+    "learned_samples": 4,
+    "learned_scale_avg": 0.0465,
+    "learned_scale_range": [
+      0.0442,
+      0.0473
+    ]
   },
   "DEGRADAÇÃO HPLC 1": {
     "tecnica": "HPLC",
     "categoria": "Físico-Químico",
     "descricao": "Pesquisa de impurezas e produtos de degradação por HPLC. Análise de substâncias relacionadas.",
-    "rotas": [
-      {
-        "nome": "HPLC DAD",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "BALANÇA",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA BANCADA (PREP HPLC)",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA EQUIP - HPLC",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ULTRASSOM",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "BOMBA DE LAVAGEM",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "CONJ FILTRO",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "AGITADOR",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "AUXILIAR COLUNAS",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -226,7 +104,8 @@
       "Impurezas Orgánicas",
       "Related Substances",
       "Impurities",
-      "Productos de Degradación"
+      "Productos de Degradación",
+      "Substâncias relacionadas (CCD)"
     ],
     "status": "completo"
   },
@@ -234,92 +113,6 @@
     "tecnica": "Dissolução + HPLC",
     "categoria": "Físico-Químico",
     "descricao": "Teste de dissolução para comprimidos. Envolve o dissolutor (meio de dissolução) + análise por HPLC.",
-    "rotas": [
-      {
-        "nome": "DISSOLUTOR",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "HPLC UV",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA EQUIP - HPLC",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA BANCADA (PREP HPLC)",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "BALANÇA",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ULTRASSOM",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "BOMBA DE LAVAGEM",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "MILLIQ",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "AGITADOR",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "CONJ FILTRO",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "AUXILIAR COLUNAS",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "pHMETRO",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -360,35 +153,19 @@
       "Dissolution",
       "Dissolucion"
     ],
-    "status": "completo"
+    "status": "completo",
+    "learned_scale": 0.1552,
+    "learned_samples": 3,
+    "learned_scale_avg": 0.1573,
+    "learned_scale_range": [
+      0.1552,
+      0.1614
+    ]
   },
   "DESINTEGRAÇÃO": {
     "tecnica": "Desintegração",
     "categoria": "Físico-Químico",
     "descricao": "Teste de desintegração de comprimidos em meio líquido. Usa o desintegrador.",
-    "rotas": [
-      {
-        "nome": "DESINTEGRADOR",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA TF",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "MILLIQ",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -430,28 +207,19 @@
       "Tempo de Desintegração",
       "Tiempo de Desintegración"
     ],
-    "status": "completo"
+    "status": "completo",
+    "learned_scale": 0.6801,
+    "learned_samples": 3,
+    "learned_scale_avg": 0.6801,
+    "learned_scale_range": [
+      0.6801,
+      0.6801
+    ]
   },
   "DUREZA": {
     "tecnica": "Dureza",
     "categoria": "Físico-Químico",
     "descricao": "Teste de resistência mecânica dos comprimidos. Usa o durômetro.",
-    "rotas": [
-      {
-        "nome": "DURÔMETRO",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA TF",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -491,28 +259,19 @@
       "Hardness",
       "Resistencia"
     ],
-    "status": "completo"
+    "status": "completo",
+    "learned_scale": 0.4611,
+    "learned_samples": 3,
+    "learned_scale_avg": 0.4611,
+    "learned_scale_range": [
+      0.4611,
+      0.4611
+    ]
   },
   "PESO MÉDIO 1": {
     "tecnica": "Gravimetria",
     "categoria": "Físico-Químico",
     "descricao": "Determinação do peso médio dos comprimidos. Usa balança analítica.",
-    "rotas": [
-      {
-        "nome": "BALANÇA",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA TF",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -554,28 +313,19 @@
       "Peso medio",
       "PESO PROMEDIO"
     ],
-    "status": "completo"
+    "status": "completo",
+    "learned_scale": 0.7493,
+    "learned_samples": 3,
+    "learned_scale_avg": 0.7493,
+    "learned_scale_range": [
+      0.7493,
+      0.7493
+    ]
   },
   "UMIDADE IV": {
     "tecnica": "Karl Fischer / Gravimetria",
     "categoria": "Físico-Químico",
     "descricao": "Determinação do teor de água/umidade. Pode usar Karl Fischer ou balança de umidade (IV).",
-    "rotas": [
-      {
-        "nome": "BALANÇA IV",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA TF",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -625,22 +375,6 @@
     "tecnica": "Gravimetria",
     "categoria": "Físico-Químico",
     "descricao": "Teste de uniformidade de conteúdo por variação de peso. Alternativa ao doseamento individual.",
-    "rotas": [
-      {
-        "nome": "BALANÇA",
-        "tipo": "Máquina",
-        "execucao": "MAQ",
-        "descricao": "",
-        "diretrizes": []
-      },
-      {
-        "nome": "ANALISTA TF",
-        "tipo": "Analista",
-        "execucao": "MO",
-        "descricao": "",
-        "diretrizes": []
-      }
-    ],
     "diretrizes": [
       {
         "componente": "t_prep",
@@ -682,6 +416,261 @@
       "Content Uniformity",
       "Uniformidad"
     ],
+    "status": "completo"
+  },
+  "Cor": {
+    "tecnica": "Visual",
+    "categoria": "Físico-Químico",
+    "descricao": "Inspeção visual da cor, formato, integridade e aspecto geral da amostra. Teste qualitativo rápido.",
+    "diretrizes": [
+      {
+        "componente": "t_analysis",
+        "descricao": "Observação visual da amostra contra padrão de referência. Comparar cor, formato, presença de manchas ou defeitos.",
+        "heuristica": "Teste puramente visual, sem preparo instrumental.",
+        "fixo_min": 0,
+        "var_min": 2
+      }
+    ],
+    "aliases": [
+      "Cor",
+      "Descrição",
+      "Descripcion",
+      "Aparência",
+      "Aparencia",
+      "Aspecto",
+      "Description",
+      "Appearance",
+      "Visual"
+    ],
+    "mo_pct": 100,
+    "fixo_min": 0,
+    "var_min": 2,
+    "como_quantificar": "Tempo de observação por amostra (~2 min). Multiplicar pelo número de unidades inspecionadas.",
+    "status": "completo"
+  },
+  "DESCRIÇÃO": {
+    "tecnica": "Visual",
+    "categoria": "Físico-Químico",
+    "descricao": "Teste de descrição visual do produto: cor, formato, aspecto, integridade física. Equivalente a Aparência/Cor.",
+    "diretrizes": [
+      {
+        "componente": "t_analysis",
+        "descricao": "Observação visual da amostra. Comparar com especificação de cor, formato e integridade.",
+        "heuristica": "Teste visual simples, ~2-3 min por amostra.",
+        "fixo_min": 0,
+        "var_min": 3
+      }
+    ],
+    "aliases": [
+      "Descrição",
+      "Descripcion",
+      "Aparência",
+      "Aparencia",
+      "Cor",
+      "Aspecto",
+      "Description",
+      "Appearance"
+    ],
+    "mo_pct": 100,
+    "fixo_min": 0,
+    "var_min": 3,
+    "como_quantificar": "Tempo de observação por amostra.",
+    "status": "completo"
+  },
+  "IDENTIFICAÇÃO": {
+    "tecnica": "Espectrofotometria",
+    "categoria": "Físico-Químico",
+    "descricao": "Teste de identificação química do princípio ativo. Pode ser por espectrofotometria UV-Vis, IV (infravermelho), ou CCD (cromatografia em camada delgada).",
+    "diretrizes": [
+      {
+        "componente": "t_prep",
+        "descricao": "Preparo da amostra: pesagem, diluição, filtração conforme monografia.",
+        "heuristica": "Preparo similar a doseamento, mas simplificado.",
+        "fixo_min": 5,
+        "var_min": 5
+      },
+      {
+        "componente": "t_run",
+        "descricao": "Leitura no espectrofotômetro UV-Vis ou IV. Tempo de varredura + análise do espectro.",
+        "heuristica": "Varredura UV: ~2-5 min. IV: ~5-10 min. CCD: ~20-30 min.",
+        "fixo_min": 10,
+        "var_min": 5
+      }
+    ],
+    "aliases": [
+      "Identificação",
+      "Identificacion",
+      "Identification",
+      "ID Test",
+      "Identificação Química",
+      "Chemical Identification"
+    ],
+    "mo_pct": 70,
+    "fixo_min": 15,
+    "var_min": 10,
+    "como_quantificar": "Tempo de preparo + leitura instrumental. Fixo para calibração do equipamento.",
+    "status": "completo"
+  },
+  "Determinação de peso": {
+    "tecnica": "Gravimetria",
+    "categoria": "",
+    "descricao": "",
+    "diretrizes": [],
+    "aliases": [
+      "Determinação de peso",
+      "Gravimetria"
+    ],
+    "mo_pct": 0,
+    "fixo_min": 0,
+    "var_min": 0,
+    "como_quantificar": "",
+    "status": "stub"
+  },
+  "Friabilidade": {
+    "tecnica": "Fisica",
+    "categoria": "Nao classificado",
+    "descricao": "Promovido apos 3 aparicoes.",
+    "diretrizes": [],
+    "aliases": [
+      "Friabilidade"
+    ],
+    "mo_pct": 0,
+    "fixo_min": 0,
+    "var_min": 0,
+    "como_quantificar": "",
+    "status": "completo",
+    "promoted": true,
+    "promotedAt": "2026-06-21T23:58:41.092Z",
+    "appearanceCount": 3,
+    "basfluxoMatch": null
+  },
+  "Tamanho de Particula": {
+    "tecnica": "Difracao Laser",
+    "categoria": "",
+    "descricao": "",
+    "rotas": [],
+    "diretrizes": [],
+    "aliases": [
+      "Tamanho de Particula",
+      "Difracao Laser"
+    ],
+    "mo_pct": 0,
+    "fixo_min": 0,
+    "var_min": 0,
+    "como_quantificar": "",
+    "status": "stub"
+  },
+  "Tamanho Particula Malvern": {
+    "tecnica": "Difracao Laser",
+    "categoria": "",
+    "descricao": "",
+    "rotas": [],
+    "diretrizes": [],
+    "aliases": [
+      "Tamanho Particula Malvern",
+      "Difracao Laser"
+    ],
+    "mo_pct": 0,
+    "fixo_min": 0,
+    "var_min": 0,
+    "como_quantificar": "",
+    "status": "stub"
+  },
+  "Volume": {
+    "tecnica": "Gravimetria/Volumetria",
+    "categoria": "Físico",
+    "descricao": "Determinação do volume extraível em produtos injetáveis conforme farmacopeia. Medição com proveta/seringa calibrada.",
+    "rotas": [
+      { "nome": "BALANÇA", "tipo": "Máquina", "diretrizes": [] },
+      { "nome": "ANALISTA TF", "tipo": "Analista", "diretrizes": [] }
+    ],
+    "diretrizes": [
+      { "componente": "t_prep", "descricao": "Preparo de amostras: retirar conteúdo com seringa, transferir para proveta. 5-10 ampolas por lote.", "heuristica": "Volume: ~3 min por ampola para extração + medição.", "fixo_min": 5, "var_min": 3 },
+      { "componente": "t_calc", "descricao": "Cálculo da média de volume por ampola e verificação contra especificação.", "heuristica": "", "fixo_min": 5, "var_min": 2 }
+    ],
+    "aliases": ["Volume", "Volume Extraível", "Fill Volume", "Volumen", "Conteúdo Extraível"],
+    "mo_pct": 80,
+    "fixo_min": 10,
+    "var_min": 5,
+    "como_quantificar": "Medir com proveta calibrada ou seringa. n=10 ampolas por lote. Calcular média aritmética.",
+    "status": "completo"
+  },
+  "Material Particulado": {
+    "tecnica": "Contador de Partículas / Inspeção Visual",
+    "categoria": "Físico",
+    "descricao": "Contagem de partículas visíveis e subvisíveis em produtos injetáveis. Partículas ≥10μm e ≥25μm.",
+    "rotas": [
+      { "nome": "ANALISTA TF", "tipo": "Analista", "diretrizes": [] }
+    ],
+    "diretrizes": [
+      { "componente": "t_prep", "descricao": "Preparo do equipamento, limpeza da área, desgaseificação da amostra.", "heuristica": "Material Particulado: 30 min para setup + ~5-10 min por amostra de leitura.", "fixo_min": 30, "var_min": 10 },
+      { "componente": "t_analysis", "descricao": "Leitura no contador de partículas (método de obscurecimento de luz). n=10 unidades.", "heuristica": "", "fixo_min": 15, "var_min": 10 },
+      { "componente": "t_calc", "descricao": "Cálculo da média de partículas por unidade.", "heuristica": "", "fixo_min": 5, "var_min": 3 }
+    ],
+    "aliases": ["Material Particulado", "Particulate Matter", "Partículas", "Particulas", "Particle Count", "Subvisible Particles"],
+    "mo_pct": 40,
+    "fixo_min": 50,
+    "var_min": 23,
+    "como_quantificar": "Contador de partículas por obscurecimento de luz. n=10. Limites farmacopeicos: ≤6000 partículas ≥10μm, ≤600 partículas ≥25μm por unidade.",
+    "status": "completo"
+  },
+  "Claridade em solução": {
+    "tecnica": "Inspeção Visual",
+    "categoria": "Físico",
+    "descricao": "Avaliação da limpidez/claridade da solução injetável contra padrões de opalescência. Comparação visual contra água purificada.",
+    "rotas": [
+      { "nome": "ANALISTA TF", "tipo": "Analista", "diretrizes": [] }
+    ],
+    "diretrizes": [
+      { "componente": "t_prep", "descricao": "Preparo dos padrões de opalescência e da amostra em tubos de ensaio. Ambiente com luz controlada.", "heuristica": "Claridade: 10 min para preparo + ~2 min por amostra.", "fixo_min": 10, "var_min": 2 },
+      { "componente": "t_analysis", "descricao": "Comparação visual da amostra contra padrões (água purificada e suspensões de referência).", "heuristica": "", "fixo_min": 5, "var_min": 3 },
+      { "componente": "t_calc", "descricao": "Registro do resultado (Límpida / Opalescente / Grau I-IV).", "heuristica": "", "fixo_min": 3, "var_min": 1 }
+    ],
+    "aliases": ["Claridade em solução", "Claridade", "Clarity", "Claridad", "Limpidez", "Opalescência", "Opalescencia", "Solution Clarity"],
+    "mo_pct": 90,
+    "fixo_min": 18,
+    "var_min": 6,
+    "como_quantificar": "Comparação visual da amostra contra padrões de opalescência em tubos de ensaio idênticos, contra fundo preto com iluminação difusa. Classificar como Límpida ou Grau I-IV.",
+    "status": "completo"
+  },
+  "Conteúdo de etanol e propilenoglicol": {
+    "tecnica": "GC",
+    "categoria": "Físico-Químico",
+    "descricao": "Determinação quantitativa de etanol e propilenoglicol por cromatografia gasosa (GC-FID). Aplicável a soluções orais e injetáveis que contenham esses excipientes.",
+    "rotas": [
+      { "nome": "ANALISTA BANCADA (PREP HPLC)", "tipo": "Analista", "diretrizes": [] },
+      { "nome": "BALANÇA", "tipo": "Máquina", "diretrizes": [] }
+    ],
+    "diretrizes": [
+      { "componente": "t_prep", "descricao": "Preparo de padrões (etanol, propilenoglicol) e amostras. Pesagem, diluição com padrão interno.", "heuristica": "GC: preparo similar ao HPLC. 30-45 min para padrões + 15 min por amostra.", "fixo_min": 45, "var_min": 15 },
+      { "componente": "t_run", "descricao": "Corrida cromatográfica no GC. Tempo de corrida típico 15-25 min por injeção. Inclui padrão calibração, amostras, controle.", "heuristica": "GC: gradiente 15-25 min por injeção. Padrão calibração 5-7 injeções.", "fixo_min": 175, "var_min": 25 },
+      { "componente": "t_calc", "descricao": "Cálculo do teor de etanol e propilenoglicol por padronização interna.", "heuristica": "", "fixo_min": 15, "var_min": 5 }
+    ],
+    "aliases": ["Conteúdo de etanol e propilenoglicol", "Ethanol and Propylene Glycol", "Etanol e Propilenoglicol", "Teor de etanol", "Alcohol Content"],
+    "mo_pct": 20,
+    "fixo_min": 235,
+    "var_min": 45,
+    "como_quantificar": "GC-FID com padronização interna. Coluna capilar polar. Injetar padrões e amostras em duplicata. Calcular por padronização interna contra pico do padrão.",
+    "status": "completo"
+  },
+  "pH": {
+    "tecnica": "Potenciometria",
+    "categoria": "Físico-Químico",
+    "descricao": "Determinação potenciométrica do pH em soluções injetáveis, suspensões e líquidos orais.",
+    "rotas": [
+      { "nome": "pHMETRO", "tipo": "Máquina", "diretrizes": [] },
+      { "nome": "ANALISTA TF", "tipo": "Analista", "diretrizes": [] }
+    ],
+    "diretrizes": [
+      { "componente": "t_prep", "descricao": "Calibração do pHmetro com soluções tampão (pH 4,0; 7,0; 10,0). Preparo da amostra em béquer.", "heuristica": "pH: calibração 15 min + ~2 min por amostra.", "fixo_min": 15, "var_min": 2 },
+      { "componente": "t_analysis", "descricao": "Leitura do pH da amostra após estabilização do eletrodo.", "heuristica": "", "fixo_min": 2, "var_min": 3 },
+      { "componente": "t_calc", "descricao": "Registro do valor de pH e verificação contra especificação.", "heuristica": "", "fixo_min": 3, "var_min": 1 }
+    ],
+    "aliases": ["pH", "Potenciometria", "Potentiometry", "Determinação de pH"],
+    "mo_pct": 50,
+    "fixo_min": 20,
+    "var_min": 6,
+    "como_quantificar": "Calibrar pHmetro com 3 tampões. Mergulhar eletrodo na amostra, aguardar estabilização. Registrar valor com 1 casa decimal.",
     "status": "completo"
   }
 }

@@ -43,26 +43,51 @@ interface BiasData {
   byTest: Record<string, { avgPct: number; count: number; tech: string }>;
 }
 
+interface ScoreData {
+  overall: number;
+  label: string;
+  ready: boolean;
+  matchRate: { current: number; previous: number; delta: number };
+  stubRate: { current: number; previous: number; delta: number };
+  aliasVelocity: { recent: number; older: number };
+  biasConvergence: { current: number; previous: number; improving: boolean };
+  sampleSize: { recent: number; older: number };
+}
+
+interface TimelineItem {
+  date: string;
+  type: 'alias' | 'stub_new' | 'stub_promoted' | 'scale' | 'basfluxo';
+  icon: string;
+  detail: string;
+  product: string | null;
+}
+
 const LearningView: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [pendingAliases, setPendingAliases] = useState<PendingAlias[]>([]);
   const [patterns, setPatterns] = useState<Pattern | null>(null);
   const [bias, setBias] = useState<BiasData | null>(null);
+  const [score, setScore] = useState<ScoreData | null>(null);
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, aliasesRes, biasRes, patternsRes] = await Promise.all([
+      const [statsRes, aliasesRes, biasRes, patternsRes, scoreRes, timelineRes] = await Promise.all([
         fetch('/api/learning/stats').then(r => r.json()),
         fetch('/api/learning/pending-aliases').then(r => r.json()),
         fetch('/api/learning/bias').then(r => r.json()),
-        fetch('/api/learning/patterns').then(r => r.json())
+        fetch('/api/learning/patterns').then(r => r.json()),
+        fetch('/api/learning/score').then(r => r.json()),
+        fetch('/api/learning/timeline').then(r => r.json())
       ]);
       setStats(statsRes);
       setPendingAliases(aliasesRes);
       setBias(biasRes);
       setPatterns(patternsRes);
+      setScore(scoreRes);
+      setTimeline(timelineRes);
     } catch (e) { console.error('LearningView load error:', e); }
     finally { setLoading(false); }
   }, []);
@@ -107,6 +132,68 @@ const LearningView: React.FC = () => {
           {stats?.totalExtractions || 0} extrações processadas · O sistema aprende e melhora a cada análise
         </p>
       </div>
+
+      {/* Health Score */}
+      {score?.ready && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
+            Saúde do Aprendizado
+            <span className={`ml-auto px-3 py-1 rounded-lg text-sm font-bold ${
+              score.overall >= 80 ? 'bg-emerald-100 text-emerald-700' :
+              score.overall >= 60 ? 'bg-amber-100 text-amber-700' :
+              'bg-blue-100 text-blue-700'
+            }`}>
+              {score.overall}/100 — {score.label}
+            </span>
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Match Rate', icon: '📈', curr: `${score.matchRate.current}%`, prev: `${score.matchRate.previous}%`, delta: score.matchRate.delta > 0 ? `▲ +${score.matchRate.delta}%` : `▼ ${score.matchRate.delta}%`, up: score.matchRate.delta > 0 },
+              { label: 'Stub Rate', icon: '📉', curr: score.stubRate.current.toFixed(1), prev: score.stubRate.previous.toFixed(1), delta: score.stubRate.delta > 0 ? `▼ -${score.stubRate.delta.toFixed(1)}` : score.stubRate.delta === 0 ? '—' : `▲ +${Math.abs(score.stubRate.delta).toFixed(1)}`, up: score.stubRate.delta > 0 },
+              { label: 'Aliases', icon: '🚀', curr: `${score.aliasVelocity.recent}`, prev: `${score.aliasVelocity.older}`, delta: score.aliasVelocity.recent > score.aliasVelocity.older ? '▲ cresceu' : '—', up: score.aliasVelocity.recent > score.aliasVelocity.older },
+              { label: 'Viés', icon: '🎯', curr: `${score.biasConvergence.current}%`, prev: `${score.biasConvergence.previous}%`, delta: score.biasConvergence.improving ? '▲ convergindo' : '—', up: score.biasConvergence.improving },
+            ].map(m => (
+              <div key={m.label} className="p-3 rounded-xl bg-slate-50">
+                <div className="text-xs text-slate-400 mb-1">{m.icon} {m.label}</div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-black text-slate-700">{m.curr}</span>
+                  <span className="text-xs text-slate-400">{m.prev}</span>
+                </div>
+                <div className={`text-xs font-bold mt-1 ${m.up ? 'text-emerald-500' : 'text-slate-400'}`}>{m.delta}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Learning Timeline */}
+      {timeline.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
+            <Clock className="w-4 h-4 text-indigo-500" />
+            O que foi Aprendido
+          </h3>
+          <div className="space-y-2">
+            {timeline.map((t, i) => {
+              const icons: Record<string, string> = { alias: '💡', stub_new: '🧪', stub_promoted: '⭐', scale: '📐', basfluxo: '⚙️' };
+              const colors: Record<string, string> = { alias: 'border-blue-200 bg-blue-50', stub_new: 'border-amber-200 bg-amber-50', stub_promoted: 'border-emerald-200 bg-emerald-50', scale: 'border-purple-200 bg-purple-50', basfluxo: 'border-slate-200 bg-slate-50' };
+              return (
+                <div key={i} className={`flex items-start gap-3 p-3 rounded-xl border ${colors[t.type] || 'border-slate-100 bg-slate-50'}`}>
+                  <span className="text-lg mt-0.5">{icons[t.type] || '📌'}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-700">{t.detail}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-400">{t.date}</span>
+                      {t.product && <span className="text-xs text-slate-300">· {t.product}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

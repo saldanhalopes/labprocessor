@@ -1,5 +1,11 @@
 export type Language = 'pt' | 'es' | 'en';
 
+export interface TranscriptSummary {
+  pt: string;
+  es: string;
+  en: string;
+}
+
 export interface AnalysisRow {
   id: number | string;
   testName: string;
@@ -22,6 +28,7 @@ export interface AnalysisRow {
   manHours: number; // Active human effort in hours
   
   rationale: string; // Explanation of the calculation
+  transcriptSummary?: TranscriptSummary; // Summarized transcription per language
 }
 
 export interface Reagent {
@@ -127,6 +134,31 @@ export interface AnalysisResult {
   };
 }
 
+export interface AtividadeBasfluxo {
+  atividade: string;
+  rota: string;
+  execucao: 'MO' | 'MAQ';
+  padrao_amostra: 'Padrão' | 'Amostra';
+  tempo_corrida_minutos: number;
+  similaridade?: string;
+  injecoes?: number;
+}
+
+export interface EtapaBasfluxo {
+  nome: string;
+  modo: 'sequencial' | 'paralelo';
+  ordem: number;
+  atividades: AtividadeBasfluxo[];
+}
+
+export interface TesteBasfluxo {
+  etapas: EtapaBasfluxo[];
+  _meta?: {
+    nome?: string;
+    aliases?: string[];
+  };
+}
+
 export interface GlobalSettings {
   area: number; // m² (default 1160)
   velocity: number; // m/min (default 60)
@@ -150,6 +182,7 @@ export interface HistoryItem {
   manHours?: number; // Total Active Human Effort
   totalTimePhysChem: number;
   totalTimeMicro: number;
+  pdfUrl?: string; // Path to the original PDF file for download
 }
 
 export interface User {
@@ -161,6 +194,7 @@ export interface User {
   company?: string;
   role?: string;
   isAdmin?: boolean;
+  plan?: string;
   uploadsToday?: number;
   lastUploadDate?: string;
 }

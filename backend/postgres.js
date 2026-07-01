@@ -58,10 +58,11 @@ export async function saveResult(result) {
     await client.query(`
       INSERT INTO results (id, file_name, product_name, code, pharmaceutical_form,
         active_principles, composition, batch_size, total_time, total_time_phys_chem,
-        total_time_micro, full_text, visual_content, images, pdf_path, timestamp)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        total_time_micro, full_text, visual_content, images, pdf_path, timestamp, basfluxo, mfvcq)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       ON CONFLICT (id) DO UPDATE SET
         file_name = EXCLUDED.file_name, product_name = EXCLUDED.product_name,
+        basfluxo = EXCLUDED.basfluxo, mfvcq = EXCLUDED.mfvcq,
         updated_at = NOW()
     `, [
       result.fileId, result.fileName,
@@ -71,22 +72,25 @@ export async function saveResult(result) {
       result.totalTime || 0, result.totalTimePhysChem || 0, result.totalTimeMicro || 0,
       result.fullText || '', result.visualContent || '',
       result.images || [], result.pdfUrl || null,
-      result.timestamp || Date.now()
+      result.timestamp || Date.now(),
+      result.basfluxo ? JSON.stringify(result.basfluxo) : null,
+      result.mfvcq ? JSON.stringify(result.mfvcq) : null
     ]);
 
-    if (Array.isArray(result.rows)) {
+      if (Array.isArray(result.rows)) {
       await client.query('DELETE FROM analysis_rows WHERE result_id = $1', [result.fileId]);
       for (const row of result.rows) {
         await client.query(`
           INSERT INTO analysis_rows (result_id, test_name, technique, category, details,
             t_prep, t_analysis, t_run, t_calc, t_incubation, t_locomotion, t_setup,
-            t_register, total_time_hours, man_hours, rationale)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+            t_register, total_time_hours, man_hours, rationale, transcript_summary)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         `, [
           result.fileId, row.testName, row.technique, row.category, row.details,
           row.t_prep || 0, row.t_analysis || 0, row.t_run || 0, row.t_calc || 0,
           row.t_incubation || 0, row.t_locomotion || 0, row.t_setup || 0,
-          row.t_register || 0, row.totalTimeHours || 0, row.manHours || 0, row.rationale || ''
+          row.t_register || 0, row.totalTimeHours || 0, row.manHours || 0, row.rationale || '',
+          row.transcriptSummary ? JSON.stringify(row.transcriptSummary) : null
         ]);
       }
     }
@@ -132,6 +136,19 @@ export async function saveResult(result) {
   }
 }
 
+function mapRow(row, mappings) {
+  const mapped = {};
+  for (const [key, value] of Object.entries(row)) {
+    const targetKey = mappings[key] || key;
+    mapped[targetKey] = value;
+  }
+  return mapped;
+}
+
+const reagentMappings = { test_name: 'testName' };
+const standardMappings = { test_name: 'testName', amount_mg: 'amountmg' };
+const equipmentMappings = { test_name: 'testName' };
+
 export async function getAllResults() {
   const result = await pool.query(
     'SELECT * FROM results ORDER BY timestamp DESC'
@@ -160,11 +177,15 @@ export async function getAllResults() {
         details: r.details, t_prep: r.t_prep, t_analysis: r.t_analysis, t_run: r.t_run,
         t_calc: r.t_calc, t_incubation: r.t_incubation, t_locomotion: r.t_locomotion,
         t_setup: r.t_setup, t_register: r.t_register, totalTimeHours: r.total_time_hours,
-        manHours: r.man_hours, rationale: r.rationale
+        manHours: r.man_hours, rationale: r.rationale,
+        transcriptSummary: (() => {
+          try { return r.transcript_summary ? JSON.parse(r.transcript_summary) : undefined; }
+          catch { return r.transcript_summary; }
+        })()
       })),
-      reagents: reagentsRes.rows,
-      standards: standardsRes.rows,
-      equipments: equipmentsRes.rows,
+      reagents: reagentsRes.rows.map(r => mapRow(r, reagentMappings)),
+      standards: standardsRes.rows.map(s => mapRow(s, standardMappings)),
+      equipments: equipmentsRes.rows.map(e => mapRow(e, equipmentMappings)),
       totalTime: row.total_time,
       totalTimePhysChem: row.total_time_phys_chem,
       totalTimeMicro: row.total_time_micro,
@@ -172,7 +193,9 @@ export async function getAllResults() {
       visualContent: row.visual_content,
       images: row.images,
       pdfUrl: row.pdf_path,
-      timestamp: row.timestamp
+      timestamp: row.timestamp,
+      basfluxo: typeof row.basfluxo === 'string' ? JSON.parse(row.basfluxo) : row.basfluxo,
+      mfvcq: typeof row.mfvcq === 'string' ? JSON.parse(row.mfvcq) : row.mfvcq
     });
   }
   return results;

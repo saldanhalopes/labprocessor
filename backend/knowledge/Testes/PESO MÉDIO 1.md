@@ -1,29 +1,18 @@
 ---
-teste: PESO MÉDIO 1
-tecnica: Físico
-categoria: Físico-Químico
-forma: Sólidos
-aliases:
-  - PESO MÉDIO 1
-rotas:
-  - ANALISTA TF
-  - BALANÇA
-atividades: 2
-fixo_min: 0
-var_min: 17.35
-total_min: 17.35
+teste: "PESO MÉDIO 1"
+tecnica: "Gravimetria"
+categoria: "Físico-Químico"
+aliases: ["Peso Médio", "Peso Promedio", "Average Weight", "Peso medio", "PESO PROMEDIO"]
+rotas: []
 mo_pct: 42
-tags:
-  - peso-medio-1
-status: completo
+fixo_min: 0
+var_min: 17
+status: "completo"
 ---
+
 # PESO MÉDIO 1
 
-**Técnica:** Físico
-**Rotas:** [[ANALISTA TF]], [[BALANÇA]]
+Determinação do peso médio dos comprimidos. Usa balança analítica.
 
-**Tempo total:** 0.3h por lote
-**Fixo (calibração):** 0.0h | **Variável (amostra):** 0.3h
-**MO (analista):** 42% | **MAQ (máquina):** 58%
-
-**Aliases:** PESO MÉDIO 1
+**Técnica:** Gravimetria
+**Como quantificar:** Teste simples e rápido. 100% amostra. BASEFLUXO: 2 atividades.

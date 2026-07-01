@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, FlaskConical, Box, TrendingUp, User, Cpu } from 'lucide-react';
+import { AtividadesTable } from '../AtividadesTable';
 
 interface MfvcqResultProps {
   result: any;
@@ -15,10 +16,37 @@ function cellColor(celula: string) {
 }
 
 export const MfvcqResult: React.FC<MfvcqResultProps> = ({ result }) => {
+  const [expandedTests, setExpandedTests] = useState<Record<number, boolean>>({});
+  const [editedAtividades, setEditedAtividades] = useState<Record<number, any[]>>({});
+  
   if (!result) return null;
 
   const { analises_cq, resumo_tempos, celula, demanda, ativo, quantidade_lotes } = result;
   const n = quantidade_lotes || 1;
+
+  const handleActivityChange = (testIdx: number, newAtividades: any[]) => {
+    setEditedAtividades(prev => ({ ...prev, [testIdx]: newAtividades }));
+  };
+
+  const getAtividades = (a: any, idx: number) => {
+    return editedAtividades[idx] || a.atividades || [];
+  };
+
+  const getRecalcTotals = (a: any, idx: number) => {
+    const atvs = getAtividades(a, idx);
+    if (atvs.length === 0) return { fixo: a.fixo, variavel: a.variavel, total: a.total_compartilhado_min };
+    const fixas = atvs.filter((x: any) => x.padrao_amostra === 'Padrão');
+    const vars = atvs.filter((x: any) => x.padrao_amostra === 'Amostra');
+    const mo = (l: any[]) => l.filter((x: any) => x.execucao === 'MO').reduce((s: number, x: any) => s + (x.tempo_min || 0), 0);
+    const mq = (l: any[]) => l.filter((x: any) => x.execucao === 'MAQ').reduce((s: number, x: any) => s + (x.tempo_min || 0), 0);
+    const fTotal = mo(fixas) + mq(fixas);
+    const vTotal = mo(vars) + mq(vars);
+    return {
+      fixo: { total_min: fTotal, mo_min: mo(fixas), maq_min: mq(fixas), atividades: fixas.length },
+      variavel: { total_min: vTotal, mo_min: mo(vars), maq_min: mq(vars), atividades: vars.length },
+      total_compartilhado_min: Math.round((fTotal + vTotal * n) * 100) / 100
+    };
+  };
 
   return (
     <div className="space-y-4 animate-fade-in-up">
@@ -110,19 +138,44 @@ export const MfvcqResult: React.FC<MfvcqResultProps> = ({ result }) => {
               </tr>
             </thead>
             <tbody>
-              {analises_cq?.map((a: any, i: number) => (
-                <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-800">{a.teste}</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 bg-slate-100 rounded text-xs font-mono">{a.rota}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono text-blue-600">{a.fixo?.total_min || 0}</td>
-                  <td className="px-4 py-3 text-right font-mono text-indigo-600">{a.variavel?.total_min || 0}</td>
-                  <td className="px-4 py-3 text-right font-mono font-bold text-slate-800">
-                    {a.total_compartilhado_min}
-                  </td>
-                </tr>
-              ))}
+              {analises_cq?.map((a: any, i: number) => {
+                const hasAtividades = (a.atividades || []).length > 0;
+                const recalc = getRecalcTotals(a, i);
+                return (
+                  <React.Fragment key={i}>
+                    <tr
+                      className={`border-t border-slate-100 cursor-pointer ${hasAtividades ? 'hover:bg-indigo-50/30' : 'hover:bg-slate-50'}`}
+                      onClick={() => hasAtividades && setExpandedTests(p => ({ ...p, [i]: !p[i] }))}
+                    >
+                      <td className="px-4 py-3 font-medium text-slate-800">
+                        {a.teste}
+                        {hasAtividades && <span className="ml-2 text-[10px] text-indigo-400 font-mono">{(a.atividades||[]).length} ativ</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 bg-slate-100 rounded text-xs font-mono">{a.rota}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-blue-600">{recalc.fixo.total_min.toFixed(0)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-indigo-600">{recalc.variavel.total_min.toFixed(0)}</td>
+                      <td className="px-4 py-3 text-right font-mono font-bold text-slate-800">
+                        {recalc.total_compartilhado_min.toFixed(0)}
+                      </td>
+                    </tr>
+                    {expandedTests[i] && hasAtividades && (
+                      <tr key={`${i}-detail`}>
+                        <td colSpan={5} className="px-4 pb-3">
+                          <AtividadesTable
+                            atividades={getAtividades(a, i)}
+                            testName={a.teste}
+                            fixo={recalc.fixo}
+                            variavel={recalc.variavel}
+                            onChange={(newAtvs) => handleActivityChange(i, newAtvs)}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>

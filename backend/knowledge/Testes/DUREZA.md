@@ -1,33 +1,18 @@
 ---
-teste: DUREZA
-tecnica: Físico
-categoria: Físico-Químico
-forma: Sólidos
-aliases:
-  - DUREZA
-  - Dureza
-  - Hardness
-rotas:
-  - ANALISTA TF
-  - DURÔMETRO
-atividades: 2
-fixo_min: 0
-var_min: 17.35
-total_min: 17.35
+teste: "DUREZA"
+tecnica: "Dureza"
+categoria: "Físico-Químico"
+aliases: ["Dureza", "Hardness", "Resistencia"]
+rotas: []
 mo_pct: 42
-tags:
-  - dureza
-  - dureza
-  - hardness
-status: completo
+fixo_min: 0
+var_min: 17
+status: "completo"
 ---
+
 # DUREZA
 
+Teste de resistência mecânica dos comprimidos. Usa o durômetro.
+
 **Técnica:** Dureza
-**Rotas:** [[ANALISTA TF]], [[DURÔMETRO]]
-
-**Tempo total:** 0.3h por lote
-**Fixo (calibração):** 0.0h | **Variável (amostra):** 0.3h
-**MO (analista):** 42% | **MAQ (máquina):** 58%
-
-**Aliases:** DUREZA, Dureza, Hardness
+**Como quantificar:** Teste simples e rápido. 100% amostra. BASEFLUXO: 2 atividades.

@@ -36,7 +36,7 @@ basefluxo_combined = pd.concat([bd_tc_geral, base_fluxo_analise], ignore_index=T
 basefluxo_combined = basefluxo_combined.drop_duplicates(subset=['ativo', 'teste', 'rota', 'atividades', 'padrao_amostra'])
 
 # Converter para estrutura hierárquica
-basefluxo_hierarchy = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+basefluxo_hierarchy = defaultdict(lambda: defaultdict(list))
 
 for _, row in basefluxo_combined.iterrows():
     ativo = str(row['ativo']).strip() if pd.notna(row['ativo']) else 'DESCONHECIDO'
@@ -49,7 +49,7 @@ for _, row in basefluxo_combined.iterrows():
     mo_maq = str(row['mo_maq']).strip() if pd.notna(row['mo_maq']) else 'DESCONHECIDO'
     tc = float(row['tc_minutos']) if pd.notna(row['tc_minutos']) and isinstance(row['tc_minutos'], (int, float)) else 0
     
-    basefluxo_hierarchy[ativo][forma][teste].append({
+    basefluxo_hierarchy[forma][teste].append({
         'similaridade': similaridade,
         'rota': rota,
         'atividade': atividade,
@@ -60,20 +60,17 @@ for _, row in basefluxo_combined.iterrows():
 
 # Converter para dicionário normal
 basefluxo_dict = {}
-for ativo, formas in basefluxo_hierarchy.items():
-    basefluxo_dict[ativo] = {}
-    for forma, testes in formas.items():
-        basefluxo_dict[ativo][forma] = {}
-        for teste, atividades in testes.items():
-            basefluxo_dict[ativo][forma][teste] = atividades
+for forma, testes in basefluxo_hierarchy.items():
+    basefluxo_dict[forma] = {}
+    for teste, atividades in testes.items():
+        basefluxo_dict[forma][teste] = atividades
 
 # Salvar BASEFLUXO estruturado
 with open('/home/ubuntu/basefluxo_estruturado.json', 'w', encoding='utf-8') as f:
     json.dump(basefluxo_dict, f, indent=2, ensure_ascii=False)
 
 print(f"✓ BASEFLUXO estruturado salvo")
-print(f"  - Ativos: {len(basefluxo_dict)}")
-print(f"  - Formas farmacêuticas: {sum(len(f) for f in basefluxo_dict.values())}")
+print(f"  - Formas farmacêuticas: {len(basefluxo_dict)}")
 
 # ============================================================================
 # PARTE 2: PROCESSAR MFVCQ - Demanda
@@ -130,33 +127,29 @@ print(f"  - Células: {demanda['celula'].nunique()}")
 
 print("\n[3/4] Criando índices de busca...")
 
-# Índice de ativos
+# Índice de ativos (from demanda, not basefluxo)
 ativos_index = {}
-for ativo in basefluxo_dict.keys():
-    ativos_index[ativo.lower()] = ativo
+for _, row in demanda.iterrows():
+    a = str(row['ativo']).strip() if pd.notna(row['ativo']) else ''
+    if a and a != 'ATIVO':
+        ativos_index[a.lower()] = a
 
 # Índice de formas farmacêuticas
-formas_index = set()
-for ativo in basefluxo_dict.values():
-    for forma in ativo.keys():
-        formas_index.add(forma)
-formas_index = list(formas_index)
+formas_index = list(basefluxo_dict.keys())
 
 # Índice de testes
 testes_index = set()
-for ativo in basefluxo_dict.values():
-    for forma in ativo.values():
-        for teste in forma.keys():
-            testes_index.add(teste)
+for forma in basefluxo_dict.values():
+    for teste in forma.keys():
+        testes_index.add(teste)
 testes_index = list(testes_index)
 
 # Índice de rotas
 rotas_index = set()
-for ativo in basefluxo_dict.values():
-    for forma in ativo.values():
-        for teste in forma.values():
-            for atividade in teste:
-                rotas_index.add(atividade['rota'])
+for forma in basefluxo_dict.values():
+    for teste in forma.values():
+        for atividade in teste:
+            rotas_index.add(atividade['rota'])
 rotas_index = list(rotas_index)
 
 # Índice de células
@@ -254,7 +247,7 @@ print("  3. /home/ubuntu/indices_busca.json - Índices para busca rápida")
 print("  4. /home/ubuntu/template_novo_produto.json - Template para novo produto")
 
 print("\nEstatísticas:")
-print(f"  - Ativos únicos: {len(basefluxo_dict)}")
+print(f"  - Formas farmacêuticas: {len(basefluxo_dict)}")
 print(f"  - Produtos na demanda: {len(demanda_list)}")
 print(f"  - Células de produção: {len(celulas_index)}")
 print(f"  - Rotas de análise: {len(rotas_index)}")

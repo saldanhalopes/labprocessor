@@ -1,35 +1,18 @@
 ---
-teste: UNIFORMIDADE POR VARIAÇÃO DE PESO 1
-tecnica: Físico
-categoria: Físico-Químico
-forma: Sólidos
-aliases:
-  - UNIFORMIDADE POR VARIAÇÃO DE PESO 1
-  - Uniformidade
-  - Variação de Peso
-  - Content Uniformity
-rotas:
-  - BALANÇA
-  - ANALISTA TF
-atividades: 3
-fixo_min: 0
-var_min: 18.82
-total_min: 18.82
+teste: "UNIFORMIDADE POR VARIAÇÃO DE PESO 1"
+tecnica: "Gravimetria"
+categoria: "Físico-Químico"
+aliases: ["Uniformidade", "Variação de Peso", "Uniformidad de Unidades de Dosificación", "Content Uniformity", "Uniformidad"]
+rotas: []
 mo_pct: 47
-tags:
-  - uniformidade-por-variacao-de-peso-1
-  - uniformidade
-  - variacao-de-peso
-  - content-uniformity
-status: completo
+fixo_min: 0
+var_min: 19
+status: "completo"
 ---
+
 # UNIFORMIDADE POR VARIAÇÃO DE PESO 1
 
-**Técnica:** Físico
-**Rotas:** [[BALANÇA]], [[ANALISTA TF]]
+Teste de uniformidade de conteúdo por variação de peso. Alternativa ao doseamento individual.
 
-**Tempo total:** 0.3h por lote
-**Fixo (calibração):** 0.0h | **Variável (amostra):** 0.3h
-**MO (analista):** 47% | **MAQ (máquina):** 53%
-
-**Aliases:** UNIFORMIDADE POR VARIAÇÃO DE PESO 1, Uniformidade, Variação de Peso, Content Uniformity
+**Técnica:** Gravimetria
+**Como quantificar:** 100% amostra. BASEFLUXO: 3 atividades.

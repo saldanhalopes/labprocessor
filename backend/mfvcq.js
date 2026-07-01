@@ -15,16 +15,43 @@ const __dirname = path.dirname(__filename);
 const REFS_DIR = path.join(__dirname, 'reference');
 const TEST_CONFIG_PATH = path.join(__dirname, 'config', 'tests.json');
 
-let basefluxo = null;
-let demanda = null;
-let indices = null;
-
 function loadData() {
-  if (basefluxo) return { basefluxo, demanda, indices };
-  basefluxo = JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'basefluxo_estruturado.json'), 'utf-8'));
-  demanda = JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'demanda_estruturada.json'), 'utf-8'));
-  indices = JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'indices_busca.json'), 'utf-8'));
-  return { basefluxo, demanda, indices };
+  return {
+    basefluxo: JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'basefluxo_estruturado.json'), 'utf-8')),
+    demanda: JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'demanda_estruturada.json'), 'utf-8')),
+    indices: JSON.parse(fs.readFileSync(path.join(REFS_DIR, 'indices_busca.json'), 'utf-8')),
+    externalCodes: loadExternalCodes()
+  };
+}
+
+function loadExternalCodes() {
+  const p = path.join(REFS_DIR, 'external_codes.json');
+  try {
+    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf-8'));
+  } catch (e) { console.error('[MFVCQ] Error loading external codes:', e.message); }
+  return {};
+}
+
+function lookupByExternalCode(code) {
+  if (!code) return null;
+  const ec = loadExternalCodes();
+  const q = String(code).trim().toUpperCase();
+
+  // Exact key match
+  if (ec[q]) return { ...ec[q], matched_key: q };
+
+  // Exact registro_anvisa match
+  const byRegistro = Object.entries(ec).find(([, v]) => String(v.registro_anvisa || '').toUpperCase() === q);
+  if (byRegistro) return { ...byRegistro[1], matched_key: byRegistro[0] };
+
+  // Partial match on keys and registro_anvisa
+  const byPartial = Object.entries(ec).find(([k, v]) =>
+    String(k).toUpperCase().includes(q) ||
+    String(v.registro_anvisa || '').toUpperCase().includes(q)
+  );
+  if (byPartial) return { ...byPartial[1], matched_key: byPartial[0] };
+
+  return null;
 }
 
 function inferFormFromDescription(descricao) {
@@ -61,29 +88,36 @@ function determineCell(form) {
 
 function findFlowByForm(forma) {
   const data = loadData();
-  let genericForm = forma;
+  if (!forma) return null;
 
-  if (!genericForm) return null;
+  const f = forma.toLowerCase();
 
-  // Normalize form name
-  const f = genericForm.toLowerCase();
+  if (data.basefluxo[forma]) return data.basefluxo[forma];
 
-  // Try exact match first across all ativos
-  for (const ativo of Object.values(data.basefluxo)) {
-    if (ativo[genericForm]) return ativo[genericForm];
-    // Try case-insensitive
-    const key = Object.keys(ativo).find(k => k.toLowerCase() === f);
-    if (key) return ativo[key];
-  }
-
-  return null;
+  const key = Object.keys(data.basefluxo).find(k => k.toLowerCase() === f);
+  return key ? data.basefluxo[key] : null;
 }
 
 function sumMO(lista) { return lista.reduce((s, a) => s + (a.execucao === 'MO' ? (a.tempo_corrida_minutos || 0) : 0), 0); }
 function sumMAQ(lista) { return lista.reduce((s, a) => s + (a.execucao === 'MAQ' ? (a.tempo_corrida_minutos || 0) : 0), 0); }
 
-export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorConversao = 1, tamanhoBulk = 0, lotes = 1 }) {
+export function analyzeProduct({ ativo, codigoPa, externalCode, forma, mediaMensal = 0, fatorConversao = 1, tamanhoBulk = 0, lotes = 1 }) {
   const data = loadData();
+
+  // Resolve external code to internal PA code
+  if (!codigoPa && externalCode) {
+    const extMatch = lookupByExternalCode(externalCode);
+    if (extMatch && extMatch.codigo_pa) {
+      codigoPa = extMatch.codigo_pa;
+      ativo = ativo || extMatch.ativo;
+    }
+    if (extMatch && !forma && extMatch.forma_farmaceutica) {
+      forma = extMatch.forma_farmaceutica;
+    }
+    if (extMatch && !ativo) {
+      ativo = extMatch.ativo || ativo;
+    }
+  }
 
   // Cross-language active ingredient synonyms
   const ACTIVE_SYNONYMS = {
@@ -125,13 +159,21 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
 
   if (codigoPa || ativo) {
     let found = null;
-    for (const term of searchTerms) {
-      found = data.demanda.find(p =>
-        (codigoPa && String(p.codigo_pa) === String(codigoPa)) ||
-        (String(p.ativo || '').toUpperCase().includes(term))
-      );
-      if (found) break;
+
+    // Exact code match first (takes priority)
+    if (codigoPa) {
+      found = data.demanda.find(p => String(p.codigo_pa) === String(codigoPa));
     }
+
+    // Fall back to ativo-based search if no code match
+    if (!found && ativoUpper) {
+      const terms = searchTerms.filter(t => t);
+      for (const term of terms) {
+        found = data.demanda.find(p => String(p.ativo || '').toUpperCase().includes(term));
+        if (found) break;
+      }
+    }
+
     if (found) {
       celula = found.celula || celula;
       if (!formaSelecionada) formaSelecionada = inferFormFromDescription(found.descricao);
@@ -139,7 +181,10 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
         codigo_pa: found.codigo_pa,
         descricao: found.descricao,
         celula: found.celula,
-        media_12_meses: found.media_12_meses || 0
+        media_12_meses: found.media_12_meses || 0,
+        fator_conversao: found.fator_conversao || 0,
+        tamanho_bulk: found.tamanho_bulk || 0,
+        demanda_lotes: found.demanda_lotes || found.demanda_lotes_bulk || 0
       };
     }
   }
@@ -154,38 +199,26 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     if (found) formaSelecionada = inferFormFromDescription(found.descricao);
   }
 
-  // Step 3: Look up QC flow — try by ativo (with synonyms), then by form
-  let fluxoAtivo = null;
-  for (const term of searchTerms) {
-    fluxoAtivo = data.basefluxo[term];
-    if (fluxoAtivo) break;
-  }
-  if (!fluxoAtivo) {
-    for (const term of searchTerms) {
-      const similar = Object.keys(data.basefluxo).find(k => k.includes(term) || term.includes(k));
-      if (similar) { fluxoAtivo = data.basefluxo[similar]; break; }
+  // Step 3: Look up QC flow by pharmaceutical form (BASEFLUXO is general, not per-ativo)
+  let basfluxoFallback = false;
+  if (formaSelecionada) {
+    fluxoForma = data.basefluxo[formaSelecionada] || {};
+    if (Object.keys(fluxoForma).length === 0) {
+      const f = formaSelecionada.toLowerCase();
+      const key = Object.keys(data.basefluxo).find(k => k.toLowerCase() === f);
+      if (key) fluxoForma = data.basefluxo[key] || {};
     }
-  }
-
-  if (fluxoAtivo) {
-    // Found by active ingredient — use its form
-    if (formaSelecionada && fluxoAtivo[formaSelecionada]) {
-      fluxoForma = fluxoAtivo[formaSelecionada];
-    } else {
-      const keys = Object.keys(fluxoAtivo).filter(k => k !== 'FORMA FARMACÊUTICA');
-      if (keys.length === 1) {
-        formaSelecionada = keys[0];
-        fluxoForma = fluxoAtivo[formaSelecionada];
+    if (Object.keys(fluxoForma).length === 0) {
+      const genericFlow = findFlowByForm(formaSelecionada);
+      if (genericFlow) {
+        fluxoForma = genericFlow;
+        console.log(`[MFVCQ] Using generic flow for form: ${formaSelecionada}`);
       }
     }
-  }
-
-  // Step 4: If still no flow, try by pharmaceutical form (generic)
-  if (Object.keys(fluxoForma).length === 0 && formaSelecionada) {
-    const genericFlow = findFlowByForm(formaSelecionada);
-    if (genericFlow) {
-      fluxoForma = genericFlow;
-      console.log(`[MFVCQ] Using generic flow for form: ${formaSelecionada}`);
+    if (Object.keys(fluxoForma).length === 0) {
+      fluxoForma = data.basefluxo['Sólidos'] || {};
+      basfluxoFallback = true;
+      console.log(`[MFVCQ] No BASEFLUXO for "${formaSelecionada}" — falling back to "Sólidos"`);
     }
   }
 
@@ -195,56 +228,100 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
   let totalVarMin = 0, totalVarMO = 0, totalVarMAQ = 0;
   const analisesCq = [];
 
-  for (const [teste, atividades] of Object.entries(fluxoForma)) {
-    if (Array.isArray(atividades) && atividades.length > 0) {
-      const item = atividades[0];
-
-      // Separate by padrao_amostra
-      const fixas = atividades.filter(a => a.padrao_amostra === 'Padrão');
-      const variaveis = atividades.filter(a => a.padrao_amostra === 'Amostra');
-
-      const fixoMO = sumMO(fixas);
-      const fixoMAQ = sumMAQ(fixas);
-      const fixoTotal = fixoMO + fixoMAQ;
-
-      const varMO = sumMO(variaveis);
-      const varMAQ = sumMAQ(variaveis);
-      const varTotal = varMO + varMAQ;
-
-      // Tempo total considerando compartilhamento
-      const tempoTesteCompartilhado = fixoTotal + (varTotal * nLotes);
-
-      totalFixoMin += fixoTotal;
-      totalFixoMO += fixoMO;
-      totalFixoMAQ += fixoMAQ;
-      totalVarMin += varTotal;
-      totalVarMO += varMO;
-      totalVarMAQ += varMAQ;
-
-      analisesCq.push({
-        tipo: 'Produto Acabado',
-        teste,
-        similaridade: item.similaridade || 'NÃO APLICÁVEL',
-        rota: item.rota || 'DESCONHECIDA',
-        fixo: {
-          atividades: fixas.length,
-          total_min: Math.round(fixoTotal * 100) / 100,
-          mo_min: Math.round(fixoMO * 100) / 100,
-          maq_min: Math.round(fixoMAQ * 100) / 100
-        },
-        variavel: {
-          atividades: variaveis.length,
-          total_min: Math.round(varTotal * 100) / 100,
-          mo_min: Math.round(varMO * 100) / 100,
-          maq_min: Math.round(varMAQ * 100) / 100
-        },
-        total_compartilhado_min: Math.round(tempoTesteCompartilhado * 100) / 100,
-        total_por_lote_min: Math.round((fixoTotal + varTotal) * 100) / 100,
-        mo_pct: (fixoTotal + varTotal) > 0
-          ? Math.round(((fixoMO + varMO) / (fixoTotal + varTotal)) * 100) : 0,
-        atividades
-      });
+  const normalizeTestData = (raw) => {
+    if (raw && raw.etapas && Array.isArray(raw.etapas)) {
+      return { etapas: raw.etapas, isLegacy: false };
     }
+    if (Array.isArray(raw) && raw.length > 0) {
+      return {
+        etapas: [{ nome: 'Geral', modo: 'sequencial', ordem: 1, atividades: raw }],
+        isLegacy: true
+      };
+    }
+    return { etapas: [], isLegacy: false };
+  };
+
+  for (const [teste, rawData] of Object.entries(fluxoForma)) {
+    const { etapas } = normalizeTestData(rawData);
+    if (etapas.length === 0) continue;
+
+    const allAtividades = etapas.flatMap(e => e.atividades || []);
+    if (allAtividades.length === 0) continue;
+
+    const item = allAtividades[0];
+
+    let fixoMO = 0, fixoMAQ = 0;
+    let varMO = 0, varMAQ = 0;
+    let tempoParaleloEconomia = 0;
+
+    for (const etapa of etapas) {
+      const atvs = etapa.atividades || [];
+      const fixas = atvs.filter(a => a.padrao_amostra === 'Padrão');
+      const variaveis = atvs.filter(a => a.padrao_amostra === 'Amostra');
+
+      if (etapa.modo === 'paralelo') {
+        const fixoMOSeq = sumMO(fixas);
+        const fixoMAQSeq = sumMAQ(fixas);
+        const varMOSeq = sumMO(variaveis);
+        const varMAQSeq = sumMAQ(variaveis);
+
+        fixoMO += Math.max(0, ...fixas.map(a => (a.execucao === 'MO' ? (a.tempo_corrida_minutos || 0) : 0)));
+        fixoMAQ += Math.max(0, ...fixas.map(a => (a.execucao === 'MAQ' ? (a.tempo_corrida_minutos || 0) : 0)));
+        varMO += Math.max(0, ...variaveis.map(a => (a.execucao === 'MO' ? (a.tempo_corrida_minutos || 0) : 0)));
+        varMAQ += Math.max(0, ...variaveis.map(a => (a.execucao === 'MAQ' ? (a.tempo_corrida_minutos || 0) : 0)));
+
+        tempoParaleloEconomia += (fixoMOSeq + fixoMAQSeq + varMOSeq + varMAQSeq) - (fixoMO + fixoMAQ + varMO + varMAQ);
+      } else {
+        fixoMO += sumMO(fixas);
+        fixoMAQ += sumMAQ(fixas);
+        varMO += sumMO(variaveis);
+        varMAQ += sumMAQ(variaveis);
+      }
+    }
+
+    const fixoTotal = fixoMO + fixoMAQ;
+    const varTotal = varMO + varMAQ;
+    const fixasCount = allAtividades.filter(a => a.padrao_amostra === 'Padrão').length;
+    const variaveisCount = allAtividades.filter(a => a.padrao_amostra === 'Amostra').length;
+
+    const tempoTesteCompartilhado = fixoTotal + (varTotal * nLotes);
+
+    totalFixoMin += fixoTotal;
+    totalFixoMO += fixoMO;
+    totalFixoMAQ += fixoMAQ;
+    totalVarMin += varTotal;
+    totalVarMO += varMO;
+    totalVarMAQ += varMAQ;
+
+    analisesCq.push({
+      tipo: 'Produto Acabado',
+      teste,
+      similaridade: item.similaridade || 'NÃO APLICÁVEL',
+      rota: item.rota || 'DESCONHECIDA',
+      fixo: {
+        atividades: fixasCount,
+        total_min: Math.round(fixoTotal * 100) / 100,
+        mo_min: Math.round(fixoMO * 100) / 100,
+        maq_min: Math.round(fixoMAQ * 100) / 100
+      },
+      variavel: {
+        atividades: variaveisCount,
+        total_min: Math.round(varTotal * 100) / 100,
+        mo_min: Math.round(varMO * 100) / 100,
+        maq_min: Math.round(varMAQ * 100) / 100
+      },
+      total_compartilhado_min: Math.round(tempoTesteCompartilhado * 100) / 100,
+      total_por_lote_min: Math.round((fixoTotal + varTotal) * 100) / 100,
+      mo_pct: (fixoTotal + varTotal) > 0
+        ? Math.round(((fixoMO + varMO) / (fixoTotal + varTotal)) * 100) : 0,
+      tempo_paralelo_economia_min: Math.round(tempoParaleloEconomia * 100) / 100,
+      etapas: etapas.map(e => ({
+        nome: e.nome,
+        modo: e.modo,
+        ordem: e.ordem
+      })),
+      atividades: allAtividades
+    });
   }
 
   // Totais gerais com compartilhamento de calibração
@@ -253,9 +330,12 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
   const totalMO = totalFixoMO + (totalVarMO * nLotes);
   const totalMAQ = totalFixoMAQ + (totalVarMAQ * nLotes);
 
-  // Step 6: Calculate demand
-  const demandaConvertida = Number(mediaMensal) * Number(fatorConversao);
-  const demandaLotes = Number(tamanhoBulk) > 0 ? demandaConvertida / Number(tamanhoBulk) : 0;
+  // Step 6: Calculate demand (prioritize DB values, fall back to parameters)
+  const effectiveFatorConversao = (demandaInfo.fator_conversao > 0) ? demandaInfo.fator_conversao : (Number(fatorConversao) || 1);
+  const effectiveTamanhoBulk = (demandaInfo.tamanho_bulk > 0) ? demandaInfo.tamanho_bulk : (Number(tamanhoBulk) || 0);
+  const effectiveMediaMensal = (demandaInfo.media_12_meses > 0) ? demandaInfo.media_12_meses : (Number(mediaMensal) || 0);
+  const demandaConvertida = effectiveMediaMensal * effectiveFatorConversao;
+  const demandaLotes = effectiveTamanhoBulk > 0 ? demandaConvertida / effectiveTamanhoBulk : demandaInfo.demanda_lotes || 0;
 
   // Step 7: Determine cell
   if (celula === 'DESCONHECIDA' || !celula) {
@@ -269,12 +349,13 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
     forma_farmaceutica: formaSelecionada || null,
     celula,
     quantidade_lotes: nLotes,
+    basfluxo_fallback: basfluxoFallback,
     demanda: {
       ...demandaInfo,
-      media_12_meses: Number(mediaMensal) || demandaInfo.media_12_meses || 0,
-      fator_conversao: Number(fatorConversao) || 1,
+      media_12_meses: effectiveMediaMensal || demandaInfo.media_12_meses || 0,
+      fator_conversao: effectiveFatorConversao || demandaInfo.fator_conversao || 1,
       demanda_convertida: demandaConvertida,
-      tamanho_bulk: Number(tamanhoBulk) || 0,
+      tamanho_bulk: effectiveTamanhoBulk || demandaInfo.tamanho_bulk || 0,
       demanda_em_lotes: Math.round(demandaLotes * 100) / 100,
       total_lotes: nLotes
     },
@@ -318,9 +399,78 @@ export function analyzeProduct({ ativo, codigoPa, forma, mediaMensal = 0, fatorC
   };
 }
 
+export { lookupByExternalCode, loadExternalCodes };
+
+function saveExternalCodes(map) {
+  const p = path.join(REFS_DIR, 'external_codes.json');
+  try {
+    fs.writeFileSync(p, JSON.stringify(map, null, 2));
+    return true;
+  } catch (e) { console.error('[MFVCQ] Error saving external codes:', e.message); return false; }
+}
+
+function addExternalCode(key, entry) {
+  const map = loadExternalCodes();
+  if (!key || !entry || !entry.codigo_pa) return false;
+  if (map[key]) return false;
+  map[key] = entry;
+  return saveExternalCodes(map);
+}
+
+function removeExternalCode(key) {
+  const map = loadExternalCodes();
+  if (!map[key]) return false;
+  delete map[key];
+  return saveExternalCodes(map);
+}
+
+export { addExternalCode, removeExternalCode, saveExternalCodes };
+
 export function searchProducts({ query, limit = 10 }) {
   const data = loadData();
   const q = query.toLowerCase();
+
+  const externalMatch = lookupByExternalCode(query);
+  if (externalMatch) {
+    const paMatch = externalMatch.codigo_pa
+      ? data.demanda.find(p => String(p.codigo_pa) === String(externalMatch.codigo_pa))
+      : null;
+
+    if (paMatch) {
+      const result = { ...paMatch, _matched_by: 'external_code', _external_code: query };
+      const remaining = data.demanda
+        .filter(p =>
+          (String(p.descricao || '').toLowerCase().includes(q) ||
+           String(p.ativo || '').toLowerCase().includes(q) ||
+           String(p.codigo_pa || '').includes(q)) &&
+          String(p.codigo_pa) !== String(externalMatch.codigo_pa)
+        )
+        .slice(0, limit - 1);
+      return [result, ...remaining];
+    }
+
+    // External code matched but product not in MFVCQ — return synthetic result
+    const synthetic = {
+      codigo_pa: externalMatch.codigo_pa || null,
+      descricao: externalMatch.descricao || '',
+      ativo: externalMatch.ativo || '',
+      celula: externalMatch.celula || '',
+      media_12_meses: 0,
+      fator_conversao: 0,
+      demanda_lotes_bulk: 0,
+      _matched_by: 'external_code',
+      _external_code: query,
+      _synthetic: true
+    };
+    const remaining = data.demanda
+      .filter(p =>
+        String(p.descricao || '').toLowerCase().includes(q) ||
+        String(p.ativo || '').toLowerCase().includes(q) ||
+        String(p.codigo_pa || '').includes(q)
+      )
+      .slice(0, limit - 1);
+    return [synthetic, ...remaining];
+  }
 
   const results = data.demanda
     .filter(p =>
@@ -451,66 +601,110 @@ export function matchTestToBasfluxo(geminiName) {
   return null;
 }
 
-function buildConfiguredRotas(testName, scale) {
-  const config = loadTestConfig();
-  const t = config[testName];
-  if (!t?.rotas?.length) return null;
+function isHplcRunActivity(a) {
+  return a.injecoes !== undefined;
+}
 
-  const atividades = [];
-  for (const rota of t.rotas) {
-    if (!rota.nome && !rota.diretrizes?.length) continue;
-    const dirs = rota.diretrizes || [];
-    for (const d of dirs) {
-      atividades.push({
-        descricao: `${rota.nome}: ${d.componente} - ${d.descricao}`,
-        rota: rota.nome,
-        execucao: rota.execucao || 'MAQ',
-        padrao_amostra: (d.var_min || 0) === 0 ? 'Padrão' : 'Amostra',
-        tempo_min: Math.round((((d.fixo_min || 0) + (d.var_min || 0)) * scale) * 100) / 100
-      });
-    }
-    // If rota has no diretrizes, add as a single activity
-    if (!dirs.length) {
-      atividades.push({
-        descricao: rota.nome,
-        rota: rota.nome,
-        execucao: rota.execucao || 'MAQ',
-        padrao_amostra: 'Padrão',
-        tempo_min: 0
-      });
+function buildConfiguredRotas(testName, tempoPorInjecao) {
+  // Primary source: BASEFLUXO activities
+  const data = loadData();
+  const bfActivities = [];
+  for (const forma of Object.values(data.basefluxo)) {
+    const atividades = forma[testName];
+    if (Array.isArray(atividades) && atividades.length > 0) {
+      for (const a of atividades) {
+        if (isHplcRunActivity(a)) {
+          bfActivities.push({
+            descricao: a.atividade,
+            rota: a.rota,
+            execucao: a.execucao || 'MAQ',
+            padrao_amostra: a.padrao_amostra || 'Padrão',
+            tempo_min: Math.round((a.injecoes || 0) * (tempoPorInjecao || 0) * 100) / 100
+          });
+        } else {
+          bfActivities.push({
+            descricao: a.atividade,
+            rota: a.rota,
+            execucao: a.execucao || 'MAQ',
+            padrao_amostra: a.padrao_amostra || 'Padrão',
+            tempo_min: a.tempo_corrida_minutos || 0
+          });
+        }
+      }
+      break;
     }
   }
+  if (bfActivities.length > 0) {
+    const rotasMap = {};
+    for (const a of bfActivities) {
+      if (!rotasMap[a.rota]) rotasMap[a.rota] = { nome: a.rota, tipo: a.execucao === 'MO' ? 'Analista' : 'Máquina', execucao: a.execucao, descricao: '', diretrizes: [] };
+    }
+    return { rotas: Object.values(rotasMap), atividades: bfActivities };
+  }
+
+  // Fallback: tests.json (only if test has diretrizes for AI hints)
+  const config = loadTestConfig();
+  const t = config[testName];
+  if (!t) return null;
+
+  const configRotas = (t.rotas || []).map(r => ({
+    nome: typeof r === 'string' ? r : r.nome,
+    tipo: typeof r === 'string' ? 'Analista' : (r.tipo || 'Analista'),
+    execucao: typeof r === 'string' ? 'MO' : 'MO',
+    descricao: typeof r === 'string' ? '' : (r.descricao || ''),
+    diretrizes: typeof r === 'string' ? [] : (r.diretrizes || [])
+  }));
+
+  return { rotas: configRotas, atividades: [] };
+}
+
+function rebuildFixoVariavel(atividades) {
+  const fixas = atividades.filter(a => a.padrao_amostra === 'Padrão');
+  const variaveis = atividades.filter(a => a.padrao_amostra === 'Amostra');
+
+  const fixoMO = fixas.filter(a => a.execucao === 'MO').reduce((s, a) => s + a.tempo_min, 0);
+  const fixoMAQ = fixas.filter(a => a.execucao === 'MAQ').reduce((s, a) => s + a.tempo_min, 0);
+  const fixoTotal = fixoMO + fixoMAQ;
+
+  const varMO = variaveis.filter(a => a.execucao === 'MO').reduce((s, a) => s + a.tempo_min, 0);
+  const varMAQ = variaveis.filter(a => a.execucao === 'MAQ').reduce((s, a) => s + a.tempo_min, 0);
+  const varTotal = varMO + varMAQ;
 
   return {
-    rotas: t.rotas.map(r => ({
-      nome: r.nome,
-      tipo: r.tipo || 'Máquina',
-      execucao: r.execucao || 'MAQ',
-      descricao: r.descricao || '',
-      diretrizes: (r.diretrizes || []).map(d => ({
-        componente: d.componente,
-        descricao: d.descricao,
-        fixo_min: Math.round((d.fixo_min || 0) * scale * 100) / 100,
-        var_min: Math.round((d.var_min || 0) * scale * 100) / 100
-      }))
-    })),
-    atividades
+    fixo: {
+      atividades: fixas.length,
+      total_min: Math.round(fixoTotal * 100) / 100,
+      mo_min: Math.round(fixoMO * 100) / 100,
+      maq_min: Math.round(fixoMAQ * 100) / 100
+    },
+    variavel: {
+      atividades: variaveis.length,
+      total_min: Math.round(varTotal * 100) / 100,
+      mo_min: Math.round(varMO * 100) / 100,
+      maq_min: Math.round(varMAQ * 100) / 100
+    }
   };
 }
 
 export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
   const full = analyzeProduct({ ativo, forma, lotes });
+  const config = loadTestConfig();
   let aliasesAdded = 0;
   const hasBasfluxo = full && full.analises_cq?.length > 0;
 
+  // Use demand-based lot count from MFVCQ spreadsheet, fall back to parameter
+  const demandLotesFromDb = full?.demanda?.demanda_em_lotes || 0;
+  const effectiveLotes = demandLotesFromDb > 0 ? Math.ceil(demandLotesFromDb) : (lotes || 1);
+
   if (!hasBasfluxo) {
-    console.log(`[MFVCQ] No BASEFLUXO flow for "${ativo}" — using keyword-only matching`);
+    console.log(`[MFVCQ] No BASEFLUXO flow for forma "${forma}" — using keyword-only matching`);
   }
 
   const vault = loadVault();
   const geminiTests = (geminiRows || []).map(r => ({
     name: r.testName || r.teste || '',
-    totalMin: (r.t_prep || 0) + (r.t_analysis || 0) + (r.t_run || 0) + (r.t_calc || 0) + (r.t_incubation || 0)
+    totalMin: (r.t_prep || 0) + (r.t_analysis || 0) + (r.t_run || 0) + (r.t_calc || 0) + (r.t_incubation || 0),
+    t_run: r.t_run || 0
   }));
 
   const matchedBasfluxo = geminiTests
@@ -528,7 +722,7 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
         const t = hasBasfluxo ? full.analises_cq.find(a => a.teste === match.teste) : null;
         if (!t) {
           // No BASEFLUXO entry for this test — use config-based rotas
-          const configRotas = buildConfiguredRotas(match.teste, 1);
+          const configRotas = buildConfiguredRotas(match.teste, 0);
           const hasConfigRotas = configRotas && configRotas.rotas?.length > 0;
           return {
             geminiMatch: g.name,
@@ -540,7 +734,7 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
             rota: configRotas?.rotas?.[0]?.nome || 'N/A',
             geminiTotalMin: g.totalMin,
             basfluxoTotalMin: 0,
-            scale: 1,
+            scale: 0,
             fixo: { total_min: 0, mo_min: 0, maq_min: 0 },
             variavel: { total_min: 0, mo_min: 0, maq_min: 0 },
             total_compartilhado_min: g.totalMin,
@@ -549,11 +743,37 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
             atividades: hasConfigRotas ? configRotas.atividades : []
           };
         }
-        // Scale BASEFLUXO times to match Gemini total
-        const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
-        const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
+        // Calculate tempoPorInjecao from Gemini's t_run vs BASEFLUXO total injections
+        const totalInjecoes = t.atividades
+          ? t.atividades
+              .filter(a => isHplcRunActivity(a))
+              .reduce((s, a) => s + (a.injecoes || 0), 0)
+          : 0;
+        const geminiRun = g.t_run || 0;
+        const tempoPorInjecao = geminiRun > 0 && totalInjecoes > 0 ? geminiRun / totalInjecoes : 0;
+
+        // Use learned scale from config if available (calibrated from Learning journal)
+        const tConfig = config[match.teste];
+        const learnedScale = tConfig?.learned_scale;
+        const effectiveTempoPorInjecao = learnedScale ? tempoPorInjecao * learnedScale : tempoPorInjecao;
+
         // Use configured rotas from tests.json if available
-        const configRotas = buildConfiguredRotas(match.teste, scale);
+        const configRotas = buildConfiguredRotas(match.teste, effectiveTempoPorInjecao);
+        const scaledAtividades = configRotas?.atividades
+          || t.atividades.map(a => {
+              if (isHplcRunActivity(a)) {
+                return {
+                  descricao: a.atividade, rota: a.rota, execucao: a.execucao, padrao_amostra: a.padrao_amostra,
+                  tempo_min: Math.round((a.injecoes || 0) * effectiveTempoPorInjecao * 100) / 100
+                };
+              }
+              return {
+                descricao: a.atividade, rota: a.rota, execucao: a.execucao, padrao_amostra: a.padrao_amostra,
+                tempo_min: a.tempo_corrida_minutos || 0
+              };
+            });
+        const rebuilt = rebuildFixoVariavel(scaledAtividades);
+        const bfTotalRaw = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
         return {
           teste: t.teste,
           geminiMatch: g.name,
@@ -561,20 +781,16 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
           source: 'vault',
           rota: t.rota,
           geminiTotalMin: g.totalMin,
-          basfluxoTotalMin: bfTotal,
-          scale,
-          fixo: { ...t.fixo, total_min: Math.round((t.fixo?.total_min || 0) * scale * 100) / 100 },
-          variavel: { ...t.variavel, total_min: Math.round((t.variavel?.total_min || 0) * scale * 100) / 100 },
-          total_compartilhado_min: Math.round(((t.fixo?.total_min || 0) + (t.variavel?.total_min || 0) * lotes) * scale * 100) / 100,
+          basfluxoTotalMin: bfTotalRaw,
+          scale: tempoPorInjecao,
+          learned_scale: learnedScale || null,
+          effective_scale: effectiveTempoPorInjecao,
+          fixo: rebuilt.fixo,
+          variavel: rebuilt.variavel,
+          total_compartilhado_min: Math.round((rebuilt.fixo.total_min + rebuilt.variavel.total_min * effectiveLotes) * 100) / 100,
           mo_pct: t.mo_pct,
           configRotas: configRotas?.rotas || null,
-          atividades: configRotas?.atividades || t.atividades.map(a => ({
-            descricao: a.atividade,
-            rota: a.rota,
-            execucao: a.execucao,
-            padrao_amostra: a.padrao_amostra,
-            tempo_min: Math.round((a.tempo_corrida_minutos || 0) * scale * 100) / 100
-          }))
+          atividades: scaledAtividades
         };
       }
 
@@ -585,7 +801,7 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
         if (!t) {
           if (!hasBasfluxo) {
             // Keyword match without BASEFLUXO — return with config rotas
-            const configRotas = buildConfiguredRotas(kwMatch, 1);
+            const configRotas = buildConfiguredRotas(kwMatch, 0);
             return {
               teste: kwMatch,
               geminiMatch: g.name,
@@ -594,7 +810,7 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
               rota: configRotas?.rotas?.[0]?.nome || 'N/A',
               geminiTotalMin: g.totalMin,
               basfluxoTotalMin: 0,
-              scale: 1,
+              scale: 0,
               fixo: { total_min: 0, mo_min: 0, maq_min: 0 },
               variavel: { total_min: 0, mo_min: 0, maq_min: 0 },
               total_compartilhado_min: g.totalMin,
@@ -606,8 +822,33 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
           return null;
         }
         const bfTotal = (t.fixo?.total_min || 0) + (t.variavel?.total_min || 0);
-        const scale = g.totalMin > 0 && bfTotal > 0 ? g.totalMin / bfTotal : 1;
-        const configRotas = buildConfiguredRotas(kwMatch, scale);
+        const totalInjecoes = t.atividades
+          ? t.atividades
+              .filter(a => isHplcRunActivity(a))
+              .reduce((s, a) => s + (a.injecoes || 0), 0)
+          : 0;
+        const geminiRun = g.t_run || 0;
+        const tempoPorInjecao = geminiRun > 0 && totalInjecoes > 0 ? geminiRun / totalInjecoes : 0;
+
+        const tConfig = config[kwMatch];
+        const learnedScale = tConfig?.learned_scale;
+        const effectiveTempoPorInjecao = learnedScale ? tempoPorInjecao * learnedScale : tempoPorInjecao;
+
+        const configRotas = buildConfiguredRotas(kwMatch, effectiveTempoPorInjecao);
+        const scaledAtividades = configRotas?.atividades
+          || t.atividades.map(a => {
+              if (isHplcRunActivity(a)) {
+                return {
+                  descricao: a.atividade, rota: a.rota, execucao: a.execucao, padrao_amostra: a.padrao_amostra,
+                  tempo_min: Math.round((a.injecoes || 0) * effectiveTempoPorInjecao * 100) / 100
+                };
+              }
+              return {
+                descricao: a.atividade, rota: a.rota, execucao: a.execucao, padrao_amostra: a.padrao_amostra,
+                tempo_min: a.tempo_corrida_minutos || 0
+              };
+            });
+        const rebuilt = rebuildFixoVariavel(scaledAtividades);
         return {
           teste: t.teste,
           geminiMatch: g.name,
@@ -616,19 +857,15 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
           rota: t.rota,
           geminiTotalMin: g.totalMin,
           basfluxoTotalMin: bfTotal,
-          scale,
-          fixo: { ...t.fixo, total_min: Math.round((t.fixo?.total_min || 0) * scale * 100) / 100 },
-          variavel: { ...t.variavel, total_min: Math.round((t.variavel?.total_min || 0) * scale * 100) / 100 },
-          total_compartilhado_min: Math.round(((t.fixo?.total_min || 0) + (t.variavel?.total_min || 0) * lotes) * scale * 100) / 100,
+          scale: tempoPorInjecao,
+          learned_scale: learnedScale || null,
+          effective_scale: effectiveTempoPorInjecao,
+          fixo: rebuilt.fixo,
+          variavel: rebuilt.variavel,
+          total_compartilhado_min: Math.round((rebuilt.fixo.total_min + rebuilt.variavel.total_min * effectiveLotes) * 100) / 100,
           mo_pct: t.mo_pct,
           configRotas: configRotas?.rotas || null,
-          atividades: configRotas?.atividades || t.atividades.map(a => ({
-            descricao: a.atividade,
-            rota: a.rota,
-            execucao: a.execucao,
-            padrao_amostra: a.padrao_amostra,
-            tempo_min: Math.round((a.tempo_corrida_minutos || 0) * scale * 100) / 100
-          }))
+          atividades: scaledAtividades
         };
       }
 
@@ -643,7 +880,8 @@ export function getBasfluxoForTests({ ativo, forma, geminiRows, lotes = 1 }) {
 
   return {
     celula: full?.celula || 'N/A',
-    quantidade_lotes: full?.quantidade_lotes || 1,
+    quantidade_lotes: effectiveLotes,
+    demanda_lotes_origem: demandLotesFromDb > 0 ? 'MFVCQ' : 'parametro',
     noBasfluxo: !hasBasfluxo,
     stats: {
       totalGeminiTests: geminiTests.length,
