@@ -161,4 +161,35 @@ describe('simulateFIFO', () => {
     }
     expect(r.events.length).toBe(r.totalTasks * 2);
   });
+
+  it('empty products returns empty result (no throw)', () => {
+    const r = simulateFIFO({ products: [], lotesPorProduto: {}, layout: LAYOUT, settings });
+    expect(r.totalTasks).toBe(0);
+    expect(r.makespan_min).toBe(0);
+    expect(r.events.length).toBe(0);
+    expect(r.tasks.length).toBe(0);
+    expect(r.resources.length).toBe(LAYOUT.rotas.length);
+  });
+
+  it('product with no basfluxo data returns empty result', () => {
+    const p = makeProduct('p', 'P', []);
+    const r = simulateFIFO({ products: [p], lotesPorProduto: { p: 1 }, layout: LAYOUT, settings });
+    expect(r.totalTasks).toBe(0);
+    expect(r.makespan_min).toBe(0);
+  });
+
+  it('max lotes (20) does not cause overflow or crash', () => {
+    const p = makeProduct('p', 'P', [teste('T', [atv('A', 'BALANÇA', 'MAQ', 5), atv('B', 'HPLC DAD', 'MAQ', 10)])]);
+    const r = simulateFIFO({ products: [p], lotesPorProduto: { p: 20 }, layout: LAYOUT, settings });
+    expect(r.totalTasks).toBe(40);
+    expect(r.makespan_min).toBeGreaterThan(0);
+    expect(r.lotesSimulados).toBe(20);
+  });
+
+  it('recurso não presente no layout ainda é aceito (sem coordenadas)', () => {
+    const p = makeProduct('p', 'P', [teste('T', [atv('A', 'BALANÇA_ULTRA', 'MAQ', 10)])]);
+    const r = simulateFIFO({ products: [p], lotesPorProduto: { p: 1 }, layout: LAYOUT, settings });
+    expect(r.totalTasks).toBe(1);
+    expect(r.tasks[0].rota).toBe('BALANÇA_ULTRA');
+  });
 });

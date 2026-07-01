@@ -163,6 +163,16 @@ function filaChave(p: SimTask): string {
 }
 
 export function simulateFIFO(input: SchedulerInput): SimulationResult {
+  const emptyResult = (): SimulationResult => ({
+    tasks: [], events: [], makespan_min: 0,
+    resources: input.layout.rotas.map((lr: LabRota) => ({
+      rota: lr.rota, tipo: lr.tipo || 'Máquina', totalBusy_min: 0,
+      totalIdle_min: 0, utilization_pct: 0, numAtendimentos: 0,
+    })),
+    produtos: [], totalTasks: 0, lotesSimulados: 0, travelDistance_total_px: 0,
+  });
+
+  if (!input.products || input.products.length === 0) return emptyResult();
   const settings: GlobalSettings = { ...DEFAULT_SETTINGS, ...(input.settings || {}) } as GlobalSettings;
   const ignora = input.ignoraAtividadeCurta ?? -1;
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Play, Pause, RotateCcw, Clock, Activity, AlertTriangle, Users, Boxes, Layers, ChevronRight, X } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { SimulationCanvas, type SimulationCanvasHandle } from '../simulation/SimulationCanvas';
@@ -131,6 +131,8 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
   const { showToast } = useToast();
 
   const [layout, setLayout] = useState<LabLayout | null>(null);
+  const [layoutError, setLayoutError] = useState<string | null>(null);
+  const [layoutRetries, setLayoutRetries] = useState(0);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [lotesMap, setLotesMap] = useState<Record<string, number>>({});
   const [sim, setSim] = useState<SimulationResult | null>(null);
@@ -140,12 +142,26 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
   const [selectedAgent, setSelectedAgent] = useState<AgentState | null>(null);
   const canvasHandle = useRef<SimulationCanvasHandle | null>(null);
 
-  useEffect(() => {
+  const fetchLayout = useCallback(() => {
+    setLayoutRetries((r) => r + 1);
     fetch('/api/config/layout')
-      .then((r) => r.json())
-      .then(setLayout)
-      .catch((e) => showToast(`Erro ao carregar layout: ${e.message}`, 'error'));
-  }, [showToast]);
+      .then((r) => {
+        if (r.ok) return r.json();
+        throw new Error(`HTTP ${r.status}`);
+      })
+      .then((data) => { setLayout(data); setLayoutError(null); })
+      .catch((e) => {
+        setLayoutError(e.message);
+        if (layoutRetries < 3) {
+          showToast('Falha ao carregar layout. Tentando novamente...', 'warning');
+        } else {
+          showToast(`Erro ao carregar layout (${layoutRetries}t): ${e.message}`, 'error');
+        }
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layoutRetries, showToast]);
+
+  useEffect(() => { fetchLayout(); }, []);
 
   const eligible = useMemo(() => results.filter(hasBasfluxo), [results]);
 
@@ -191,7 +207,23 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
   };
 
   if (!layout) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, color: '#64748b' }}>Carregando layout...</div>;
+    return (
+      <div style={{ padding: '32px' }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: 0 }}>{L.title}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginTop: 60, textAlign: 'center' }}>
+          <AlertTriangle size={40} style={{ color: '#f59e0b' }} />
+          <p style={{ color: '#64748b', fontSize: 14 }}>{layoutError ? `Erro: ${layoutError}` : 'Carregando layout do laboratório...'}</p>
+          {layoutError && layoutRetries >= 3 && (
+            <button
+              onClick={fetchLayout}
+              style={{ padding: '8px 16px', background: '#1e40af', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+            >
+              <RotateCcw size={14} style={{ display: 'inline', marginRight: 6 }} />Tentar novamente
+            </button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -204,6 +236,9 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
           <h3 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: '#1e293b', marginTop: 0 }}>
             <Layers size={16} /> {L.selecionarProdutos}
           </h3>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+            {eligible.length} elegíveis de {results.length} resultados · {results.length - eligible.length} sem basfluxo
+          </div>
           {eligible.length === 0 ? (
             <div style={{ fontSize: 12, color: '#94a3b8', padding: '12px 0' }}>{L.semBasfluxo}</div>
           ) : (
@@ -331,6 +366,12 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
                       <Detalhe label={L.estado} value={selectedAgent.state} />
                       <Detalhe label={L.rotaAtual} value={selectedAgent.rotaAtual || '—'} />
                       <Detalhe label={L.atividade} value={selectedAgent.descricaoAtual || '—'} />
+                      {selectedAgent.execucaoAtual && (
+                        <Detalhe
+                          label="Execução"
+                          value={`${selectedAgent.execucaoAtual === 'MAQ' ? 'Máquina' : 'Analista'} (${selectedAgent.execucaoAtual})`}
+                        />
+                      )}
                     </div>
                   ) : (
                     <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>{L.semSelecao}</div>
