@@ -12,7 +12,7 @@ export interface SimulationCanvasHandle {
 }
 
 interface Props {
-  sim: SimulationResult;
+  sim: SimulationResult | null;
   layout: LabLayout;
   tiempo_min: number;
   onTiempoChange: (m: number) => void;
@@ -41,7 +41,7 @@ function hexWithAlpha(hex: string, alpha: number): string {
 function drawScene(
   ctx: CanvasRenderingContext2D,
   layout: LabLayout,
-  sim: SimulationResult,
+  sim: SimulationResult | null,
   agents: AgentState[],
   tiempo_min: number,
   scale: number,
@@ -58,9 +58,9 @@ function drawScene(
   ctx.fillRect(0, 0, W, H);
 
   for (const zone of layout.zones) {
-    ctx.fillStyle = hexWithAlpha(zone.color, 0.07);
+    ctx.fillStyle = hexWithAlpha(zone.color, 0.15);
     ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
-    ctx.strokeStyle = hexWithAlpha(zone.color, 0.35);
+    ctx.strokeStyle = hexWithAlpha(zone.color, 0.50);
     ctx.lineWidth = 1;
     ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
     ctx.fillStyle = zone.color;
@@ -196,19 +196,21 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
     const now = performance.now();
     const dt = (now - lastFrameRef.current) / 1000;
     lastFrameRef.current = now;
-    if (playingRef.current) {
+    const hasSim = sim !== null;
+    const makespan = sim?.makespan_min ?? 0;
+    if (playingRef.current && hasSim) {
       const next = tiempoRef.current + dt * speedRef.current;
-      const clamped = Math.min(next, sim.makespan_min);
+      const clamped = Math.min(next, makespan);
       tiempoRef.current = clamped;
       onTiempoChange(clamped);
-      if (clamped >= sim.makespan_min) {
+      if (clamped >= makespan) {
         playingRef.current = false;
         onPlayingChange(false);
       }
     }
-    const agents = agentsRef.current.map((a) =>
-      atualizarAgent(a, tiempoRef.current, sim.tasks, layout)
-    );
+    const agents = hasSim
+      ? agentsRef.current.map((a) => atualizarAgent(a, tiempoRef.current, sim!.tasks, layout))
+      : [];
     agentsRef.current = agents;
 
     const canvas = canvasRef.current;
@@ -294,9 +296,11 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
     }
   };
 
-  useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => {
+    const makespan = sim?.makespan_min ?? 0;
+    return {
     play: () => {
-      if (tiempoRef.current >= sim.makespan_min) tiempoRef.current = 0;
+      if (tiempoRef.current >= makespan) tiempoRef.current = 0;
       playingRef.current = true;
       onPlayingChange(true);
     },
@@ -307,12 +311,16 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
       onPlayingChange(false);
       onTiempoChange(0);
     },
-    seek: (m: number) => { tiempoRef.current = Math.max(0, Math.min(m, sim.makespan_min)); onTiempoChange(tiempoRef.current); },
+    seek: (m: number) => { tiempoRef.current = Math.max(0, Math.min(m, makespan)); onTiempoChange(tiempoRef.current); },
     setSpeed: (s: number) => { speedRef.current = s; onSpeedChange(s); },
-  }), [sim.makespan_min, onPlayingChange, onTiempoChange, onSpeedChange]);
+    };
+  }, [sim?.makespan_min, onPlayingChange, onTiempoChange, onSpeedChange]);
 
-  const progress = sim.makespan_min > 0 ? (tiempo_min / sim.makespan_min) * 100 : 0;
-  const tarefasConcluidas = sim.tasks.filter((t) => t.end_min <= tiempo_min).length;
+  const progress = sim && sim.makespan_min > 0 ? (tiempo_min / sim.makespan_min) * 100 : 0;
+  const tarefasConcluidas = sim ? sim.tasks.filter((t) => t.end_min <= tiempo_min).length : 0;
+  const makespan = sim?.makespan_min ?? 0; 
+  const totalTasks = sim?.totalTasks ?? 0;
+  const lotes = sim?.lotesSimulados ?? 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -329,7 +337,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
           {formatMin(tiempo_min)}
         </span>
         <span style={{ fontSize: 11, color: '#94a3b8' }}>
-          / {formatMin(sim.makespan_min)} · {tarefasConcluidas}/{sim.totalTasks} tarefas · {sim.lotesSimulados} lotes
+          / {formatMin(makespan)} · {tarefasConcluidas}/{totalTasks} tarefas · {lotes} lotes
         </span>
         <span style={{ flex: 1 }} />
         <label style={{ fontSize: 11, color: '#cbd5e1' }}>Velocidade:</label>
@@ -344,6 +352,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
 
       <div style={{ position: 'relative', height: 8, background: '#e2e8f0', borderRadius: 4, cursor: 'pointer' }}
         onClick={(e) => {
+          if (!sim || !sim.makespan_min) return;
           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
           const pct = (e.clientX - rect.left) / rect.width;
           const m = pct * sim.makespan_min;

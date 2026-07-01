@@ -294,8 +294,6 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
         </aside>
 
         <main style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {sim && (
-            <>
               <SimulationCanvas
                 ref={canvasHandle}
                 sim={sim}
@@ -309,6 +307,8 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
                 onAgentSelect={setSelectedAgent}
               />
 
+              {sim && (
+                <>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 12 }}>
                 <KPI icon={<Clock size={14} />} label={L.makespan} value={formatMin(sim.makespan_min)} />
                 <KPI icon={<Activity size={14} />} label={L.tarefasTotal} value={String(sim.totalTasks)} />
@@ -399,14 +399,16 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
                   </table>
                 </div>
               )}
-            </>
-          )}
 
-          {!sim && (
-            <div style={{ border: '2px dashed #cbd5e1', borderRadius: 12, padding: 80, textAlign: 'center', color: '#94a3b8' }}>
-              <Layers size={48} style={{ opacity: 0.5 }} />
-              <p style={{ marginTop: 16, fontSize: 14 }}>{selectedProducts.length === 0 ? L.nenhumProduto : 'Clique em “Iniciar Simulação”'}</p>
-            </div>
+              {sim && (
+                <EventLog
+                  sim={sim}
+                  tiempo={tiempo}
+                  playing={playing}
+                  formatMin={formatMin}
+                />
+              )}
+            </>
           )}
         </main>
       </div>
@@ -437,4 +439,65 @@ const primaryBtnStyle = (disabled: boolean): React.CSSProperties => ({
 const secondaryBtnStyle = (): React.CSSProperties => ({
   display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 13, fontWeight: 500,
   border: '1px solid #cbd5e1', background: '#ffffff', color: '#1e293b', borderRadius: 6, cursor: 'pointer',
+});
+
+const EventLog: React.FC<{
+  sim: SimulationResult;
+  tiempo: number;
+  playing: boolean;
+  formatMin: (m: number) => string;
+}> = React.memo(({ sim, tiempo, playing, formatMin }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const visibleEvents = useMemo(
+    () => sim.events.filter((e) => e.time_min <= tiempo).slice(-50),
+    [sim.events, tiempo]
+  );
+
+  useEffect(() => {
+    if (scrollRef.current && playing) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [visibleEvents.length, playing]);
+
+  const primeiraTarefa = sim.tasks.length ? sim.tasks[0].start_min : 0;
+
+  return (
+    <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12 }}>
+      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginTop: 0, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Activity size={14} /> Log de Eventos da Simulação
+        <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 400, flex: 1, textAlign: 'right' }}>
+          {visibleEvents.length} de {sim.events.length} eventos
+        </span>
+      </h4>
+      <div
+        ref={scrollRef}
+        style={{ maxHeight: 200, overflowY: 'auto', fontFamily: 'monospace', fontSize: 11, lineHeight: 1.6, padding: '8px 12px', background: '#f8fafc', borderRadius: 8 }}
+      >
+        {visibleEvents.length === 0 && (
+          <div style={{ color: '#94a3b8' }}>
+            Aguardando início... (tempo inicial: {formatMin(primeiraTarefa)})
+          </div>
+        )}
+        {visibleEvents.map((e, i) => {
+          const isStart = e.type === 'start';
+          const color = isStart ? '#16a34a' : '#dc2626';
+          const icon = isStart ? '▶' : '■';
+          const nome = e.produtoName.length > 18 ? e.produtoName.slice(0, 18) + '…' : e.produtoName;
+          return (
+            <div key={`${e.taskId}-${e.type}-${i}`} style={{ color: '#1e293b', paddingLeft: 4, borderLeft: `2px solid ${color}` }}>
+              <span style={{ color: '#64748b' }}>[{formatMin(e.time_min)}]</span>{' '}
+              <span style={{ color }}>{icon}</span>{' '}
+              <b>{nome}</b> · lote {e.lote}{' '}
+              {isStart ? (
+                <span style={{ color: '#1e40af' }}>iniciou em {e.rota}</span>
+              ) : (
+                <span style={{ color: '#64748b' }}>concluiu {e.rota}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 });
