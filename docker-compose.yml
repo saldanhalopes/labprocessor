@@ -2,29 +2,29 @@ services:
   db:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: labprocessor
-      POSTGRES_PASSWORD: labprocessor
-      POSTGRES_DB: labprocessor
+      POSTGRES_USER: ${DB_USER:-labprocessor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-labprocessor}
+      POSTGRES_DB: ${DB_NAME:-labprocessor}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/02-init.sql
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U labprocessor"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-labprocessor}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   app:
-    build: .
+    image: ghcr.io/saldanhalopes/labprocessor:latest
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgres://labprocessor:labprocessor@db:5432/labprocessor
+      DATABASE_URL: postgres://${DB_USER:-labprocessor}:${DB_PASSWORD:-labprocessor}@db:5432/${DB_NAME:-labprocessor}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
     volumes:
       - appdata:/app/backend/data
