@@ -69,7 +69,7 @@ export interface SimulationResult {
 const DEFAULT_SETTINGS: GlobalSettings = {
   area: 1160,
   velocity: 60,
-  alpha: 4,
+  alpha: 1,
   setupFactor: 5,
   registerFactor: 0.5,
   labEfficiency: 0.75,
