@@ -1,9 +1,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --prefer-offline 2>/dev/null || npm install --ignore-scripts --prefer-offline
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm ci --ignore-scripts
+RUN cd frontend && (npm ci --ignore-scripts --prefer-offline 2>/dev/null || npm install --ignore-scripts --prefer-offline)
 COPY frontend/ ./frontend/
 RUN cd frontend && npm run build
 
