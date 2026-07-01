@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, BookOpen, Brain } from 'lucide-react';
+import { Upload, Eye, BarChart3, History, Settings, Download, Loader2, Cpu, FlaskConical, LogOut, UserCircle, Shield, Globe, AlertTriangle, ScrollText, MessageSquare, BookOpen, Brain, Workflow, Map } from 'lucide-react';
 import { FileUpload } from '../FileUpload';
 import { ResultsView } from './ResultsView';
 import { ChartsView } from './ChartsView';
@@ -14,16 +14,18 @@ import { MfvcqView } from './MfvcqView';
 import KnowledgeView from './KnowledgeView';
 import LearningView from './LearningView';
 import { SummaryDashboardView } from './SummaryDashboardView';
+import { Mem0View } from './Mem0View';
+import { BasfluxoView } from './BasfluxoView';
+import { SimulationView } from './SimulationView';
 import { analyzeDocument } from '../../services/geminiService';
 import { extractPdfImages } from '../../utils/pdfImages';
-import { saveToPinecone } from '../../services/pineconeService';
-import { saveResultToDb, getResultsFromDb, deleteResultFromDb, clearDbResults, checkFileExists, updateResultInDb } from '../../services/dbService';
+import { getResultsFromDb, deleteResultFromDb, clearDbResults, checkFileExists, updateResultInDb } from '../../services/dbService';
 import { AnalysisResult, GlobalSettings, HistoryItem, User, Language } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import { DEFAULT_SETTINGS, generateCSV, recalculateRow, isMicrobiology, calculateParallelLeadTime } from '../../utils/calculations';
 import { translations } from '../../utils/translations';
 
-type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'mfvcq' | 'knowledge' | 'learning';
+type Tab = 'dashboard' | 'upload' | 'view' | 'reagents' | 'standards' | 'charts' | 'history' | 'settings' | 'profile' | 'admin' | 'download' | 'mfvcq' | 'knowledge' | 'learning' | 'memory' | 'basfluxo' | 'simulation';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -92,7 +94,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
               workloadTime: workload || 0,
               manHours: manHours,
               totalTimePhysChem: res.totalTimePhysChem || pcMax,
-              totalTimeMicro: res.totalTimeMicro || mMax
+              totalTimeMicro: res.totalTimeMicro || mMax,
+              pdfUrl: (res as any).pdfUrl || null
             };
           });
           
@@ -123,29 +126,14 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     localStorage.setItem('labprocessor_methods_db', JSON.stringify(results));
   }, [results]);
 
-  // Calculate limits for UI
-  const plan = user.plan || 'free';
-  let limit = 1;
-  if (plan === 'basic') limit = 5;
-  if (plan === 'pro') limit = Infinity;
+  // All users have unlimited uploads
+  const plan = user.plan || 'pro';
+  const limit = Infinity;
   
   const uploadsToday = user.uploadsToday || 0;
-  // Check if limit is reached (only if not pro)
-  const isLimitReached = plan !== 'pro' && uploadsToday >= limit;
+  const isLimitReached = false;
 
-  const checkUploadLimit = (fileCount: number): boolean => {
-    const today = new Date().toISOString().slice(0, 10);
-    let currentUploads = user.uploadsToday || 0;
-    
-    // Reset counter if it's a new day
-    if (user.lastUploadDate !== today) {
-      currentUploads = 0;
-    }
-
-    if (plan !== 'pro' && currentUploads + fileCount > limit) {
-      showToast(`Limite de uploads diários atingido para o plano ${plan.toUpperCase()}. (${currentUploads}/${limit})\nAtualize seu plano para continuar.`, 'warning');
-      return false;
-    }
+  const checkUploadLimit = (_fileCount: number): boolean => {
     return true;
   };
 
@@ -241,19 +229,7 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
         console.log("Analysis Result received in Dashboard:", result);
         newResults.push(result);
 
-        // Save to Database first (FK required by embeddings)
-        try {
-          await saveResultToDb(result);
-        } catch (dbError) {
-          console.error("Failed to save to DB:", dbError);
-        }
-
-        // Sync to pgvector (Vector DB) — after DB save for FK integrity
-        try {
-          await saveToPinecone(result);
-        } catch (pineError) {
-          console.error("Failed to sync to pgvector:", pineError);
-        }
+        // DB save and PGVector sync now handled by backend enrichResultAsync
 
         // Calculate Lead Time and Workload for history
         const physChemRows = result.rows.filter(row => !isMicrobiology(row));
@@ -272,7 +248,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
           totalTime: currentLeadTime,
           workloadTime: currentWorkload,
           totalTimePhysChem: result.totalTimePhysChem,
-          totalTimeMicro: result.totalTimeMicro
+          totalTimeMicro: result.totalTimeMicro,
+          pdfUrl: (result as any).pdfUrl || null
         };
         setHistory(prev => {
           const updated = [historyItem, ...prev];
@@ -399,6 +376,9 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
     { id: 'mfvcq', label: t.nav.mfvcq, icon: BarChart3 },
     { id: 'knowledge', label: t.nav.knowledge, icon: BookOpen },
     { id: 'learning', label: t.nav.learning, icon: Brain },
+    { id: 'memory', label: 'Mem0', icon: Brain },
+    { id: 'basfluxo', label: t.nav.basfluxo, icon: Workflow },
+    { id: 'simulation', label: t.nav.simulation, icon: Map },
     { id: 'view', label: t.nav.view, icon: Eye },
     { id: 'reagents', label: t.nav.reagents, icon: FlaskConical },
     { id: 'charts', label: t.nav.charts, icon: BarChart3 },
@@ -479,12 +459,8 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{user.fullName || user.username}</p>
                 <div className="flex items-center gap-1.5">
-                  <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase ${
-                    user.plan === 'pro' ? 'bg-teal-500/10 text-teal-400' : 
-                    user.plan === 'basic' ? 'bg-blue-500/10 text-blue-400' : 
-                    'bg-slate-500/10 text-slate-400'
-                  }`}>
-                    {user.plan || 'Free'}
+                  <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase bg-teal-500/10 text-teal-400">
+                    Pro
                   </span>
                   <span className="text-[10px] text-slate-500 truncate">{user.company}</span>
                 </div>
@@ -514,16 +490,9 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
           
           <div className="flex items-center gap-4">
             {activeTab === 'upload' && (
-              <div className={`px-4 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-2 shadow-sm transition-all ${
-                isLimitReached 
-                  ? 'bg-red-50 text-red-700 border-red-200 ring-2 ring-red-100' 
-                  : 'bg-white text-slate-600 border-slate-200'
-              }`}>
-                {isLimitReached && <AlertTriangle className="w-3 h-3 text-red-500" />}
+              <div className="px-4 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-2 shadow-sm bg-white text-slate-600 border-slate-200">
                 <span>Uploads:</span> 
                 <span className="font-mono text-sm">{uploadsToday}</span>
-                <span className="text-slate-300">/</span>
-                <span className="font-mono text-sm">{plan === 'pro' ? '∞' : limit}</span>
               </div>
             )}
             <div className="w-px h-6 bg-slate-200 mx-2"></div>
@@ -615,6 +584,16 @@ export const Dashboard = ({ onLogout, user, onUpdateUser, language, onLanguageCh
             {activeTab === 'knowledge' && <KnowledgeView />}
 
             {activeTab === 'learning' && <LearningView />}
+            {activeTab === 'memory' && <Mem0View />}
+            {activeTab === 'basfluxo' && <BasfluxoView />}
+
+            {activeTab === 'simulation' && (
+              <SimulationView
+                results={results}
+                settings={settings}
+                language={language}
+              />
+            )}
           </div>
         </div>
       </main>

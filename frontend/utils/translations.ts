@@ -16,6 +16,8 @@ export const translations = {
       mfvcq: 'MFVCQ',
       knowledge: 'Vault',
       learning: 'Aprendizado',
+      basfluxo: 'Basfluxo',
+      simulation: 'Simulação',
       download: 'Baixar CSV',
       logout: 'Sair'
     },
@@ -117,6 +119,8 @@ export const translations = {
       mfvcq: 'MFVCQ',
       knowledge: 'Vault',
       learning: 'Aprendizaje',
+      basfluxo: 'Basfluxo',
+      simulation: 'Simulación',
       download: 'Descargar CSV',
       logout: 'Salir'
     },
@@ -218,6 +222,8 @@ export const translations = {
       mfvcq: 'MFVCQ',
       knowledge: 'Vault',
       learning: 'Learning',
+basfluxo: 'Basfluxo',
+      simulation: 'Simulation',
       download: 'Download CSV',
       logout: 'Logout'
     },
