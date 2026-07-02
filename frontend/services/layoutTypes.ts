@@ -5,6 +5,8 @@ export interface LabRota {
   zona: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
 }
 
 export interface LabZone {

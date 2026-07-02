@@ -1,9 +1,17 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import type { SimulationResult, ScheduledTask } from '../../services/scheduler';
-import type { LabLayout, LabRota, LabZone } from '../../services/layoutTypes';
+import type { LabLayout, LabRota } from '../../services/layoutTypes';
 import { buildAgents, rotaCoord, corDeProduto, type AgentState } from './agents';
 import { useCanvasViewport } from '../../hooks/useCanvasViewport';
+import {
+  useResizableStation,
+  getResizeHandles,
+  hitTestHandle,
+  drawResizeHandles,
+  stationWidth,
+  stationHeight,
+} from '../../hooks/useResizableStation';
 
 export interface SimulationCanvasHandle {
   play: () => void;
@@ -84,7 +92,11 @@ function drawScene(
     ctx.fillText(zone.nome.toUpperCase(), zone.x + 10, zone.y + 18);
   }
 
+  const selectedStationIdx = layout.rotas.findIndex(r => r.rota === selectedRota);
+
   layout.rotas.forEach((r, idx) => {
+    const sw = stationWidth(r, layout.stationWidth);
+    const sh = stationHeight(r, layout.stationHeight);
     const isBusy = agents.some((a) => a.rotaAtual === r.rota && a.state.startsWith('working'));
     const isSelected = selectedRota === r.rota;
     const isDragging = dragStationIdx === idx;
@@ -98,20 +110,26 @@ function drawScene(
       ctx.shadowBlur = 0;
     }
     ctx.fillStyle = baseColor;
-    ctx.fillRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
+    ctx.fillRect(r.x, r.y, sw, sh);
     ctx.shadowBlur = 0;
 
     ctx.strokeStyle = isDragging ? '#f59e0b' : isSelected ? '#fbbf24' : isBusy ? '#facc15' : '#cbd5e1';
     ctx.lineWidth = isDragging ? 3 : isSelected || isBusy ? 2.5 : 1.2;
-    ctx.strokeRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
+    ctx.strokeRect(r.x, r.y, sw, sh);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 12px Inter, system-ui, sans-serif';
-    wrapText(ctx, r.rota, r.x + 6, r.y + 18, layout.stationWidth - 12, 14);
+    wrapText(ctx, r.rota, r.x + 6, r.y + 18, sw - 12, 14);
     ctx.font = '10px Inter, system-ui, sans-serif';
     ctx.fillStyle = isBusy ? '#fde68a' : '#94a3b8';
-    ctx.fillText(isBusy ? 'EM USO' : `${r.execucao}`, r.x + 6, r.y + layout.stationHeight - 8);
+    ctx.fillText(isBusy ? 'EM USO' : `${r.execucao}`, r.x + 6, r.y + sh - 8);
   });
+
+  if (selectedStationIdx >= 0 && dragStationIdx === null) {
+    const sr = layout.rotas[selectedStationIdx];
+    const handles = getResizeHandles(sr, layout.stationWidth, layout.stationHeight);
+    drawResizeHandles(ctx, handles, 1);
+  }
 
   for (const a of agents) {
     const isSel = selectedAgentId === a.id;
@@ -196,6 +214,8 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   const speedRef = useRef<number>(speed);
   const selectedAgentId = useRef<string | null>(null);
   const selectedRota = useRef<string | null>(null);
+  const shiftRef = useRef<boolean>(false);
+  const hoveredHandleId = useRef<string | null>(null);
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 500 });
   const [localLayout, setLocalLayout] = useState<LabLayout>(layout);
@@ -204,19 +224,28 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
 
   const agentsRef = useRef<AgentState[]>(buildAgents(sim));
 
-  const { vpRef, fitToContainer, screenToLayout, zoomAt, panBy, applyTransform, resetView } = useCanvasViewport(
+  const { vpRef, fitToContainer, screenToLayout, zoomAt, panBy, applyTransform, resetView, getZoom } = useCanvasViewport(
     localLayout.canvas.width,
     localLayout.canvas.height
   );
 
+  const { startResize, updateResize, endResize } = useResizableStation(
+    localLayout.stationWidth,
+    localLayout.stationHeight
+  );
+
   const dragRef = useRef<{
-    type: 'pan' | 'station';
+    type: 'pan' | 'station' | 'resize';
     startX: number;
     startY: number;
     stationIdx?: number;
     stationOrigX?: number;
     stationOrigY?: number;
+    stationOrigW?: number;
+    stationOrigH?: number;
+    handleId?: string;
     hasMoved: boolean;
+    origLayout?: LabLayout;
   } | null>(null);
 
   useEffect(() => { tiempoRef.current = tiempo_min; }, [tiempo_min]);
@@ -224,6 +253,14 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   useEffect(() => { speedRef.current = speed; }, [speed]);
   useEffect(() => { agentsRef.current = buildAgents(sim); }, [sim]);
   useEffect(() => { setLocalLayout(layout); }, [layout]);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftRef.current = true; };
+    const up = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftRef.current = false; };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
+  }, []);
 
   useEffect(() => {
     if (!layout.backgroundImage) {
@@ -319,13 +356,29 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
     const layoutPos = screenToLayout(clientX, clientY, canvasSize.w, canvasSize.h, rect);
-    const { stationWidth, stationHeight } = localLayout;
     for (let i = localLayout.rotas.length - 1; i >= 0; i--) {
       const r = localLayout.rotas[i];
-      if (layoutPos.x >= r.x && layoutPos.x <= r.x + stationWidth && layoutPos.y >= r.y && layoutPos.y <= r.y + stationHeight) {
+      const sw = stationWidth(r, localLayout.stationWidth);
+      const sh = stationHeight(r, localLayout.stationHeight);
+      if (layoutPos.x >= r.x && layoutPos.x <= r.x + sw && layoutPos.y >= r.y && layoutPos.y <= r.y + sh) {
         return i;
       }
     }
+    return null;
+  };
+
+  const hitTestStationHandle = (clientX: number, clientY: number): { idx: number; handleId: string } | null => {
+    const canvas = canvasRef.current;
+    if (!canvas || !selectedRota.current) return null;
+    const rect = canvas.getBoundingClientRect();
+    const layoutPos = screenToLayout(clientX, clientY, canvasSize.w, canvasSize.h, rect);
+    const idx = localLayout.rotas.findIndex(r => r.rota === selectedRota.current);
+    if (idx < 0) return null;
+    const r = localLayout.rotas[idx];
+    const handles = getResizeHandles(r, localLayout.stationWidth, localLayout.stationHeight);
+    const zoom = getZoom();
+    const handleId = hitTestHandle(layoutPos.x, layoutPos.y, handles, zoom || 1);
+    if (handleId) return { idx, handleId };
     return null;
   };
 
@@ -344,6 +397,26 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   }, [layout, onLayoutChange]);
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const handleHit = hitTestStationHandle(e.clientX, e.clientY);
+    if (handleHit && selectedRota.current === localLayout.rotas[handleHit.idx].rota) {
+      const r = localLayout.rotas[handleHit.idx];
+      startResize(handleHit.idx, handleHit.handleId, r, shiftRef.current);
+      dragRef.current = {
+        type: 'resize',
+        startX: e.clientX,
+        startY: e.clientY,
+        stationIdx: handleHit.idx,
+        handleId: handleHit.handleId,
+        stationOrigX: r.x,
+        stationOrigY: r.y,
+        stationOrigW: stationWidth(r, localLayout.stationWidth),
+        stationOrigH: stationHeight(r, localLayout.stationHeight),
+        hasMoved: false,
+        origLayout: localLayout,
+      };
+      return;
+    }
+
     const stationIdx = hitTestRota(e.clientX, e.clientY);
     if (stationIdx !== null) {
       setDragStationIdx(stationIdx);
@@ -369,7 +442,11 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!dragRef.current) return;
+    if (!dragRef.current) {
+      const handleHit = hitTestStationHandle(e.clientX, e.clientY);
+      hoveredHandleId.current = handleHit?.handleId ?? null;
+      return;
+    }
 
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
@@ -379,15 +456,40 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
 
     dragRef.current.hasMoved = true;
 
-    if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
+    if (dragRef.current.type === 'resize' && dragRef.current.stationIdx !== undefined) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const layoutPos = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
-      let newX = Math.round(layoutPos.x - localLayout.stationWidth / 2);
-      let newY = Math.round(layoutPos.y - localLayout.stationHeight / 2);
-      newX = Math.max(0, Math.min(localLayout.canvas.width - localLayout.stationWidth, newX));
-      newY = Math.max(0, Math.min(localLayout.canvas.height - localLayout.stationHeight, newY));
+      const result = updateResize(
+        layoutPos.x,
+        layoutPos.y,
+        localLayout.rotas,
+        localLayout.canvas.width,
+        localLayout.canvas.height
+      );
+      if (result) {
+        setLocalLayout(prev => ({
+          ...prev,
+          rotas: prev.rotas.map((r, i) =>
+            i === dragRef.current!.stationIdx
+              ? { ...r, x: result.x ?? r.x, y: result.y ?? r.y, width: result.width, height: result.height }
+              : r
+          ),
+        }));
+      }
+    } else if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const layoutPos = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+      const r = localLayout.rotas[dragRef.current.stationIdx];
+      const sw = stationWidth(r, localLayout.stationWidth);
+      const sh = stationHeight(r, localLayout.stationHeight);
+      let newX = Math.round(layoutPos.x - sw / 2);
+      let newY = Math.round(layoutPos.y - sh / 2);
+      newX = Math.max(0, Math.min(localLayout.canvas.width - sw, newX));
+      newY = Math.max(0, Math.min(localLayout.canvas.height - sh, newY));
       setLocalLayout(prev => ({
         ...prev,
         rotas: prev.rotas.map((r, i) =>
@@ -403,6 +505,26 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
 
   const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!dragRef.current) return;
+
+    if (dragRef.current.type === 'resize' && dragRef.current.stationIdx !== undefined) {
+      const orig = dragRef.current.origLayout;
+      const idx = dragRef.current.stationIdx;
+      const r = localLayout.rotas[idx];
+      const origR = orig?.rotas[idx];
+      const sw = stationWidth(r, localLayout.stationWidth);
+      const sh = stationHeight(r, localLayout.stationHeight);
+      const origW = origR ? stationWidth(origR, localLayout.stationWidth) : 0;
+      const origH = origR ? stationHeight(origR, localLayout.stationHeight) : 0;
+
+      if (dragRef.current.hasMoved && (r.x !== dragRef.current.stationOrigX || r.y !== dragRef.current.stationOrigY || sw !== origW || sh !== origH)) {
+        setSavingStation(idx);
+        saveLayout(localLayout).finally(() => setSavingStation(null));
+      }
+
+      endResize();
+      dragRef.current = null;
+      return;
+    }
 
     if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
       setDragStationIdx(null);
@@ -482,6 +604,26 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   };
 
   const getCursorStyle = () => {
+    if (dragRef.current?.type === 'resize' && dragRef.current.handleId) {
+      const handles = getResizeHandles(
+        localLayout.rotas[dragRef.current.stationIdx ?? 0] ?? { x: 0, y: 0 },
+        localLayout.stationWidth,
+        localLayout.stationHeight
+      );
+      const h = handles.find(hh => hh.id === dragRef.current!.handleId);
+      if (h) return h.cursor;
+    }
+    if (hoveredHandleId.current && !dragRef.current) {
+      const handles = selectedRota.current
+        ? getResizeHandles(
+            localLayout.rotas.find(r => r.rota === selectedRota.current) ?? localLayout.rotas[0],
+            localLayout.stationWidth,
+            localLayout.stationHeight
+          )
+        : [];
+      const h = handles.find(hh => hh.id === hoveredHandleId.current);
+      if (h) return h.cursor;
+    }
     if (dragRef.current?.type === 'station') return 'grabbing';
     if (dragRef.current?.type === 'pan' && dragRef.current.hasMoved) return 'grabbing';
     if (dragRef.current?.type === 'pan') return 'grab';
@@ -647,7 +789,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
         <span>● Verde = Analista (MO)</span>
         <span>● <span style={{ color: '#dc2626' }}>●</span> Vermelho = amostra selecionável</span>
         <span>● Glow amarelo = equipamento ocupado</span>
-        <span>● Scroll = zoom | Arrastar vazio = pan | Arrastar estação = reposicionar</span>
+        <span>● Scroll = zoom | Arrastar = pan/reposicionar | Alças = redimensionar (Shift = proporção)</span>
       </div>
     </div>
   );

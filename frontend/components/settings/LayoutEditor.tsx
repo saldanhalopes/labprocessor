@@ -3,6 +3,14 @@ import { Save, RotateCcw, Loader2, MousePointer2, ZoomIn, ZoomOut, Maximize2 } f
 import { useToast } from '../../context/ToastContext';
 import type { LabLayout } from '../../services/layoutTypes';
 import { useCanvasViewport } from '../../hooks/useCanvasViewport';
+import {
+  useResizableStation,
+  getResizeHandles,
+  hitTestHandle,
+  drawResizeHandles,
+  stationWidth,
+  stationHeight,
+} from '../../hooks/useResizableStation';
 
 const DEFAULT_LAYOUT: LabLayout = {
   canvas: { width: 1080, height: 620 },
@@ -52,22 +60,30 @@ function drawLayout(
   }
 
   layout.rotas.forEach((r, idx) => {
+    const sw = stationWidth(r, layout.stationWidth);
+    const sh = stationHeight(r, layout.stationHeight);
     const isSelected = idx === selectedIdx;
     const fillColor = r.execucao === 'MAQ' ? '#1e3a8a' : '#065f46';
     ctx.fillStyle = fillColor;
-    ctx.fillRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
+    ctx.fillRect(r.x, r.y, sw, sh);
     ctx.strokeStyle = isSelected ? '#fbbf24' : '#cbd5e1';
     ctx.lineWidth = isSelected ? 3 : 1.5;
-    ctx.strokeRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
+    ctx.strokeRect(r.x, r.y, sw, sh);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 12px Inter, system-ui, sans-serif';
-    wrapText(ctx, r.rota, r.x + 6, r.y + 18, layout.stationWidth - 12, 14);
+    wrapText(ctx, r.rota, r.x + 6, r.y + 18, sw - 12, 14);
 
     ctx.font = '10px Inter, system-ui, sans-serif';
     ctx.fillStyle = '#fbbf24';
-    ctx.fillText(`${r.execucao} · ${r.zona}`, r.x + 6, r.y + layout.stationHeight - 8);
+    ctx.fillText(`${r.execucao} · ${r.zona}`, r.x + 6, r.y + sh - 8);
   });
+
+  if (selectedIdx !== null) {
+    const sr = layout.rotas[selectedIdx];
+    const handles = getResizeHandles(sr, layout.stationWidth, layout.stationHeight);
+    drawResizeHandles(ctx, handles, 1);
+  }
 
   ctx.restore();
   ctx.restore();
@@ -110,19 +126,28 @@ export const LayoutEditor: React.FC = () => {
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 500 });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const shiftRef = useRef<boolean>(false);
+  const hoveredHandleId = useRef<string | null>(null);
   const { showToast } = useToast();
 
-  const { vpRef, fitToContainer, screenToLayout, zoomAt, panBy, applyTransform, resetView } = useCanvasViewport(
+  const { vpRef, fitToContainer, screenToLayout, zoomAt, panBy, applyTransform, resetView, getZoom } = useCanvasViewport(
     layout.canvas.width,
     layout.canvas.height
   );
 
+  const { startResize, updateResize, endResize } = useResizableStation(
+    layout.stationWidth,
+    layout.stationHeight
+  );
+
   const dragRef = useRef<{
-    type: 'pan' | 'station';
+    type: 'pan' | 'station' | 'resize';
     startX: number;
     startY: number;
     stationIdx?: number;
+    handleId?: string;
     hasMoved: boolean;
+    origLayout?: LabLayout;
   } | null>(null);
 
   const load = useCallback(async () => {
@@ -144,6 +169,15 @@ export const LayoutEditor: React.FC = () => {
   }, [showToast]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftRef.current = true; };
+    const up = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftRef.current = false; };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
+  }, []);
+
   useEffect(() => {
     if (!showBackground || !layout.backgroundImage) {
       setBgImage(null);
@@ -189,7 +223,37 @@ export const LayoutEditor: React.FC = () => {
 
   useEffect(() => { redraw(); }, [redraw]);
 
+  const hitTestStationHandle = (clientX: number, clientY: number): { idx: number; handleId: string } | null => {
+    const canvas = canvasRef.current;
+    if (!canvas || selectedIdx === null) return null;
+    const rect = canvas.getBoundingClientRect();
+    const layoutPos = screenToLayout(clientX, clientY, canvasSize.w, canvasSize.h, rect);
+    const r = layout.rotas[selectedIdx];
+    if (!r) return null;
+    const handles = getResizeHandles(r, layout.stationWidth, layout.stationHeight);
+    const zoom = getZoom();
+    const handleId = hitTestHandle(layoutPos.x, layoutPos.y, handles, zoom || 1);
+    if (handleId) return { idx: selectedIdx, handleId };
+    return null;
+  };
+
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const handleHit = hitTestStationHandle(e.clientX, e.clientY);
+    if (handleHit && selectedIdx === handleHit.idx) {
+      const r = layout.rotas[handleHit.idx];
+      startResize(handleHit.idx, handleHit.handleId, r, shiftRef.current);
+      dragRef.current = {
+        type: 'resize',
+        startX: e.clientX,
+        startY: e.clientY,
+        stationIdx: handleHit.idx,
+        handleId: handleHit.handleId,
+        hasMoved: false,
+        origLayout: layout,
+      };
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -197,7 +261,9 @@ export const LayoutEditor: React.FC = () => {
 
     for (let i = layout.rotas.length - 1; i >= 0; i--) {
       const r = layout.rotas[i];
-      if (lp.x >= r.x && lp.x <= r.x + layout.stationWidth && lp.y >= r.y && lp.y <= r.y + layout.stationHeight) {
+      const sw = stationWidth(r, layout.stationWidth);
+      const sh = stationHeight(r, layout.stationHeight);
+      if (lp.x >= r.x && lp.x <= r.x + sw && lp.y >= r.y && lp.y <= r.y + sh) {
         setSelectedIdx(i);
         dragRef.current = {
           type: 'station',
@@ -220,7 +286,12 @@ export const LayoutEditor: React.FC = () => {
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!dragRef.current) return;
+    if (!dragRef.current) {
+      const handleHit = hitTestStationHandle(e.clientX, e.clientY);
+      hoveredHandleId.current = handleHit?.handleId ?? null;
+      return;
+    }
+
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
     const totalMove = Math.abs(dx) + Math.abs(dy);
@@ -228,15 +299,41 @@ export const LayoutEditor: React.FC = () => {
     if (totalMove < 3) return;
     dragRef.current.hasMoved = true;
 
-    if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
+    if (dragRef.current.type === 'resize' && dragRef.current.stationIdx !== undefined) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const layoutPos = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+      const result = updateResize(
+        layoutPos.x,
+        layoutPos.y,
+        layout.rotas,
+        layout.canvas.width,
+        layout.canvas.height
+      );
+      if (result) {
+        setLayout(prev => ({
+          ...prev,
+          rotas: prev.rotas.map((r, i) =>
+            i === dragRef.current!.stationIdx
+              ? { ...r, x: result.x ?? r.x, y: result.y ?? r.y, width: result.width, height: result.height }
+              : r
+          ),
+        }));
+        setDirty(true);
+      }
+    } else if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const lp = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
-      let newX = Math.round(lp.x - layout.stationWidth / 2);
-      let newY = Math.round(lp.y - layout.stationHeight / 2);
-      newX = Math.max(0, Math.min(layout.canvas.width - layout.stationWidth, newX));
-      newY = Math.max(0, Math.min(layout.canvas.height - layout.stationHeight, newY));
+      const r = layout.rotas[dragRef.current.stationIdx];
+      const sw = stationWidth(r, layout.stationWidth);
+      const sh = stationHeight(r, layout.stationHeight);
+      let newX = Math.round(lp.x - sw / 2);
+      let newY = Math.round(lp.y - sh / 2);
+      newX = Math.max(0, Math.min(layout.canvas.width - sw, newX));
+      newY = Math.max(0, Math.min(layout.canvas.height - sh, newY));
       setLayout(prev => ({
         ...prev,
         rotas: prev.rotas.map((r, i) =>
@@ -244,8 +341,6 @@ export const LayoutEditor: React.FC = () => {
         ),
       }));
       setDirty(true);
-      dragRef.current.startX = e.clientX;
-      dragRef.current.startY = e.clientY;
     } else if (dragRef.current.type === 'pan') {
       panBy(dx, dy, canvasSize.w, canvasSize.h, canvasRef.current!.getBoundingClientRect());
       dragRef.current.startX = e.clientX;
@@ -255,6 +350,7 @@ export const LayoutEditor: React.FC = () => {
 
   const onMouseUp = () => {
     dragRef.current = null;
+    endResize();
   };
 
   const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -291,6 +387,22 @@ export const LayoutEditor: React.FC = () => {
   };
 
   const getCursorStyle = () => {
+    if (dragRef.current?.type === 'resize' && dragRef.current.handleId && dragRef.current.stationIdx !== undefined) {
+      const r = layout.rotas[dragRef.current.stationIdx];
+      if (r) {
+        const handles = getResizeHandles(r, layout.stationWidth, layout.stationHeight);
+        const h = handles.find(hh => hh.id === dragRef.current!.handleId);
+        if (h) return h.cursor;
+      }
+    }
+    if (hoveredHandleId.current && !dragRef.current && selectedIdx !== null) {
+      const r = layout.rotas[selectedIdx];
+      if (r) {
+        const handles = getResizeHandles(r, layout.stationWidth, layout.stationHeight);
+        const h = handles.find(hh => hh.id === hoveredHandleId.current);
+        if (h) return h.cursor;
+      }
+    }
     if (dragRef.current?.type === 'station') return 'grabbing';
     if (dragRef.current?.type === 'pan' && dragRef.current.hasMoved) return 'grabbing';
     if (dragRef.current?.type === 'pan') return 'grab';
@@ -298,6 +410,8 @@ export const LayoutEditor: React.FC = () => {
   };
 
   const zoomPct = Math.round(vpRef.current.zoom / (vpRef.current.initialZoom || 1) * 100);
+
+  const selectedRota = selectedIdx !== null ? layout.rotas[selectedIdx] : null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -324,10 +438,13 @@ export const LayoutEditor: React.FC = () => {
       </div>
 
       <div style={{ fontSize: 12, color: '#64748b' }}>
-        Arraste as estações para reposicioná-las. Scroll = zoom, arraste no vazio = pan. Cores: azul = Máquina (MAQ), verde = Analista (MO), contorno amarelo = selecionado.
-        {selectedIdx !== null && layout.rotas[selectedIdx] && (
+        Arraste as estações para reposicioná-las. Alças = redimensionar (Shift = proporção). Scroll = zoom, arraste vazio = pan.
+        {selectedRota && (
           <span style={{ marginLeft: 8, color: '#1e293b' }}>
-            Selecionado: <b>{layout.rotas[selectedIdx].rota}</b> — x={layout.rotas[selectedIdx].x}, y={layout.rotas[selectedIdx].y}
+            Selecionado: <b>{selectedRota.rota}</b> — x={selectedRota.x}, y={selectedRota.y}
+            {(selectedRota.width || selectedRota.height) && (
+              <span> · {selectedRota.width ?? layout.stationWidth}×{selectedRota.height ?? layout.stationHeight}</span>
+            )}
           </span>
         )}
       </div>
