@@ -1,5 +1,6 @@
 {
   "canvas": { "width": 1080, "height": 620 },
+  "backgroundImage": "/api/config/layout-image",
   "stationWidth": 140,
   "stationHeight": 80,
   "zones": [

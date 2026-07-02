@@ -1,35 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Save, RotateCcw, Loader2, MousePointer2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-
-interface LabRota {
-  rota: string;
-  tipo: string;
-  execucao: string;
-  zona: string;
-  x: number;
-  y: number;
-}
-
-interface LabZone {
-  nome: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-}
-
-interface LabLayout {
-  canvas: { width: number; height: number };
-  stationWidth: number;
-  stationHeight: number;
-  zones: LabZone[];
-  rotas: LabRota[];
-}
+import type { LabLayout } from '../../services/layoutTypes';
 
 const DEFAULT_LAYOUT: LabLayout = {
   canvas: { width: 1080, height: 620 },
+  backgroundImage: undefined,
   stationWidth: 140,
   stationHeight: 80,
   zones: [],
@@ -38,10 +14,24 @@ const DEFAULT_LAYOUT: LabLayout = {
 
 const ZONE_ALPHA = 0.08;
 
-function drawLayout(ctx: CanvasRenderingContext2D, layout: LabLayout, scale: number, selectedIdx: number | null) {
+function drawLayout(
+  ctx: CanvasRenderingContext2D,
+  layout: LabLayout,
+  bgImage: HTMLImageElement | null,
+  showBackground: boolean,
+  scale: number,
+  selectedIdx: number | null
+) {
   ctx.clearRect(0, 0, layout.canvas.width * scale, layout.canvas.height * scale);
   ctx.save();
   ctx.scale(scale, scale);
+
+  if (showBackground && bgImage) {
+    ctx.drawImage(bgImage, 0, 0, layout.canvas.width, layout.canvas.height);
+  } else {
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, layout.canvas.width, layout.canvas.height);
+  }
 
   for (const zone of layout.zones) {
     ctx.fillStyle = hexWithAlpha(zone.color, ZONE_ALPHA);
@@ -107,6 +97,8 @@ export const LayoutEditor: React.FC = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [dirty, setDirty] = useState<boolean>(false);
+  const [showBackground, setShowBackground] = useState<boolean>(true);
+  const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef<{ idx: number; offsetX: number; offsetY: number } | null>(null);
@@ -131,6 +123,22 @@ export const LayoutEditor: React.FC = () => {
   }, [showToast]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (!showBackground || !layout.backgroundImage) {
+      setBgImage(null);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => setBgImage(img);
+    img.onerror = () => setBgImage(null);
+    img.src = layout.backgroundImage;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [layout.backgroundImage, showBackground]);
 
   const computeScale = useCallback(() => {
     const container = containerRef.current;
@@ -147,8 +155,8 @@ export const LayoutEditor: React.FC = () => {
     const scale = computeScale();
     canvas.width = layout.canvas.width * scale;
     canvas.height = layout.canvas.height * scale;
-    drawLayout(ctx, layout, scale, selectedIdx);
-  }, [layout, selectedIdx, computeScale]);
+    drawLayout(ctx, layout, bgImage, showBackground, scale, selectedIdx);
+  }, [layout, bgImage, showBackground, selectedIdx, computeScale]);
 
   useEffect(() => { redraw(); }, [redraw]);
   useEffect(() => {
@@ -237,6 +245,15 @@ export const LayoutEditor: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <MousePointer2 size={16} />
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Editor de Layout do Laboratório (2D)</h3>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: layout.backgroundImage ? '#334155' : '#94a3b8' }}>
+          <input
+            type="checkbox"
+            checked={showBackground}
+            disabled={!layout.backgroundImage}
+            onChange={(e) => setShowBackground(e.target.checked)}
+          />
+          Mostrar planta de fundo
+        </label>
         <span style={{ flex: 1 }} />
         <button onClick={reset} disabled={loading} style={btnStyle(false)}>
           <RotateCcw size={14} /> Recarregar
@@ -268,7 +285,7 @@ export const LayoutEditor: React.FC = () => {
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseLeave}
-            style={{ display: 'block', cursor: dragState.current ? 'grabbing' : 'pointer', background: '#ffffff', borderRadius: 6 }}
+            style={{ display: 'block', cursor: dragState.current ? 'grabbing' : 'pointer', background: 'transparent', borderRadius: 6 }}
           />
         )}
       </div>

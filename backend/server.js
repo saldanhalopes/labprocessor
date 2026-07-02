@@ -768,6 +768,8 @@ app.put('/api/config/skill/tests', (req, res) => {
 });
 
 const BASEFLUXO_FILE = path.join(__dirname, 'reference', 'basefluxo_estruturado.json');
+const LAB_LAYOUT_FILE = path.join(__dirname, 'config', 'lab-layout.json');
+const LAB_LAYOUT_BACKGROUND_FILE = path.join(__dirname, 'config', 'layout-background.jpg');
 
 app.get('/api/config/skill/basefluxo', (_req, res) => {
   try {
@@ -789,8 +791,6 @@ app.put('/api/config/skill/basefluxo', (req, res) => {
 });
 
 // --- LAB LAYOUT (2D VISUALIZATION) ---
-const LAB_LAYOUT_FILE = path.join(__dirname, 'config', 'lab-layout.json');
-
 app.get('/api/config/layout', (_req, res) => {
   try {
     if (fs.existsSync(LAB_LAYOUT_FILE)) {
@@ -799,6 +799,15 @@ app.get('/api/config/layout', (_req, res) => {
       res.json({ canvas: { width: 1080, height: 620 }, stationWidth: 140, stationHeight: 80, zones: [], rotas: [] });
     }
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/config/layout-image', (_req, res) => {
+  if (!fs.existsSync(LAB_LAYOUT_BACKGROUND_FILE)) {
+    return res.status(404).json({ error: 'Layout background image not found' });
+  }
+  res.setHeader('Content-Type', 'image/jpeg');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile(LAB_LAYOUT_BACKGROUND_FILE);
 });
 
 app.put('/api/config/layout', (req, res) => {

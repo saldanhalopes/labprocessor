@@ -18,6 +18,7 @@ export interface LabZone {
 
 export interface LabLayout {
   canvas: { width: number; height: number };
+  backgroundImage?: string;
   stationWidth: number;
   stationHeight: number;
   zones: LabZone[];

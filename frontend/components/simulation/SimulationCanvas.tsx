@@ -41,6 +41,7 @@ function hexWithAlpha(hex: string, alpha: number): string {
 function drawScene(
   ctx: CanvasRenderingContext2D,
   layout: LabLayout,
+  bgImage: HTMLImageElement | null,
   sim: SimulationResult | null,
   agents: AgentState[],
   tiempo_min: number,
@@ -54,11 +55,15 @@ function drawScene(
   ctx.save();
   ctx.scale(scale, scale);
 
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(0, 0, W, H);
+  if (bgImage) {
+    ctx.drawImage(bgImage, 0, 0, W, H);
+  } else {
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, W, H);
+  }
 
   for (const zone of layout.zones) {
-    ctx.fillStyle = hexWithAlpha(zone.color, 0.15);
+    ctx.fillStyle = hexWithAlpha(zone.color, 0.06);
     ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
     ctx.strokeStyle = hexWithAlpha(zone.color, 0.50);
     ctx.lineWidth = 1;
@@ -76,7 +81,7 @@ function drawScene(
     if (isBusy) {
       const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 250);
       ctx.shadowColor = r.execucao === 'MAQ' ? '#fbbf24' : '#34d399';
-      ctx.shadowBlur = 15 + pulse * 10;
+      ctx.shadowBlur = 18 + pulse * 14;
     } else {
       ctx.shadowBlur = 0;
     }
@@ -178,6 +183,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   const speedRef = useRef<number>(speed);
   const selectedAgentId = useRef<string | null>(null);
   const selectedRota = useRef<string | null>(null);
+  const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
 
   const agentsRef = useRef<AgentState[]>(buildAgents(sim));
 
@@ -185,6 +191,22 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   useEffect(() => { playingRef.current = playing; }, [playing]);
   useEffect(() => { speedRef.current = speed; }, [speed]);
   useEffect(() => { agentsRef.current = buildAgents(sim); }, [sim]);
+  useEffect(() => {
+    if (!layout.backgroundImage) {
+      setBgImage(null);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => setBgImage(img);
+    img.onerror = () => setBgImage(null);
+    img.src = layout.backgroundImage;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [layout.backgroundImage]);
 
   const computeScale = useCallback(() => {
     const c = containerRef.current;
@@ -220,11 +242,11 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
         const scale = computeScale();
         canvas.width = layout.canvas.width * scale;
         canvas.height = layout.canvas.height * scale;
-        drawScene(ctx, layout, sim, agents, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
+        drawScene(ctx, layout, bgImage, sim, agents, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
       }
     }
     rafRef.current = requestAnimationFrame(loop);
-  }, [sim, layout, computeScale, onTiempoChange, onPlayingChange]);
+  }, [sim, layout, bgImage, computeScale, onTiempoChange, onPlayingChange]);
 
   useEffect(() => {
     lastFrameRef.current = performance.now();
@@ -241,11 +263,11 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
       const scale = computeScale();
       canvas.width = layout.canvas.width * scale;
       canvas.height = layout.canvas.height * scale;
-      drawScene(ctx, layout, sim, agentsRef.current, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
+      drawScene(ctx, layout, bgImage, sim, agentsRef.current, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
     };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [layout, sim, computeScale]);
+  }, [layout, bgImage, sim, computeScale]);
 
   const hitTestAgent = (clientX: number, clientY: number): AgentState | null => {
     const canvas = canvasRef.current;
@@ -328,7 +350,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
         <canvas
           ref={canvasRef}
           onClick={onCanvasClick}
-          style={{ display: 'block', cursor: 'pointer', background: '#f8fafc', borderRadius: 6 }}
+          style={{ display: 'block', cursor: 'pointer', background: 'transparent', borderRadius: 6 }}
         />
       </div>
 
