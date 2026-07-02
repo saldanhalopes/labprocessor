@@ -305,6 +305,7 @@ export const SimulationView: React.FC<Props> = ({ results, settings, language })
                 speed={speed}
                 onSpeedChange={setSpeed}
                 onAgentSelect={setSelectedAgent}
+                onLayoutChange={(updated) => setLayout(updated)}
               />
 
               {sim && (

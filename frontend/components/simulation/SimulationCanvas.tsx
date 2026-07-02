@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import type { SimulationResult, ScheduledTask } from '../../services/scheduler';
 import type { LabLayout, LabRota, LabZone } from '../../services/layoutTypes';
 import { buildAgents, rotaCoord, corDeProduto, type AgentState } from './agents';
+import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 
 export interface SimulationCanvasHandle {
   play: () => void;
@@ -21,6 +23,7 @@ interface Props {
   speed: number;
   onSpeedChange: (s: number) => void;
   onAgentSelect?: (a: AgentState | null) => void;
+  onLayoutChange?: (layout: LabLayout) => void;
 }
 
 const SPEED_OPTIONS = [
@@ -45,15 +48,23 @@ function drawScene(
   sim: SimulationResult | null,
   agents: AgentState[],
   tiempo_min: number,
-  scale: number,
+  canvasW: number,
+  canvasH: number,
+  applyTransform: (ctx: CanvasRenderingContext2D, cw: number, ch: number) => void,
   selectedAgentId: string | null,
-  selectedRota: string | null
+  selectedRota: string | null,
+  dragStationIdx: number | null
 ) {
+  const dpr = window.devicePixelRatio || 1;
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, canvasW, canvasH);
+
+  ctx.save();
+  applyTransform(ctx, canvasW, canvasH);
+
   const W = layout.canvas.width;
   const H = layout.canvas.height;
-  ctx.clearRect(0, 0, W * scale, H * scale);
-  ctx.save();
-  ctx.scale(scale, scale);
 
   if (bgImage) {
     ctx.drawImage(bgImage, 0, 0, W, H);
@@ -73,9 +84,10 @@ function drawScene(
     ctx.fillText(zone.nome.toUpperCase(), zone.x + 10, zone.y + 18);
   }
 
-  for (const r of layout.rotas) {
+  layout.rotas.forEach((r, idx) => {
     const isBusy = agents.some((a) => a.rotaAtual === r.rota && a.state.startsWith('working'));
     const isSelected = selectedRota === r.rota;
+    const isDragging = dragStationIdx === idx;
     const baseColor = r.execucao === 'MAQ' ? '#1e3a8a' : '#065f46';
 
     if (isBusy) {
@@ -89,8 +101,8 @@ function drawScene(
     ctx.fillRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
     ctx.shadowBlur = 0;
 
-    ctx.strokeStyle = isSelected ? '#fbbf24' : isBusy ? '#facc15' : '#cbd5e1';
-    ctx.lineWidth = isSelected || isBusy ? 2.5 : 1.2;
+    ctx.strokeStyle = isDragging ? '#f59e0b' : isSelected ? '#fbbf24' : isBusy ? '#facc15' : '#cbd5e1';
+    ctx.lineWidth = isDragging ? 3 : isSelected || isBusy ? 2.5 : 1.2;
     ctx.strokeRect(r.x, r.y, layout.stationWidth, layout.stationHeight);
 
     ctx.fillStyle = '#ffffff';
@@ -99,7 +111,7 @@ function drawScene(
     ctx.font = '10px Inter, system-ui, sans-serif';
     ctx.fillStyle = isBusy ? '#fde68a' : '#94a3b8';
     ctx.fillText(isBusy ? 'EM USO' : `${r.execucao}`, r.x + 6, r.y + layout.stationHeight - 8);
-  }
+  });
 
   for (const a of agents) {
     const isSel = selectedAgentId === a.id;
@@ -142,6 +154,7 @@ function drawScene(
   }
 
   ctx.restore();
+  ctx.restore();
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
@@ -171,7 +184,7 @@ function formatMin(total: number): string {
 }
 
 export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(function SimulationCanvas(
-  { sim, layout, tiempo_min, onTiempoChange, playing, onPlayingChange, speed, onSpeedChange, onAgentSelect },
+  { sim, layout, tiempo_min, onTiempoChange, playing, onPlayingChange, speed, onSpeedChange, onAgentSelect, onLayoutChange },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -184,35 +197,65 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
   const selectedAgentId = useRef<string | null>(null);
   const selectedRota = useRef<string | null>(null);
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ w: 800, h: 500 });
+  const [localLayout, setLocalLayout] = useState<LabLayout>(layout);
+  const [dragStationIdx, setDragStationIdx] = useState<number | null>(null);
+  const [savingStation, setSavingStation] = useState<number | null>(null);
 
   const agentsRef = useRef<AgentState[]>(buildAgents(sim));
+
+  const { vpRef, fitToContainer, screenToLayout, zoomAt, panBy, applyTransform, resetView } = useCanvasViewport(
+    localLayout.canvas.width,
+    localLayout.canvas.height
+  );
+
+  const dragRef = useRef<{
+    type: 'pan' | 'station';
+    startX: number;
+    startY: number;
+    stationIdx?: number;
+    stationOrigX?: number;
+    stationOrigY?: number;
+    hasMoved: boolean;
+  } | null>(null);
 
   useEffect(() => { tiempoRef.current = tiempo_min; }, [tiempo_min]);
   useEffect(() => { playingRef.current = playing; }, [playing]);
   useEffect(() => { speedRef.current = speed; }, [speed]);
   useEffect(() => { agentsRef.current = buildAgents(sim); }, [sim]);
+  useEffect(() => { setLocalLayout(layout); }, [layout]);
+
   useEffect(() => {
     if (!layout.backgroundImage) {
       setBgImage(null);
       return;
     }
-
     const img = new Image();
     img.onload = () => setBgImage(img);
     img.onerror = () => setBgImage(null);
     img.src = layout.backgroundImage;
-
     return () => {
       img.onload = null;
       img.onerror = null;
     };
   }, [layout.backgroundImage]);
 
-  const computeScale = useCallback(() => {
+  const measureContainer = useCallback(() => {
     const c = containerRef.current;
-    if (!c) return 1;
-    return Math.min(1, (c.clientWidth - 32) / layout.canvas.width);
-  }, [layout.canvas.width]);
+    if (!c) return;
+    const w = c.clientWidth;
+    const ratio = localLayout.canvas.height / localLayout.canvas.width;
+    const h = w * ratio;
+    setCanvasSize({ w, h });
+    fitToContainer(w, h);
+  }, [localLayout.canvas.width, localLayout.canvas.height, fitToContainer]);
+
+  useEffect(() => {
+    measureContainer();
+    const onResize = () => measureContainer();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [measureContainer]);
 
   const loop = useCallback(() => {
     const now = performance.now();
@@ -231,7 +274,7 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
       }
     }
     const agents = hasSim
-      ? agentsRef.current.map((a) => atualizarAgent(a, tiempoRef.current, sim!.tasks, layout))
+      ? agentsRef.current.map((a) => atualizarAgent(a, tiempoRef.current, sim!.tasks, localLayout))
       : [];
     agentsRef.current = agents;
 
@@ -239,14 +282,18 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        const scale = computeScale();
-        canvas.width = layout.canvas.width * scale;
-        canvas.height = layout.canvas.height * scale;
-        drawScene(ctx, layout, bgImage, sim, agents, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(canvasSize.w * dpr);
+        canvas.height = Math.floor(canvasSize.h * dpr);
+        drawScene(
+          ctx, localLayout, bgImage, sim, agents, tiempoRef.current,
+          canvasSize.w, canvasSize.h, applyTransform,
+          selectedAgentId.current, selectedRota.current, dragStationIdx
+        );
       }
     }
     rafRef.current = requestAnimationFrame(loop);
-  }, [sim, layout, bgImage, computeScale, onTiempoChange, onPlayingChange]);
+  }, [sim, localLayout, bgImage, canvasSize, applyTransform, dragStationIdx, onTiempoChange, onPlayingChange]);
 
   useEffect(() => {
     lastFrameRef.current = performance.now();
@@ -254,104 +301,314 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [loop]);
 
-  useEffect(() => {
-    const onResize = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const scale = computeScale();
-      canvas.width = layout.canvas.width * scale;
-      canvas.height = layout.canvas.height * scale;
-      drawScene(ctx, layout, bgImage, sim, agentsRef.current, tiempoRef.current, scale, selectedAgentId.current, selectedRota.current);
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [layout, bgImage, sim, computeScale]);
-
   const hitTestAgent = (clientX: number, clientY: number): AgentState | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
-    const scale = computeScale();
-    const mx = (clientX - rect.left) / scale;
-    const my = (clientY - rect.top) / scale;
+    const layoutPos = screenToLayout(clientX, clientY, canvasSize.w, canvasSize.h, rect);
     for (const a of agentsRef.current) {
-      const dx = mx - a.x;
-      const dy = my - a.y;
+      const dx = layoutPos.x - a.x;
+      const dy = layoutPos.y - a.y;
       if (dx * dx + dy * dy < 144) return a;
     }
     return null;
   };
 
-  const hitTestRota = (clientX: number, clientY: number): string | null => {
+  const hitTestRota = (clientX: number, clientY: number): number | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
-    const scale = computeScale();
-    const mx = (clientX - rect.left) / scale;
-    const my = (clientY - rect.top) / scale;
-    for (const r of layout.rotas) {
-      if (mx >= r.x && mx <= r.x + layout.stationWidth && my >= r.y && my <= r.y + layout.stationHeight) {
-        return r.rota;
+    const layoutPos = screenToLayout(clientX, clientY, canvasSize.w, canvasSize.h, rect);
+    const { stationWidth, stationHeight } = localLayout;
+    for (let i = localLayout.rotas.length - 1; i >= 0; i--) {
+      const r = localLayout.rotas[i];
+      if (layoutPos.x >= r.x && layoutPos.x <= r.x + stationWidth && layoutPos.y >= r.y && layoutPos.y <= r.y + stationHeight) {
+        return i;
       }
     }
     return null;
   };
 
-  const onCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const ag = hitTestAgent(e.clientX, e.clientY);
-    if (ag) {
-      selectedAgentId.current = ag.id;
-      selectedRota.current = null;
-      onAgentSelect?.(ag);
+  const saveLayout = useCallback(async (updatedLayout: LabLayout) => {
+    try {
+      const res = await fetch('/api/config/layout', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedLayout),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      onLayoutChange?.(updatedLayout);
+    } catch {
+      setLocalLayout(layout);
+    }
+  }, [layout, onLayoutChange]);
+
+  const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const stationIdx = hitTestRota(e.clientX, e.clientY);
+    if (stationIdx !== null) {
+      setDragStationIdx(stationIdx);
+      const r = localLayout.rotas[stationIdx];
+      dragRef.current = {
+        type: 'station',
+        startX: e.clientX,
+        startY: e.clientY,
+        stationIdx,
+        stationOrigX: r.x,
+        stationOrigY: r.y,
+        hasMoved: false,
+      };
       return;
     }
-    const rt = hitTestRota(e.clientX, e.clientY);
-    selectedAgentId.current = null;
-    selectedRota.current = rt;
-    if (rt) {
-      const ag2 = agentsRef.current.find((x) => x.rotaAtual === rt) || null;
-      onAgentSelect?.(ag2);
-    } else {
-      onAgentSelect?.(null);
+
+    dragRef.current = {
+      type: 'pan',
+      startX: e.clientX,
+      startY: e.clientY,
+      hasMoved: false,
+    };
+  };
+
+  const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!dragRef.current) return;
+
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    const totalMove = Math.abs(dx) + Math.abs(dy);
+
+    if (totalMove < 3) return;
+
+    dragRef.current.hasMoved = true;
+
+    if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const layoutPos = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+      let newX = Math.round(layoutPos.x - localLayout.stationWidth / 2);
+      let newY = Math.round(layoutPos.y - localLayout.stationHeight / 2);
+      newX = Math.max(0, Math.min(localLayout.canvas.width - localLayout.stationWidth, newX));
+      newY = Math.max(0, Math.min(localLayout.canvas.height - localLayout.stationHeight, newY));
+      setLocalLayout(prev => ({
+        ...prev,
+        rotas: prev.rotas.map((r, i) =>
+          i === dragRef.current!.stationIdx ? { ...r, x: newX, y: newY } : r
+        ),
+      }));
+    } else if (dragRef.current.type === 'pan') {
+      panBy(dx, dy, canvasSize.w, canvasSize.h, canvasRef.current!.getBoundingClientRect());
+      dragRef.current.startX = e.clientX;
+      dragRef.current.startY = e.clientY;
     }
+  };
+
+  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!dragRef.current) return;
+
+    if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
+      setDragStationIdx(null);
+
+      if (dragRef.current.hasMoved) {
+        const idx = dragRef.current.stationIdx;
+        const r = localLayout.rotas[idx];
+        if (r.x !== dragRef.current.stationOrigX || r.y !== dragRef.current.stationOrigY) {
+          setSavingStation(idx);
+          saveLayout(localLayout).finally(() => setSavingStation(null));
+        }
+      }
+
+      if (!dragRef.current.hasMoved) {
+        const stationIdx = dragRef.current.stationIdx;
+        selectedAgentId.current = null;
+        selectedRota.current = localLayout.rotas[stationIdx].rota;
+        const ag2 = agentsRef.current.find((x) => x.rotaAtual === localLayout.rotas[stationIdx].rota) || null;
+        onAgentSelect?.(ag2);
+      }
+
+      dragRef.current = null;
+      return;
+    }
+
+    if (dragRef.current.type === 'pan' && !dragRef.current.hasMoved) {
+      const ag = hitTestAgent(e.clientX, e.clientY);
+      if (ag) {
+        selectedAgentId.current = ag.id;
+        selectedRota.current = null;
+        onAgentSelect?.(ag);
+      } else {
+        const stationIdx = hitTestRota(e.clientX, e.clientY);
+        selectedAgentId.current = null;
+        selectedRota.current = stationIdx !== null ? localLayout.rotas[stationIdx].rota : null;
+        if (stationIdx !== null) {
+          const ag2 = agentsRef.current.find((x) => x.rotaAtual === localLayout.rotas[stationIdx].rota) || null;
+          onAgentSelect?.(ag2);
+        } else {
+          onAgentSelect?.(null);
+        }
+      }
+    }
+
+    dragRef.current = null;
+  };
+
+  const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    zoomAt(factor, e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+  };
+
+  const onResetZoom = () => {
+    resetView(canvasSize.w, canvasSize.h);
+  };
+
+  const onZoomIn = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    zoomAt(1.25, cx, cy, canvasSize.w, canvasSize.h, rect);
+  };
+
+  const onZoomOut = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    zoomAt(0.8, cx, cy, canvasSize.w, canvasSize.h, rect);
+  };
+
+  const getCursorStyle = () => {
+    if (dragRef.current?.type === 'station') return 'grabbing';
+    if (dragRef.current?.type === 'pan' && dragRef.current.hasMoved) return 'grabbing';
+    if (dragRef.current?.type === 'pan') return 'grab';
+    return 'default';
   };
 
   useImperativeHandle(ref, () => {
     const makespan = sim?.makespan_min ?? 0;
     return {
-    play: () => {
-      if (tiempoRef.current >= makespan) tiempoRef.current = 0;
-      playingRef.current = true;
-      onPlayingChange(true);
-    },
-    pause: () => { playingRef.current = false; onPlayingChange(false); },
-    reset: () => {
-      tiempoRef.current = 0;
-      playingRef.current = false;
-      onPlayingChange(false);
-      onTiempoChange(0);
-    },
-    seek: (m: number) => { tiempoRef.current = Math.max(0, Math.min(m, makespan)); onTiempoChange(tiempoRef.current); },
-    setSpeed: (s: number) => { speedRef.current = s; onSpeedChange(s); },
+      play: () => {
+        if (tiempoRef.current >= makespan) tiempoRef.current = 0;
+        playingRef.current = true;
+        onPlayingChange(true);
+      },
+      pause: () => { playingRef.current = false; onPlayingChange(false); },
+      reset: () => {
+        tiempoRef.current = 0;
+        playingRef.current = false;
+        onPlayingChange(false);
+        onTiempoChange(0);
+      },
+      seek: (m: number) => { tiempoRef.current = Math.max(0, Math.min(m, makespan)); onTiempoChange(tiempoRef.current); },
+      setSpeed: (s: number) => { speedRef.current = s; onSpeedChange(s); },
     };
   }, [sim?.makespan_min, onPlayingChange, onTiempoChange, onSpeedChange]);
 
   const progress = sim && sim.makespan_min > 0 ? (tiempo_min / sim.makespan_min) * 100 : 0;
   const tarefasConcluidas = sim ? sim.tasks.filter((t) => t.end_min <= tiempo_min).length : 0;
-  const makespan = sim?.makespan_min ?? 0; 
+  const makespan = sim?.makespan_min ?? 0;
   const totalTasks = sim?.totalTasks ?? 0;
   const lotes = sim?.lotesSimulados ?? 0;
 
+  const zoomPct = Math.round(vpRef.current.zoom / (vpRef.current.initialZoom || 1) * 100);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div ref={containerRef} style={{ width: '100%', overflow: 'auto', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, background: '#ffffff' }}>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height: canvasSize.h,
+          overflow: 'hidden',
+          border: '1px solid #e2e8f0',
+          borderRadius: 8,
+          background: '#ffffff',
+          position: 'relative',
+        }}
+      >
         <canvas
           ref={canvasRef}
-          onClick={onCanvasClick}
-          style={{ display: 'block', cursor: 'pointer', background: 'transparent', borderRadius: 6 }}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+          onWheel={onWheel}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: '100%',
+            cursor: getCursorStyle(),
+            background: 'transparent',
+          }}
         />
+
+        <div style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          zIndex: 10,
+        }}>
+          <button onClick={onZoomIn} title="Zoom in" style={zoomBtnStyle}>
+            <ZoomIn size={14} />
+          </button>
+          <button onClick={onZoomOut} title="Zoom out" style={zoomBtnStyle}>
+            <ZoomOut size={14} />
+          </button>
+          <button onClick={onResetZoom} title="Ajustar à tela" style={zoomBtnStyle}>
+            <Maximize2 size={14} />
+          </button>
+          <span style={{
+            fontSize: 10,
+            color: '#64748b',
+            textAlign: 'center',
+            background: 'rgba(255,255,255,0.85)',
+            borderRadius: 4,
+            padding: '1px 4px',
+            marginTop: 2,
+          }}>
+            {zoomPct}%
+          </span>
+        </div>
+
+        {savingStation !== null && (
+          <div style={{
+            position: 'absolute',
+            bottom: 8,
+            right: 8,
+            fontSize: 11,
+            color: '#1e40af',
+            background: 'rgba(239,246,255,0.9)',
+            padding: '4px 8px',
+            borderRadius: 4,
+            zIndex: 10,
+          }}>
+            Salvando posição...
+          </div>
+        )}
+
+        {dragStationIdx !== null && localLayout.rotas[dragStationIdx] && (
+          <div style={{
+            position: 'absolute',
+            bottom: 8,
+            left: 8,
+            fontSize: 10,
+            color: '#1e293b',
+            background: 'rgba(255,255,255,0.9)',
+            padding: '4px 8px',
+            borderRadius: 4,
+            fontFamily: 'monospace',
+            zIndex: 10,
+          }}>
+            {localLayout.rotas[dragStationIdx].rota}: x={localLayout.rotas[dragStationIdx].x}, y={localLayout.rotas[dragStationIdx].y}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', background: '#1e293b', borderRadius: 8, color: 'white' }}>
@@ -385,11 +642,12 @@ export const SimulationCanvas = forwardRef<SimulationCanvasHandle, Props>(functi
         <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${progress}%`, background: 'linear-gradient(to right, #1e40af, #3b82f6)', borderRadius: 4 }} />
       </div>
 
-      <div style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 12 }}>
+      <div style={{ fontSize: 11, color: '#64748b', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <span>● Azul = Máquina (MAQ)</span>
         <span>● Verde = Analista (MO)</span>
         <span>● <span style={{ color: '#dc2626' }}>●</span> Vermelho = amostra selecionável</span>
         <span>● Glow amarelo = equipamento ocupado</span>
+        <span>● Scroll = zoom | Arrastar vazio = pan | Arrastar estação = reposicionar</span>
       </div>
     </div>
   );
@@ -466,3 +724,17 @@ function atualizarAgent(a: AgentState, tiempo_min: number, tasks: ScheduledTask[
   }
   return { ...a, state: 'idle' };
 }
+
+const zoomBtnStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 30,
+  height: 30,
+  border: '1px solid #cbd5e1',
+  borderRadius: 6,
+  background: 'rgba(255,255,255,0.9)',
+  color: '#1e293b',
+  cursor: 'pointer',
+  backdropFilter: 'blur(4px)',
+};

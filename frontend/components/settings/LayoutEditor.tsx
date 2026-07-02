@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Save, RotateCcw, Loader2, MousePointer2 } from 'lucide-react';
+import { Save, RotateCcw, Loader2, MousePointer2, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import type { LabLayout } from '../../services/layoutTypes';
+import { useCanvasViewport } from '../../hooks/useCanvasViewport';
 
 const DEFAULT_LAYOUT: LabLayout = {
   canvas: { width: 1080, height: 620 },
@@ -19,12 +20,18 @@ function drawLayout(
   layout: LabLayout,
   bgImage: HTMLImageElement | null,
   showBackground: boolean,
-  scale: number,
+  canvasW: number,
+  canvasH: number,
+  applyTransform: (ctx: CanvasRenderingContext2D, cw: number, ch: number) => void,
   selectedIdx: number | null
 ) {
-  ctx.clearRect(0, 0, layout.canvas.width * scale, layout.canvas.height * scale);
+  const dpr = window.devicePixelRatio || 1;
   ctx.save();
-  ctx.scale(scale, scale);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, canvasW, canvasH);
+
+  ctx.save();
+  applyTransform(ctx, canvasW, canvasH);
 
   if (showBackground && bgImage) {
     ctx.drawImage(bgImage, 0, 0, layout.canvas.width, layout.canvas.height);
@@ -63,6 +70,7 @@ function drawLayout(
   });
 
   ctx.restore();
+  ctx.restore();
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
@@ -99,10 +107,23 @@ export const LayoutEditor: React.FC = () => {
   const [dirty, setDirty] = useState<boolean>(false);
   const [showBackground, setShowBackground] = useState<boolean>(true);
   const [bgImage, setBgImage] = useState<HTMLImageElement | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ w: 800, h: 500 });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const dragState = useRef<{ idx: number; offsetX: number; offsetY: number } | null>(null);
   const { showToast } = useToast();
+
+  const { vpRef, fitToContainer, screenToLayout, zoomAt, panBy, applyTransform, resetView } = useCanvasViewport(
+    layout.canvas.width,
+    layout.canvas.height
+  );
+
+  const dragRef = useRef<{
+    type: 'pan' | 'station';
+    startX: number;
+    startY: number;
+    stationIdx?: number;
+    hasMoved: boolean;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,93 +149,122 @@ export const LayoutEditor: React.FC = () => {
       setBgImage(null);
       return;
     }
-
     const img = new Image();
     img.onload = () => setBgImage(img);
     img.onerror = () => setBgImage(null);
     img.src = layout.backgroundImage;
-
     return () => {
       img.onload = null;
       img.onerror = null;
     };
   }, [layout.backgroundImage, showBackground]);
 
-  const computeScale = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return 1;
-    const availableWidth = container.clientWidth - 32;
-    return Math.min(1, availableWidth / layout.canvas.width);
-  }, [layout.canvas.width]);
+  const measureContainer = useCallback(() => {
+    const c = containerRef.current;
+    if (!c) return;
+    const w = c.clientWidth;
+    const ratio = layout.canvas.height / layout.canvas.width;
+    const h = w * ratio;
+    setCanvasSize({ w, h });
+    fitToContainer(w, h);
+  }, [layout.canvas.width, layout.canvas.height, fitToContainer]);
+
+  useEffect(() => { measureContainer(); }, [measureContainer]);
+  useEffect(() => {
+    const onResize = () => measureContainer();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [measureContainer]);
 
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const scale = computeScale();
-    canvas.width = layout.canvas.width * scale;
-    canvas.height = layout.canvas.height * scale;
-    drawLayout(ctx, layout, bgImage, showBackground, scale, selectedIdx);
-  }, [layout, bgImage, showBackground, selectedIdx, computeScale]);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(canvasSize.w * dpr);
+    canvas.height = Math.floor(canvasSize.h * dpr);
+    drawLayout(ctx, layout, bgImage, showBackground, canvasSize.w, canvasSize.h, applyTransform, selectedIdx);
+  }, [layout, bgImage, showBackground, selectedIdx, canvasSize, applyTransform]);
 
   useEffect(() => { redraw(); }, [redraw]);
-  useEffect(() => {
-    const onResize = () => redraw();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [redraw]);
-
-  const hitTest = useCallback((clientX: number, clientY: number): number | null => {
-    const canvas = canvasRef.current;
-    if (!canvas) return null;
-    const rect = canvas.getBoundingClientRect();
-    const scale = computeScale();
-    const mx = (clientX - rect.left) / scale;
-    const my = (clientY - rect.top) / scale;
-    for (let i = layout.rotas.length - 1; i >= 0; i--) {
-      const r = layout.rotas[i];
-      if (mx >= r.x && mx <= r.x + layout.stationWidth && my >= r.y && my <= r.y + layout.stationHeight) {
-        return i;
-      }
-    }
-    return null;
-  }, [layout, computeScale]);
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const idx = hitTest(e.clientX, e.clientY);
-    if (idx === null) { setSelectedIdx(null); return; }
-    setSelectedIdx(idx);
-    const r = layout.rotas[idx];
-    const canvas = canvasRef.current!;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const scale = computeScale();
-    const mx = (e.clientX - rect.left) / scale;
-    const my = (e.clientY - rect.top) / scale;
-    dragState.current = { idx, offsetX: mx - r.x, offsetY: my - r.y };
+    const lp = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+
+    for (let i = layout.rotas.length - 1; i >= 0; i--) {
+      const r = layout.rotas[i];
+      if (lp.x >= r.x && lp.x <= r.x + layout.stationWidth && lp.y >= r.y && lp.y <= r.y + layout.stationHeight) {
+        setSelectedIdx(i);
+        dragRef.current = {
+          type: 'station',
+          startX: e.clientX,
+          startY: e.clientY,
+          stationIdx: i,
+          hasMoved: false,
+        };
+        return;
+      }
+    }
+
+    setSelectedIdx(null);
+    dragRef.current = {
+      type: 'pan',
+      startX: e.clientX,
+      startY: e.clientY,
+      hasMoved: false,
+    };
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (dragState.current === null) return;
-    const canvas = canvasRef.current!;
-    const rect = canvas.getBoundingClientRect();
-    const scale = computeScale();
-    const mx = (e.clientX - rect.left) / scale;
-    const my = (e.clientY - rect.top) / scale;
-    const { idx, offsetX, offsetY } = dragState.current;
-    let newX = mx - offsetX;
-    let newY = my - offsetY;
-    newX = Math.max(0, Math.min(layout.canvas.width - layout.stationWidth, Math.round(newX)));
-    newY = Math.max(0, Math.min(layout.canvas.height - layout.stationHeight, Math.round(newY)));
-    setLayout(prev => ({
-      ...prev,
-      rotas: prev.rotas.map((r, i) => i === idx ? { ...r, x: newX, y: newY } : r),
-    }));
-    setDirty(true);
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    const totalMove = Math.abs(dx) + Math.abs(dy);
+
+    if (totalMove < 3) return;
+    dragRef.current.hasMoved = true;
+
+    if (dragRef.current.type === 'station' && dragRef.current.stationIdx !== undefined) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const lp = screenToLayout(e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+      let newX = Math.round(lp.x - layout.stationWidth / 2);
+      let newY = Math.round(lp.y - layout.stationHeight / 2);
+      newX = Math.max(0, Math.min(layout.canvas.width - layout.stationWidth, newX));
+      newY = Math.max(0, Math.min(layout.canvas.height - layout.stationHeight, newY));
+      setLayout(prev => ({
+        ...prev,
+        rotas: prev.rotas.map((r, i) =>
+          i === dragRef.current!.stationIdx ? { ...r, x: newX, y: newY } : r
+        ),
+      }));
+      setDirty(true);
+      dragRef.current.startX = e.clientX;
+      dragRef.current.startY = e.clientY;
+    } else if (dragRef.current.type === 'pan') {
+      panBy(dx, dy, canvasSize.w, canvasSize.h, canvasRef.current!.getBoundingClientRect());
+      dragRef.current.startX = e.clientX;
+      dragRef.current.startY = e.clientY;
+    }
   };
 
-  const onMouseUp = () => { dragState.current = null; };
-  const onMouseLeave = () => { dragState.current = null; };
+  const onMouseUp = () => {
+    dragRef.current = null;
+  };
+
+  const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    zoomAt(factor, e.clientX, e.clientY, canvasSize.w, canvasSize.h, rect);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -239,6 +289,15 @@ export const LayoutEditor: React.FC = () => {
     load();
     setSelectedIdx(null);
   };
+
+  const getCursorStyle = () => {
+    if (dragRef.current?.type === 'station') return 'grabbing';
+    if (dragRef.current?.type === 'pan' && dragRef.current.hasMoved) return 'grabbing';
+    if (dragRef.current?.type === 'pan') return 'grab';
+    return 'default';
+  };
+
+  const zoomPct = Math.round(vpRef.current.zoom / (vpRef.current.initialZoom || 1) * 100);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -265,7 +324,7 @@ export const LayoutEditor: React.FC = () => {
       </div>
 
       <div style={{ fontSize: 12, color: '#64748b' }}>
-        Arraste as estações para reposicioná-las. Cores: azul = Máquina (MAQ), verde = Analista (MO), contorno amarelo = selecionado.
+        Arraste as estações para reposicioná-las. Scroll = zoom, arraste no vazio = pan. Cores: azul = Máquina (MAQ), verde = Analista (MO), contorno amarelo = selecionado.
         {selectedIdx !== null && layout.rotas[selectedIdx] && (
           <span style={{ marginLeft: 8, color: '#1e293b' }}>
             Selecionado: <b>{layout.rotas[selectedIdx].rota}</b> — x={layout.rotas[selectedIdx].x}, y={layout.rotas[selectedIdx].y}
@@ -273,20 +332,93 @@ export const LayoutEditor: React.FC = () => {
         )}
       </div>
 
-      <div ref={containerRef} style={{ width: '100%', overflow: 'auto', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, background: '#f8fafc' }}>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height: canvasSize.h,
+          overflow: 'hidden',
+          border: '1px solid #e2e8f0',
+          borderRadius: 8,
+          background: '#f8fafc',
+          position: 'relative',
+        }}
+      >
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
             <Loader2 size={24} className="animate-spin" /> Carregando layout...
           </div>
         ) : (
-          <canvas
-            ref={canvasRef}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseLeave}
-            style={{ display: 'block', cursor: dragState.current ? 'grabbing' : 'pointer', background: 'transparent', borderRadius: 6 }}
-          />
+          <>
+            <canvas
+              ref={canvasRef}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseUp}
+              onWheel={onWheel}
+              style={{
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                cursor: getCursorStyle(),
+                background: 'transparent',
+              }}
+            />
+
+            <div style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              zIndex: 10,
+            }}>
+              <button
+                onClick={() => {
+                  const canvas = canvasRef.current;
+                  if (!canvas) return;
+                  const rect = canvas.getBoundingClientRect();
+                  const cx = rect.left + rect.width / 2;
+                  const cy = rect.top + rect.height / 2;
+                  zoomAt(1.25, cx, cy, canvasSize.w, canvasSize.h, rect);
+                }}
+                title="Zoom in"
+                style={zoomBtnStyle}
+              >
+                <ZoomIn size={14} />
+              </button>
+              <button
+                onClick={() => {
+                  const canvas = canvasRef.current;
+                  if (!canvas) return;
+                  const rect = canvas.getBoundingClientRect();
+                  const cx = rect.left + rect.width / 2;
+                  const cy = rect.top + rect.height / 2;
+                  zoomAt(0.8, cx, cy, canvasSize.w, canvasSize.h, rect);
+                }}
+                title="Zoom out"
+                style={zoomBtnStyle}
+              >
+                <ZoomOut size={14} />
+              </button>
+              <button onClick={() => resetView(canvasSize.w, canvasSize.h)} title="Ajustar à tela" style={zoomBtnStyle}>
+                <Maximize2 size={14} />
+              </button>
+              <span style={{
+                fontSize: 10,
+                color: '#64748b',
+                textAlign: 'center',
+                background: 'rgba(255,255,255,0.85)',
+                borderRadius: 4,
+                padding: '1px 4px',
+                marginTop: 2,
+              }}>
+                {zoomPct}%
+              </span>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -306,3 +438,17 @@ const btnStyle = (primary: boolean): React.CSSProperties => ({
   borderRadius: 6,
   cursor: 'pointer',
 });
+
+const zoomBtnStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 30,
+  height: 30,
+  border: '1px solid #cbd5e1',
+  borderRadius: 6,
+  background: 'rgba(255,255,255,0.9)',
+  color: '#1e293b',
+  cursor: 'pointer',
+  backdropFilter: 'blur(4px)',
+};
