@@ -11,7 +11,8 @@ docs/
 │   ├── ROADMAP.md             → Roadmap do projeto
 │   └── STATE.md               → Estado atual do projeto
 ├── architecture/              ← Documentação arquitetural
-│   └── stack.md               → Stack e topologia do sistema
+│   ├── stack.md               → Stack e topologia do sistema
+│   └── route-tree-ux-spec.md  → UX da árvore de rotas analíticas
 └── changelog/                 ← Histórico de mudanças
     └── 2026-06-19.md          → Changelog do dia
 ```
@@ -28,3 +29,4 @@ docs/
 - [GitHub](https://github.com/saldanhalopes/labprocessor.git)
 - [Plano Fase 1](gsd-planning/01-PLAN.md)
 - [Pesquisa Fase 1](gsd-planning/01-RESEARCH.md)
+- [UX Spec da Árvore de Rotas](architecture/route-tree-ux-spec.md)

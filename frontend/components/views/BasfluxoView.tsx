@@ -3,6 +3,8 @@ import { Workflow, Plus, X, ChevronDown, ChevronRight, GripVertical, Layers, Git
 import { useToast } from '../../context/ToastContext';
 import { SpreadsheetTable } from '../SpreadsheetTable';
 import { FlowRouteDiagram } from '../FlowRouteDiagram';
+import { RouteTreeWorkspace } from '../flow/RouteTreeWorkspace';
+import type { EtapaBasfluxo } from '../../types';
 
 interface Atividade {
   atividade: string;
@@ -52,7 +54,7 @@ export const BasfluxoView: React.FC = () => {
   const [expandedTestes, setExpandedTestes] = useState<Set<string>>(new Set());
   const [expandedEtapas, setExpandedEtapas] = useState<Set<string>>(new Set());
   const [editingTestName, setEditingTestName] = useState('');
-  const [viewMode, setViewMode] = useState<'spreadsheet' | 'diagram'>('spreadsheet');
+  const [viewMode, setViewMode] = useState<'spreadsheet' | 'tree' | 'legacy'>('spreadsheet');
   const editInputRef = React.useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
 
@@ -279,10 +281,16 @@ export const BasfluxoView: React.FC = () => {
               Planilha
             </button>
             <button
-              onClick={() => setViewMode('diagram')}
-              className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${viewMode === 'diagram' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => setViewMode('tree')}
+              className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${viewMode === 'tree' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
-              Diagrama
+              Arvore
+            </button>
+            <button
+              onClick={() => setViewMode('legacy')}
+              className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${viewMode === 'legacy' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              Legado
             </button>
           </div>
         </div>
@@ -446,6 +454,8 @@ export const BasfluxoView: React.FC = () => {
                                     Nova Etapa
                                   </button>
                                 </div>
+                              ) : viewMode === 'tree' ? (
+                                <RouteTreeWorkspace etapas={testData.etapas as EtapaBasfluxo[]} testName={teste} />
                               ) : (
                                 <FlowRouteDiagram etapas={testData.etapas} testName={teste} />
                               )}
